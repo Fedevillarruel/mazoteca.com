@@ -1,0 +1,18 @@
+# Hostinger Next.js configuration
+# This file ensures that all requests are handled by the Node.js server
+
+RewriteEngine On
+RewriteBase /
+
+# Proxy requests to the Node.js server
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+# Do not proxy requests for static files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^_next/static/(.*)$ http://127.0.0.1:3000/_next/static/$1 [P,L]
+
+# Handle WebSockets for HMR (development)
+RewriteCond %{REQUEST_URI} ^/_next/webpack-hmr
+RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteRule .* ws://127.0.0.1:3000%{REQUEST_URI} [P,L]
