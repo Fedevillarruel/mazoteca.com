@@ -29,6 +29,7 @@ export interface KTCGCard {
   crowned?: string | null;
   finishes?: string[];
   cost?: number | null;
+  flavor_text?: string | null;
 }
 
 // ---- Tropas (79 cards) ----
@@ -286,6 +287,25 @@ const arroje: KTCGCard[] = [
 
 // Ensure every exported card has a numeric `cost` field so UI can safely render it.
 // Rule: use `level` when present; otherwise default to 3.
+// Flavor texts inspired by the official lore (paraphrased/original). Keys are card codes.
+const flavorTexts: Record<string, string> = {
+  KC001: "Viggo mira el campo de batalla como quien cuenta capítulos: sabe cuándo incendiar y cuándo perdonar.",
+  KC002: "Nemea vela por Goldinfeit; su palabra es ley y su escudo, promesa de abundancia.",
+  KC003: "Igno trae en la piel la memoria del magma; donde pasa, la tierra renace en brasas.",
+  KC004: "Erya habla en runas con los bosques; sus aliados no conocen el miedo.",
+  KR001: "Cuando la marea de acero avanza, el destino de las fortificaciones se escribe con ruido de metal.",
+  KR008: "Posturas ordenadas y disciplina: la victoria es un conjunto de pasos bien dados.",
+  KR029: "Balancear las fuerzas es tan viejo como las estaciones; Erya lo hace con la calma de un robledal.",
+  KT001: "No subestimes al aldeano: su constancia sostiene ejércitos y ciudades por igual.",
+  KT008: "La punta de su lanza corta dudas y abre paso al resto de la falange.",
+  KT009: "Soldado de mirada firme, forjado entre marchas y guardias nocturnas.",
+  KT018: "Actúa en silencio y se recoge como sombra; su firma son las heridas precisas.",
+  KT024: "Los bárbaros de Fahridor llevan el rugido de la estepa en el pecho y la tormenta en los puños.",
+  KT068: "La guerrera Kaihat recorre las dunas con la destreza de quien conoce el viento.",
+  KT072: "El lobo del norte aúlla una llamada antigua; sus dientes guardan historias de caza.",
+  KT078: "Su pelaje oculta cicatrices y juramentos: el Protector Pardo cumple con la ley del clan.",
+};
+
 export const allCards: KTCGCard[] = [
   ...tropas,
   ...coronados,
@@ -294,9 +314,10 @@ export const allCards: KTCGCard[] = [
   ...estrategiaPrimigenia,
   ...arroje,
 ].map((c) => ({
-  // preserve original shape and add cost if missing
+  // preserve original shape and add cost/flavor_text if missing
   ...c,
   cost: c.cost ?? (c.level != null ? c.level : 3),
+  flavor_text: c.flavor_text ?? flavorTexts[c.code] ?? null,
 }));
 
 // ---- Helper Constants ----
