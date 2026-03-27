@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kingdom Singles — TCG Marketplace & Community Platform
 
-## Getting Started
+Plataforma completa para la comunidad de **Kingdom TCG**: catálogo de cartas, colección digital y física, constructor de mazos, marketplace de singles, sistema de intercambios, foro, torneos, suscripciones premium con MercadoPago y panel de administración.
 
-First, run the development server:
+## 🏗️ Tech Stack
+
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16 (App Router) + React 19 |
+| Lenguaje | TypeScript (strict) |
+| Base de datos | Supabase (PostgreSQL + Auth + Storage + Realtime) |
+| Estilos | Tailwind CSS v4 (dark theme) |
+| State (client) | Zustand + React Query v5 |
+| Validación | Zod v4 |
+| Pagos | MercadoPago (subscripciones via preapprovals) |
+| Torneos | Challonge API |
+| Monetización | Google AdSense |
+| Iconos | Lucide React |
+
+## 📁 Estructura del proyecto
+
+```
+src/
+├── app/                        # App Router pages
+│   ├── admin/                  # Admin panel (layout + sub-pages)
+│   ├── api/webhooks/           # MercadoPago webhook
+│   ├── catalog/[slug]/         # Card detail
+│   ├── collection/             # Digital & physical collection
+│   ├── decks/[id]/ & /new     # Deck viewer & builder
+│   ├── forum/[id]/ & /new     # Forum threads
+│   ├── friends/                # Social / friends list
+│   ├── marketplace/[id]/ & /new# Listings
+│   ├── notifications/          # Notification center
+│   ├── premium/                # Subscription page
+│   ├── profile/[username]/     # User profiles
+│   ├── settings/               # User settings
+│   ├── tournaments/            # Tournaments list
+│   ├── trades/                 # Trade proposals
+│   ├── layout.tsx, providers.tsx, globals.css
+│   ├── loading.tsx, error.tsx, not-found.tsx
+│   ├── sitemap.ts, robots.ts
+│   └── ...
+├── components/
+│   ├── ui/                     # Button, Card, Badge, Input, Modal, etc.
+│   └── layout/                 # Header, Footer, PageLayout, AdBanner
+├── config/
+│   ├── site.ts                 # App metadata, game config, tier limits
+│   └── design-tokens.ts        # Color palette
+├── lib/
+│   ├── actions/                # Server Actions (auth, decks, marketplace, forum, trades, profile, social, subscriptions, admin)
+│   ├── services/               # MercadoPago + Challonge API wrappers
+│   ├── supabase/               # Browser + Server + Middleware clients
+│   ├── hooks.ts                # React Query hooks (client-side)
+│   ├── queries.ts              # Server-side data access layer
+│   ├── stores.ts               # Zustand stores
+│   ├── utils.ts                # Utility functions
+│   └── validations.ts          # Zod schemas for all forms
+├── types/index.ts              # 25+ TypeScript entity interfaces
+└── supabase/migrations/        # SQL: schema, RLS, functions, storage
+```
+
+## 🚀 Inicio rápido
+
+### 1. Variables de entorno
+
+Copiá `.env.local.example` a `.env.local` y completá:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+MERCADOPAGO_ACCESS_TOKEN=your-access-token
+MP_PREAPPROVAL_PLAN_ID=your-plan-id
+MP_WEBHOOK_SECRET=your-webhook-secret
+CHALLONGE_API_KEY=your-api-key
+CHALLONGE_USERNAME=your-username
+NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-XXXXXXXXXX
+```
+
+### 2. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 3. Configurar la base de datos
+
+Ejecutá las migraciones SQL en Supabase (Dashboard → SQL Editor) en orden:
+
+1. `supabase/migrations/001_initial_schema.sql`
+2. `supabase/migrations/002_rls_policies.sql`
+3. `supabase/migrations/003_functions.sql`
+4. `supabase/migrations/004_storage.sql`
+
+### 4. Iniciar el servidor
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔐 Autenticación
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Supabase Auth con email/password. Middleware protege rutas privadas y renueva sesiones.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 💰 Suscripciones Premium
 
-## Learn More
+MercadoPago Preapprovals → webhook `/api/webhooks/mercadopago` → actualiza `subscriptions` + `profiles.is_premium`.
 
-To learn more about Next.js, take a look at the following resources:
+## 🃏 Reglas de mazos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Tipo | Tamaño | Coronado |
+|---|---|---|
+| Estrategia | 30 cartas | No |
+| Combatientes | 33 + 1 coronado | Sí |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛡️ Seguridad
 
-## Deploy on Vercel
+- RLS en todas las tablas
+- Validación server-side con Zod
+- Webhook signature verification
+- Admin client separado (bypasea RLS)
+- Límites por tier
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📊 Módulos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| # | Módulo | Descripción |
+|---|---|---|
+| 1 | Catálogo | Explorar cartas con filtros, búsqueda, detalle |
+| 2 | Colección Digital | Álbum de cartas digitales obtenidas |
+| 3 | Colección Física | Inventario manual de cartas físicas |
+| 4 | Constructor de Mazos | Crear/editar mazos con validación |
+| 5 | Marketplace | Compra/venta de singles con ofertas |
+| 6 | Intercambios | Propuestas P2P de intercambio |
+| 7 | Foro | Categorías, hilos, respuestas, likes, soluciones |
+| 8 | Torneos | Creación, inscripción, brackets (Challonge) |
+| 9 | Social | Amigos, notificaciones, bloqueo |
+| 10 | Premium | Suscripción mensual via MercadoPago |
+| 11 | Panel Admin | Gestión de usuarios, cartas, reportes, audit log |
+| 12 | Monetización | Google AdSense (deshabilitado para premium) |
+
+---
+
+**Kingdom Singles** — Desarrollado para la comunidad de Kingdom TCG 🃏👑
+# mazoteca.com
