@@ -49,7 +49,10 @@ const levelOptions = [
 
 const factionOptions = [
   { label: "Todas las facciones", value: "" },
-  ...factions.map((f) => ({ label: f, value: f.toLowerCase() })),
+  ...factions.map((f) => {
+    if (f === "Gringud") return { label: "Gringud (incluye Kaihat, Daihat, Gukhal)", value: f.toLowerCase() };
+    return { label: f, value: f.toLowerCase() };
+  }),
 ];
 
 const sortOptions = [
@@ -320,7 +323,7 @@ export function CatalogView() {
           ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {visible.map((card) => (
             <CatalogListItem key={card.code} card={card} />
           ))}
@@ -364,8 +367,8 @@ function CatalogCard({ card }: { card: KTCGCard }) {
   return (
     <Link href={`/catalog/${card.slug}`}>
       <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden transition-transform hover:-translate-y-1">
-        {/* Card Image Placeholder */}
-        <div className="relative aspect-2.5/3.5 bg-surface-800 flex flex-col items-center justify-center p-3 text-center">
+  {/* Card Image Placeholder */}
+  <div className="relative aspect-2.5/3.5 bg-surface-800 flex flex-col items-center justify-center p-3 text-center">
           <Icon className="h-8 w-8 text-surface-600 mb-2" />
           <span className="text-xs font-medium text-surface-300 leading-tight line-clamp-2">
             {card.name}
@@ -400,10 +403,14 @@ function CatalogCard({ card }: { card: KTCGCard }) {
           <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[10px] font-mono text-surface-300">
             {card.code}
           </div>
+          {/* Cost badge */}
+          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[12px] font-medium text-accent-300">
+            {card.cost}
+          </div>
         </div>
 
         {/* Card Info */}
-        <div className="p-3">
+  <div className="p-3">
           <p className="text-sm font-medium text-surface-200 truncate">
             {card.name}
           </p>
@@ -435,10 +442,11 @@ function CatalogListItem({ card }: { card: KTCGCard }) {
   return (
     <Link href={`/catalog/${card.slug}`}>
       <Card variant="interactive">
-        <CardContent className="p-4 flex items-center gap-4">
+        <CardContent className="p-5 flex items-center gap-6">
           {/* Thumbnail */}
-          <div className="h-16 w-12 bg-surface-800 rounded-lg flex items-center justify-center shrink-0">
-            <Icon className="h-5 w-5 text-surface-600" />
+          <div className="h-20 w-14 bg-surface-800 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
+            <Icon className="h-6 w-6 text-surface-600" />
+            <div className="absolute bottom-1 right-1 text-[10px] text-accent-300 font-mono">{card.cost}</div>
           </div>
           {/* Info */}
           <div className="flex-1 min-w-0">

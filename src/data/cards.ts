@@ -28,6 +28,7 @@ export interface KTCGCard {
   category: KTCGCategory;
   crowned?: string | null;
   finishes?: string[];
+  cost?: number | null;
 }
 
 // ---- Tropas (79 cards) ----
@@ -283,6 +284,8 @@ const arroje: KTCGCard[] = [
 
 // ---- Combined Export ----
 
+// Ensure every exported card has a numeric `cost` field so UI can safely render it.
+// Rule: use `level` when present; otherwise default to 3.
 export const allCards: KTCGCard[] = [
   ...tropas,
   ...coronados,
@@ -290,7 +293,11 @@ export const allCards: KTCGCard[] = [
   ...estrategia,
   ...estrategiaPrimigenia,
   ...arroje,
-];
+].map((c) => ({
+  // preserve original shape and add cost if missing
+  ...c,
+  cost: c.cost ?? (c.level != null ? c.level : 3),
+}));
 
 // ---- Helper Constants ----
 
@@ -308,10 +315,13 @@ export const factions = [
   "Goldinfeit",
   "Estonbleiz",
   "Gringud",
-  "Kaihat",
-  "Daihat",
-  "Gukhal",
 ] as const;
+
+// Aliases / sub-factions: when filtering by 'Gringud' we also want to include
+// cards that reference the historical sub-factions Gukhal, Daihat or Kaihat.
+export const factionAliases: Record<string, string[]> = {
+  gringud: ["gringud", "gukhal", "daihat", "kaihat"],
+};
 
 export const coronadoNames = [
   "VIGGO DE FAHRIDOR",
@@ -335,8 +345,11 @@ export function getCardBySlug(slug: string): KTCGCard | undefined {
 }
 
 export function getCardsByFaction(faction: string): KTCGCard[] {
-  const lf = faction.toLowerCase();
-  return allCards.filter((c) => c.name.toLowerCase().includes(lf) || c.crowned?.toLowerCase().includes(lf));
+  const key = faction.toLowerCase();
+  const aliases = factionAliases[key] ?? [key];
+  return allCards.filter((c) =>
+    aliases.some((a) => c.name.toLowerCase().includes(a) || c.crowned?.toLowerCase().includes(a))
+  );
 }
 
 export function getCardsByLevel(level: number): KTCGCard[] {
