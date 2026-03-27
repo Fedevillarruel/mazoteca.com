@@ -1,26 +1,222 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================
+   Mazoteca — Design System
+   ============================================================
+   Dark-first, premium TCG aesthetic.
+   Royal purple primary + warm gold accent on dark slate surfaces.
+   ============================================================ */
+
+@theme {
+  /* Primary — Royal Purple */
+  --color-primary-50: #f5f0ff;
+  --color-primary-100: #ede5ff;
+  --color-primary-200: #dcceff;
+  --color-primary-300: #c4a8ff;
+  --color-primary-400: #a875ff;
+  --color-primary-500: #8b42ff;
+  --color-primary-600: #7c2df7;
+  --color-primary-700: #6a1ee3;
+  --color-primary-800: #5918bf;
+  --color-primary-900: #49159c;
+  --color-primary-950: #2d0b6a;
+
+  /* Accent — Warm Gold */
+  --color-accent-50: #fff9eb;
+  --color-accent-100: #ffefc6;
+  --color-accent-200: #ffdc88;
+  --color-accent-300: #ffc64a;
+  --color-accent-400: #ffad20;
+  --color-accent-500: #f99007;
+  --color-accent-600: #dd6a02;
+  --color-accent-700: #b74906;
+  --color-accent-800: #94370c;
+  --color-accent-900: #7a2e0d;
+  --color-accent-950: #461602;
+
+  /* Surface — Dark Slate */
+  --color-surface-50: #f6f7f9;
+  --color-surface-100: #eceef2;
+  --color-surface-200: #d5dae2;
+  --color-surface-300: #b0bac9;
+  --color-surface-400: #8695ab;
+  --color-surface-500: #677891;
+  --color-surface-600: #526078;
+  --color-surface-700: #434e62;
+  --color-surface-800: #333c4d;
+  --color-surface-850: #272e3d;
+  --color-surface-900: #1e2433;
+  --color-surface-950: #0f1219;
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Shadows for dark mode */
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(139, 66, 255, 0.15);
+  --shadow-glow-accent: 0 0 20px rgba(249, 144, 7, 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-surface-950);
+  color: var(--color-surface-100);
+  line-height: 1.6;
 }
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-900);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-600);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surface-500);
+}
+
+/* ============================================================
+   Focus styles
+   ============================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Selection
+   ============================================================ */
+
+::selection {
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.content-grid {
+  --padding-inline: 1.5rem;
+  --content-max-width: 1400px;
+  --breakout-max-width: 1600px;
+
+  display: grid;
+  grid-template-columns:
+    [full-width-start] minmax(var(--padding-inline), 1fr)
+    [breakout-start] minmax(0, calc((var(--breakout-max-width) - var(--content-max-width)) / 2))
+    [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-width))
+    [content-end] minmax(0, calc((var(--breakout-max-width) - var(--content-max-width)) / 2))
+    [breakout-end] minmax(var(--padding-inline), 1fr)
+    [full-width-end];
+}
+
+.content-grid > * {
+  grid-column: content;
+}
+
+.content-grid > .breakout {
+  grid-column: breakout;
+}
+
+.content-grid > .full-width {
+  grid-column: full-width;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect for cards */
+.glass {
+  background: rgba(30, 36, 51, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-800) 25%,
+    var(--color-surface-700) 50%,
+    var(--color-surface-800) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Rarity colors */
+.rarity-common { color: var(--color-surface-300); }
+.rarity-uncommon { color: #22c55e; }
+.rarity-rare { color: #3b82f6; }
+.rarity-epic { color: #a855f7; }
+.rarity-legendary { color: #f59e0b; }
+.rarity-mythic { color: #ef4444; }
+
+.rarity-common-bg { background-color: var(--color-surface-600); }
+.rarity-uncommon-bg { background-color: #166534; }
+.rarity-rare-bg { background-color: #1e3a5f; }
+.rarity-epic-bg { background-color: #581c87; }
+.rarity-legendary-bg { background-color: #78350f; }
+.rarity-mythic-bg { background-color: #7f1d1d; }

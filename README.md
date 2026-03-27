@@ -1,4 +1,4 @@
-# Kingdom Singles — TCG Marketplace & Community Platform
+# Mazoteca — TCG Marketplace & Community Platform
 
 Plataforma completa para la comunidad de **Kingdom TCG**: catálogo de cartas, colección digital y física, constructor de mazos, marketplace de singles, sistema de intercambios, foro, torneos, suscripciones premium con MercadoPago y panel de administración.
 
@@ -141,5 +141,5 @@ MercadoPago Preapprovals → webhook `/api/webhooks/mercadopago` → actualiza `
 
 ---
 
-**Kingdom Singles** — Desarrollado para la comunidad de Kingdom TCG 🃏👑
+**Mazoteca** — Desarrollado para la comunidad de Kingdom TCG 🃏👑
 # mazoteca.com

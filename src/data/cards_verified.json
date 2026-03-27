@@ -1,0 +1,1979 @@
+[
+  {
+    "name": "ALDEANO",
+    "code": "KT001",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "aldeano"
+  },
+  {
+    "name": "ESBIRRO DE FAHRIDOR",
+    "code": "KT002",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "esbirro-de-fahridor"
+  },
+  {
+    "name": "MINERO DE GOLDINFEIT",
+    "code": "KT003",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "minero-de-goldinfeit"
+  },
+  {
+    "name": "GRANJERO",
+    "code": "KT004",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "granjero"
+  },
+  {
+    "name": "HERRERO",
+    "code": "KT005",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "herrero"
+  },
+  {
+    "name": "LEÑADOR",
+    "code": "KT006",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "lenador"
+  },
+  {
+    "name": "ALDEANO CALVO",
+    "code": "KT007",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "aldeano-calvo"
+  },
+  {
+    "name": "LANCERO",
+    "code": "KT008",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "lancero"
+  },
+  {
+    "name": "SOLDADO",
+    "code": "KT009",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "soldado"
+  },
+  {
+    "name": "CLÉRIGO",
+    "code": "KT010",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "clerigo"
+  },
+  {
+    "name": "SOLDADO DE FAHRIDOR",
+    "code": "KT011",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "soldado-de-fahridor"
+  },
+  {
+    "name": "LANCERO DE GOLDINFEIT",
+    "code": "KT012",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "lancero-de-goldinfeit"
+  },
+  {
+    "name": "MERCENARIO COMÚN",
+    "code": "KT013",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "mercenario-comun"
+  },
+  {
+    "name": "ESCUDERO",
+    "code": "KT014",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "escudero"
+  },
+  {
+    "name": "DESOLLADOR",
+    "code": "KT015",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "desollador"
+  },
+  {
+    "name": "DUELISTA",
+    "code": "KT016",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "duelista"
+  },
+  {
+    "name": "TEMPLARIO",
+    "code": "KT017",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "templario"
+  },
+  {
+    "name": "ASESINO",
+    "code": "KT018",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "asesino"
+  },
+  {
+    "name": "GLADIADOR DE FAHRIDOR",
+    "code": "KT019",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "gladiador-de-fahridor"
+  },
+  {
+    "name": "DEFENSOR DE GOLDINFEIT",
+    "code": "KT020",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "defensor-de-goldinfeit"
+  },
+  {
+    "name": "ALABARDERO",
+    "code": "KT021",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "alabardero"
+  },
+  {
+    "name": "PIRÓMANO",
+    "code": "KT022",
+    "type": "tropa",
+    "level": 3,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "piromano"
+  },
+  {
+    "name": "PROTECTOR",
+    "code": "KT023",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "protector"
+  },
+  {
+    "name": "BÁRBARO DE FAHRIDOR",
+    "code": "KT024",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "barbaro-de-fahridor"
+  },
+  {
+    "name": "COLOSO",
+    "code": "KT025",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "coloso"
+  },
+  {
+    "name": "GUARDIÁN",
+    "code": "KT026",
+    "type": "tropa",
+    "level": 4,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "guardian"
+  },
+  {
+    "name": "VERDUGO",
+    "code": "KT027",
+    "type": "tropa",
+    "level": 4,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "verdugo"
+  },
+  {
+    "name": "PALADIN DE GOLDINFEIT",
+    "code": "KT028",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "paladin-de-goldinfeit"
+  },
+  {
+    "name": "GRANJERO DE FAHRIDOR",
+    "code": "KT029",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "granjero-de-fahridor"
+  },
+  {
+    "name": "BANQUERA DE GOLDINFEIT",
+    "code": "KT030",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "banquera-de-goldinfeit"
+  },
+  {
+    "name": "BUSCAPLEITOS",
+    "code": "KT031",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "buscapleitos"
+  },
+  {
+    "name": "CIUDADANO DE GOLDINFEIT",
+    "code": "KT032",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "ciudadano-de-goldinfeit"
+  },
+  {
+    "name": "MENDIGO",
+    "code": "KT033",
+    "type": "tropa",
+    "level": 1,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "mendigo"
+  },
+  {
+    "name": "PRESIDIARIO",
+    "code": "KT034",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "presidiario"
+  },
+  {
+    "name": "SAQUEADOR DE TUMBAS",
+    "code": "KT035",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "saqueador-de-tumbas"
+  },
+  {
+    "name": "SEPULTURERO DE FAHRIDOR",
+    "code": "KT036",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "sepulturero-de-fahridor"
+  },
+  {
+    "name": "SACERDOTIZA DE GOLDINFEIT",
+    "code": "KT037",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "sacerdotiza-de-goldinfeit"
+  },
+  {
+    "name": "ACÓLITO DE GOLDINFEIT",
+    "code": "KT038",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "acolito-de-goldinfeit"
+  },
+  {
+    "name": "ARQUERO",
+    "code": "KT039",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "arquero"
+  },
+  {
+    "name": "BANDIDO",
+    "code": "KT040",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "bandido"
+  },
+  {
+    "name": "DESOLADO DE FAHRIDOR",
+    "code": "KT041",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "desolado-de-fahridor"
+  },
+  {
+    "name": "ESPADACHIN MANCO",
+    "code": "KT042",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "espadachin-manco"
+  },
+  {
+    "name": "TEMERARIO",
+    "code": "KT043",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "temerario"
+  },
+  {
+    "name": "VIGILANTE DE FAHRIDOR",
+    "code": "KT044",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "vigilante-de-fahridor"
+  },
+  {
+    "name": "ARQUERO REAL",
+    "code": "KT045",
+    "type": "tropa",
+    "level": 3,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "arquero-real"
+  },
+  {
+    "name": "BRUTO DE FAHRIDOR",
+    "code": "KT046",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "bruto-de-fahridor"
+  },
+  {
+    "name": "CARCELERO",
+    "code": "KT047",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "carcelero"
+  },
+  {
+    "name": "CENTINELA DE GOLDINFEIT",
+    "code": "KT048",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "centinela-de-goldinfeit"
+  },
+  {
+    "name": "JUSTICIERO",
+    "code": "KT049",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "justiciero"
+  },
+  {
+    "name": "SANGUINARIO DE FAHRIDOR",
+    "code": "KT050",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "sanguinario-de-fahridor"
+  },
+  {
+    "name": "INQUISIDOR DE GOLDINFEIT",
+    "code": "KT051",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "inquisidor-de-goldinfeit"
+  },
+  {
+    "name": "ACORAZADO DE FAHRIDOR",
+    "code": "KT052",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "acorazado-de-fahridor"
+  },
+  {
+    "name": "EJECUTORA DE FAHRIDOR",
+    "code": "KT053",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "ejecutora-de-fahridor"
+  },
+  {
+    "name": "FLAMÍGERO",
+    "code": "KT054",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "flamigero"
+  },
+  {
+    "name": "GARRA DE GOLDINFEIT",
+    "code": "KT055",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "garra-de-goldinfeit"
+  },
+  {
+    "name": "ZARPA DE GOLDINFEIT",
+    "code": "KT056",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "zarpa-de-goldinfeit"
+  },
+  {
+    "name": "ESCORIA",
+    "code": "KT057",
+    "type": "tropa",
+    "level": 1,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "escoria"
+  },
+  {
+    "name": "BASALTO",
+    "code": "KT058",
+    "type": "tropa",
+    "level": 2,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "basalto"
+  },
+  {
+    "name": "ESPINELA",
+    "code": "KT059",
+    "type": "tropa",
+    "level": 3,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "espinela"
+  },
+  {
+    "name": "ONIX",
+    "code": "KT060",
+    "type": "tropa",
+    "level": 4,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "onix"
+  },
+  {
+    "name": "ÓPALO",
+    "code": "KT061",
+    "type": "tropa",
+    "level": 3,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "opalo"
+  },
+  {
+    "name": "GUERRERO DEL TEJÓN",
+    "code": "KT062",
+    "type": "tropa",
+    "level": 3,
+    "edition": "2-25",
+    "cat": "Tropas",
+    "slug": "guerrero-del-tejon"
+  },
+  {
+    "name": "ROMPEROCA",
+    "code": "KT063",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "romperoca"
+  },
+  {
+    "name": "ESCULTOR",
+    "code": "KT064",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "escultor"
+  },
+  {
+    "name": "CUARZO",
+    "code": "KT065",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "cuarzo"
+  },
+  {
+    "name": "HERBORISTA",
+    "code": "KT066",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "herborista"
+  },
+  {
+    "name": "COATÍ COLAESPINA",
+    "code": "KT067",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "coati-colaespina"
+  },
+  {
+    "name": "GUERRERA KAIHAT",
+    "code": "KT068",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "guerrera-kaihat"
+  },
+  {
+    "name": "LICAÓN KAIHAT",
+    "code": "KT069",
+    "type": "tropa",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "licaon-kaihat"
+  },
+  {
+    "name": "JASPE",
+    "code": "KT070",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "jaspe"
+  },
+  {
+    "name": "GUERRERO DESERTOR",
+    "code": "KT071",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "guerrero-desertor"
+  },
+  {
+    "name": "LOBO GUKHAL",
+    "code": "KT072",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "lobo-gukhal"
+  },
+  {
+    "name": "VIGÍA GUKHAL",
+    "code": "KT073",
+    "type": "tropa",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "vigia-gukhal"
+  },
+  {
+    "name": "GRANATE",
+    "code": "KT074",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "granate"
+  },
+  {
+    "name": "PANTERA CAMALEÓN",
+    "code": "KT075",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "pantera-camaleon"
+  },
+  {
+    "name": "CAZADORA AIATHEL",
+    "code": "KT076",
+    "type": "tropa",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "cazadora-aiathel"
+  },
+  {
+    "name": "ZAFIRO",
+    "code": "KT077",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "zafiro"
+  },
+  {
+    "name": "PROTECTOR PARDO DAIHAT",
+    "code": "KT078",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "protector-pardo-daihat"
+  },
+  {
+    "name": "KUDÚ REAL",
+    "code": "KT079",
+    "type": "tropa",
+    "level": 4,
+    "edition": "1-25",
+    "cat": "Tropas",
+    "slug": "kudu-real"
+  },
+  {
+    "name": "VIGGO DE FAHRIDOR",
+    "code": "KC001",
+    "type": "coronado",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Coronados",
+    "finishes": [
+      "Común",
+      "Holo",
+      "Arte Alt. F.A. Legacy",
+      "Arte Alt. Común",
+      "Arte Alt. S.T.",
+      "Arte Alt. F.A. Holo",
+      "Shadow Gold",
+      "Shadow Silver",
+      "Poster Común",
+      "Poster F.A.",
+      "Poster F.A. Holo"
+    ],
+    "slug": "viggo-de-fahridor"
+  },
+  {
+    "name": "NEMEA DE GOLDINFEIT",
+    "code": "KC002",
+    "type": "coronado",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Coronados",
+    "finishes": [
+      "Común",
+      "Holo",
+      "Arte Alt. F.A. Legacy",
+      "Arte Alt. Común",
+      "Arte Alt. S.T.",
+      "Arte Alt. F.A. Holo",
+      "Shadow Gold",
+      "Shadow Silver",
+      "Poster Común",
+      "Poster F.A.",
+      "Poster F.A. Holo"
+    ],
+    "slug": "nemea-de-goldinfeit"
+  },
+  {
+    "name": "IGNO DE ESTONBLEIZ",
+    "code": "KC003",
+    "type": "coronado",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Coronados",
+    "finishes": [
+      "Común",
+      "Holo",
+      "Arte Alt. Común",
+      "Arte Alt. S.T.",
+      "Arte Alt. F.A. Holo",
+      "Shadow Gold",
+      "Shadow Silver",
+      "Poster Común",
+      "Poster F.A.",
+      "Poster F.A. Holo"
+    ],
+    "slug": "igno-de-estonbleiz"
+  },
+  {
+    "name": "ERYA DE GRINGUD",
+    "code": "KC004",
+    "type": "coronado",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Coronados",
+    "finishes": [
+      "Común",
+      "Holo",
+      "Arte Alt. Común",
+      "Arte Alt. S.T.",
+      "Arte Alt. F.A. Holo",
+      "Shadow Gold",
+      "Shadow Silver",
+      "Poster Común",
+      "Poster F.A.",
+      "Poster F.A. Holo"
+    ],
+    "slug": "erya-de-gringud"
+  },
+  {
+    "name": "ARROJE ARRASADOR",
+    "code": "KR001",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "arroje-arrasador"
+  },
+  {
+    "name": "ROMPE FLANQUEOS",
+    "code": "KR002",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "rompe-flanqueos"
+  },
+  {
+    "name": "FURIA DE FAHRIDOR",
+    "code": "KR003",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "furia-de-fahridor"
+  },
+  {
+    "name": "AVANCE AL ENFRENTAMIENTO",
+    "code": "KR004",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "avance-al-enfrentamiento"
+  },
+  {
+    "name": "REFUERZOS DE FAHRIDOR",
+    "code": "KR005",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "refuerzos-de-fahridor"
+  },
+  {
+    "name": "PRESENCIA INTIMIDANTE",
+    "code": "KR006",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "presencia-intimidante"
+  },
+  {
+    "name": "PODER DEL EJÉRCITO",
+    "code": "KR007",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "poder-del-ejercito"
+  },
+  {
+    "name": "POSTURA OFENSIVA",
+    "code": "KR008",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "postura-ofensiva"
+  },
+  {
+    "name": "GUARDIÁN ESPECTRAL",
+    "code": "KR009",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "guardian-espectral"
+  },
+  {
+    "name": "ESTOQUE CEGADOR",
+    "code": "KR010",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "estoque-cegador"
+  },
+  {
+    "name": "DEFENSA FORTIFICADA",
+    "code": "KR011",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "defensa-fortificada"
+  },
+  {
+    "name": "PLEGARIA DE PROTECCIÓN",
+    "code": "KR012",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "plegaria-de-proteccion"
+  },
+  {
+    "name": "SOBORNO DE TROPAS",
+    "code": "KR013",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "soborno-de-tropas"
+  },
+  {
+    "name": "PAZ DE PROTEA",
+    "code": "KR014",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "paz-de-protea"
+  },
+  {
+    "name": "LANZA DIVINA",
+    "code": "KR015",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "lanza-divina"
+  },
+  {
+    "name": "GARRAS ESPECTRALES",
+    "code": "KR016",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "garras-espectrales"
+  },
+  {
+    "name": "ESCUDO DE ALMAS",
+    "code": "KR017",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "escudo-de-almas"
+  },
+  {
+    "name": "SACRIFICIO DEFENSIVO",
+    "code": "KR018",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "sacrificio-defensivo"
+  },
+  {
+    "name": "EXPLOSIÓN DE MARCAS",
+    "code": "KR019",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "explosion-de-marcas"
+  },
+  {
+    "name": "FUOCOARDENTE",
+    "code": "KR020",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "fuocoardente"
+  },
+  {
+    "name": "EXPLOSIÓN MAGMÁTICA",
+    "code": "KR021",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "explosion-magmatica"
+  },
+  {
+    "name": "INTERCAMBIO EN LLAMAS",
+    "code": "KR022",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "intercambio-en-llamas"
+  },
+  {
+    "name": "MARCA MAGMÁPYRA",
+    "code": "KR023",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "marca-magmapyra"
+  },
+  {
+    "name": "ERUPCIÓN DEL MAGMÁPYRO",
+    "code": "KR024",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "erupcion-del-magmapyro"
+  },
+  {
+    "name": "COMBATE ARDIENTE",
+    "code": "KR025",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "combate-ardiente"
+  },
+  {
+    "name": "PROTECCIÓN DE EMBEROR",
+    "code": "KR026",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "proteccion-de-emberor"
+  },
+  {
+    "name": "PORTADOR DE LAS LLAMAS",
+    "code": "KR027",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "portador-de-las-llamas"
+  },
+  {
+    "name": "ESENCIA LLAMEANTE",
+    "code": "KR028",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Igno de Estonbleiz",
+    "slug": "esencia-llameante"
+  },
+  {
+    "name": "BALANCE DE TROPAS",
+    "code": "KR029",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "balance-de-tropas"
+  },
+  {
+    "name": "BALANCE DE PODER",
+    "code": "KR030",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "balance-de-poder"
+  },
+  {
+    "name": "FUERZA SALVAJE",
+    "code": "KR031",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "fuerza-salvaje"
+  },
+  {
+    "name": "FORMA ANIMAL",
+    "code": "KR032",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "forma-animal"
+  },
+  {
+    "name": "DISPARO DE CAZADORA",
+    "code": "KR033",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "disparo-de-cazadora"
+  },
+  {
+    "name": "ACECHO DE CAZA",
+    "code": "KR034",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "acecho-de-caza"
+  },
+  {
+    "name": "ESPÍRITU SALVAJE",
+    "code": "KR035",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "espiritu-salvaje"
+  },
+  {
+    "name": "KHYLK",
+    "code": "KR036",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "khylk"
+  },
+  {
+    "name": "CORTEZA PROTECTORA",
+    "code": "KR037",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "corteza-protectora"
+  },
+  {
+    "name": "DISTRACCIÓN AÉREA",
+    "code": "KR038",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Erya de Gringud",
+    "slug": "distraccion-aerea"
+  },
+  {
+    "name": "COSECHA DE ALMAS",
+    "code": "KR039",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "cosecha-de-almas"
+  },
+  {
+    "name": "AVANCE DEVASTADOR",
+    "code": "KR040",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "avance-devastador"
+  },
+  {
+    "name": "PACTO DE BLUDKUT",
+    "code": "KR041",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "pacto-de-bludkut"
+  },
+  {
+    "name": "LA PILA",
+    "code": "KR042",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Viggo de Fahridor",
+    "slug": "la-pila"
+  },
+  {
+    "name": "MILAGRO DE PROTEA",
+    "code": "KR043",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "milagro-de-protea"
+  },
+  {
+    "name": "REZO DE ABUNDANCIA",
+    "code": "KR044",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "rezo-de-abundancia"
+  },
+  {
+    "name": "RENDICIÓN DIVINA",
+    "code": "KR045",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "rendicion-divina"
+  },
+  {
+    "name": "SACRIFICIO DE PAZ",
+    "code": "KR046",
+    "type": "realeza",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Realeza",
+    "crowned": "Nemea de Goldinfeit",
+    "slug": "sacrificio-de-paz"
+  },
+  {
+    "name": "¡REFUERZOS!",
+    "code": "KE001",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "refuerzos"
+  },
+  {
+    "name": "ORDEN DE AVANCE",
+    "code": "KE002",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "orden-de-avance"
+  },
+  {
+    "name": "ENTRENAMIENTO BÉLICO",
+    "code": "KE003",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "entrenamiento-belico"
+  },
+  {
+    "name": "LLAMADO DEL HÉROE",
+    "code": "KE004",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "llamado-del-heroe"
+  },
+  {
+    "name": "ATACANTE INESPERADO",
+    "code": "KE005",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "atacante-inesperado"
+  },
+  {
+    "name": "¡SORPRESA!",
+    "code": "KE006",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "sorpresa"
+  },
+  {
+    "name": "EXPLOSIÓN SORPRESIVA",
+    "code": "KE007",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "explosion-sorpresiva"
+  },
+  {
+    "name": "HUIDA",
+    "code": "KE008",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "huida"
+  },
+  {
+    "name": "SED DE SANGRE",
+    "code": "KE009",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "sed-de-sangre"
+  },
+  {
+    "name": "ATURDIMIENTO",
+    "code": "KE010",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "aturdimiento"
+  },
+  {
+    "name": "DOBLE ATAQUE",
+    "code": "KE011",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "doble-ataque"
+  },
+  {
+    "name": "FUERZA SOBREHUMANA",
+    "code": "KE012",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "fuerza-sobrehumana"
+  },
+  {
+    "name": "SEGUNDA OPORTUNIDAD",
+    "code": "KE013",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "segunda-oportunidad"
+  },
+  {
+    "name": "AUDACIA",
+    "code": "KE014",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "audacia"
+  },
+  {
+    "name": "AUDACIA RIESGOSA",
+    "code": "KE015",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "audacia-riesgosa"
+  },
+  {
+    "name": "DEFENSA CONJUNTA",
+    "code": "KE016",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "defensa-conjunta"
+  },
+  {
+    "name": "AUDACIA DIABÓLICA",
+    "code": "KE017",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "audacia-diabolica"
+  },
+  {
+    "name": "GRAN CONVOCACIÓN",
+    "code": "KE018",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "gran-convocacion"
+  },
+  {
+    "name": "PASO TÁCTICO",
+    "code": "KE019",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "paso-tactico"
+  },
+  {
+    "name": "INTERCAMBIO DE POSICIÓN",
+    "code": "KE020",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "intercambio-de-posicion"
+  },
+  {
+    "name": "CAMBIO DE ESTRATEGIA",
+    "code": "KE021",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "cambio-de-estrategia"
+  },
+  {
+    "name": "CONVOCACIÓN SACRIFICADA",
+    "code": "KE022",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "convocacion-sacrificada"
+  },
+  {
+    "name": "ALZAR ESCUDO",
+    "code": "KE023",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "alzar-escudo"
+  },
+  {
+    "name": "AUDACIA SAGRADA",
+    "code": "KE024",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "audacia-sagrada"
+  },
+  {
+    "name": "AUDACIA TÁCTICA",
+    "code": "KE025",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "audacia-tactica"
+  },
+  {
+    "name": "OSADÍA DEL VALIENTE",
+    "code": "KE026",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "osadia-del-valiente"
+  },
+  {
+    "name": "ATAQUE FURIOSO",
+    "code": "KE027",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "ataque-furioso"
+  },
+  {
+    "name": "ESPADA AFILADA",
+    "code": "KE028",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "espada-afilada"
+  },
+  {
+    "name": "ESCUDO REFORZADO",
+    "code": "KE029",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "escudo-reforzado"
+  },
+  {
+    "name": "ACTITUD COMBATIVA",
+    "code": "KE030",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "actitud-combativa"
+  },
+  {
+    "name": "PASOS SIGILOSOS",
+    "code": "KE031",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "pasos-sigilosos"
+  },
+  {
+    "name": "DISTRACCIÓN DE NOVATOS",
+    "code": "KE032",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "distraccion-de-novatos"
+  },
+  {
+    "name": "RELEVO",
+    "code": "KE033",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "relevo"
+  },
+  {
+    "name": "EMPUJE",
+    "code": "KE034",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "empuje"
+  },
+  {
+    "name": "ESCUDO AÉREO",
+    "code": "KE035",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "escudo-aereo"
+  },
+  {
+    "name": "REBOTE AÉREO",
+    "code": "KE036",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "rebote-aereo"
+  },
+  {
+    "name": "ADRENALINA",
+    "code": "KE037",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "adrenalina"
+  },
+  {
+    "name": "DEFENSA COMBATIVA",
+    "code": "KE038",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "defensa-combativa"
+  },
+  {
+    "name": "GOLPE DE ESCUDO",
+    "code": "KE039",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "golpe-de-escudo"
+  },
+  {
+    "name": "LLUVIA DE FLECHAS",
+    "code": "KE040",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "lluvia-de-flechas"
+  },
+  {
+    "name": "MUERTE CODICIOSA",
+    "code": "KE041",
+    "type": "estrategia",
+    "level": null,
+    "edition": "2-25",
+    "cat": "Estrategia",
+    "slug": "muerte-codiciosa"
+  },
+  {
+    "name": "APREMIO DE BATALLA",
+    "code": "KE042",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "apremio-de-batalla"
+  },
+  {
+    "name": "MAESTRÍA DE COMBATE",
+    "code": "KE043",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "maestria-de-combate"
+  },
+  {
+    "name": "PUERTAS BLOQUEADAS",
+    "code": "KE044",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "puertas-bloqueadas"
+  },
+  {
+    "name": "RECLUTAMIENTO",
+    "code": "KE045",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "reclutamiento"
+  },
+  {
+    "name": "ATAQUE IMPLACABLE",
+    "code": "KE046",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "ataque-implacable"
+  },
+  {
+    "name": "MOVIMIENTO ÁGIL",
+    "code": "KE047",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "movimiento-agil"
+  },
+  {
+    "name": "ATAQUE COMBINADO",
+    "code": "KE048",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "ataque-combinado"
+  },
+  {
+    "name": "CAMUFLAJE SELVÁTICO",
+    "code": "KE049",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "camuflaje-selvatico"
+  },
+  {
+    "name": "MANO A MANO",
+    "code": "KE050",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "mano-a-mano"
+  },
+  {
+    "name": "LLAMADO DE LA MANADA",
+    "code": "KE051",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "llamado-de-la-manada"
+  },
+  {
+    "name": "DEFENSA IMPLACABLE",
+    "code": "KE052",
+    "type": "estrategia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia",
+    "slug": "defensa-implacable"
+  },
+  {
+    "name": "AUDACIA SUPREMA",
+    "code": "KP001",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "audacia-suprema"
+  },
+  {
+    "name": "DESTREZA EXTREMA",
+    "code": "KP002",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "destreza-extrema"
+  },
+  {
+    "name": "HUIDA MAESTRA",
+    "code": "KP003",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "huida-maestra"
+  },
+  {
+    "name": "OCUPAR POSICIÓN",
+    "code": "KP004",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "ocupar-posicion"
+  },
+  {
+    "name": "DOBLE ATAQUE REAL",
+    "code": "KP005",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "doble-ataque-real"
+  },
+  {
+    "name": "ATAQUE MAESTRO",
+    "code": "KP006",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "ataque-maestro"
+  },
+  {
+    "name": "DEFENSA MAESTRA",
+    "code": "KP007",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "defensa-maestra"
+  },
+  {
+    "name": "SED DE BATALLA",
+    "code": "KP008",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "sed-de-batalla"
+  },
+  {
+    "name": "ESCUDO ALIADO",
+    "code": "KP009",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "escudo-aliado"
+  },
+  {
+    "name": "ESPADA ALIADA",
+    "code": "KP010",
+    "type": "estrategia_primigenia",
+    "level": null,
+    "edition": "1-25",
+    "cat": "Estrategia Primigenia",
+    "slug": "espada-aliada"
+  },
+  {
+    "name": "LANZA",
+    "code": "KA001",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "lanza"
+  },
+  {
+    "name": "DAGA ARROJADIZA",
+    "code": "KA002",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "daga-arrojadiza"
+  },
+  {
+    "name": "BOMBA DE METRALLA",
+    "code": "KA003",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "bomba-de-metralla"
+  },
+  {
+    "name": "BOMBA INCENDIARIA",
+    "code": "KA004",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "bomba-incendiaria"
+  },
+  {
+    "name": "HACHA ARROJADIZA",
+    "code": "KA005",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "hacha-arrojadiza"
+  },
+  {
+    "name": "PIEDRA",
+    "code": "KA006",
+    "type": "arroje",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "piedra"
+  },
+  {
+    "name": "FLECHA",
+    "code": "KA007",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha"
+  },
+  {
+    "name": "FLECHA PERFORANTE",
+    "code": "KA008",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha-perforante"
+  },
+  {
+    "name": "FLECHA CONTUNDENTE",
+    "code": "KA009",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha-contundente"
+  },
+  {
+    "name": "FLECHA DE LARGO ALCANCE",
+    "code": "KA010",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha-de-largo-alcance"
+  },
+  {
+    "name": "FLECHA DESTRUCTORA",
+    "code": "KA011",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha-destructora"
+  },
+  {
+    "name": "CADENA ATRAPANTE",
+    "code": "KA012",
+    "type": "arroje",
+    "level": 3,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "cadena-atrapante"
+  },
+  {
+    "name": "LANZA LIGERA",
+    "code": "KA013",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "lanza-ligera"
+  },
+  {
+    "name": "DAGA PRECISA",
+    "code": "KA014",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "daga-precisa"
+  },
+  {
+    "name": "MARTILLÓMERANG",
+    "code": "KA015",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "martillomerang"
+  },
+  {
+    "name": "BRAZAS LLAMEANTES",
+    "code": "KA016",
+    "type": "arroje",
+    "level": 1,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "brazas-llameantes"
+  },
+  {
+    "name": "FLECHA SELVÁTICA",
+    "code": "KA017",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "flecha-selvatica"
+  },
+  {
+    "name": "HACHA DE CAZA",
+    "code": "KA018",
+    "type": "arroje",
+    "level": 2,
+    "edition": "1-25",
+    "cat": "Arroje",
+    "slug": "hacha-de-caza"
+  }
+]
