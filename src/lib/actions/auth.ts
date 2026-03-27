@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { loginSchema, registerSchema } from "@/lib/validations";
 
 export interface AuthActionResult {
@@ -107,12 +108,14 @@ export async function signIn(formData: FormData): Promise<AuthActionResult> {
     return { error: "Email o contraseña incorrectos" };
   }
 
+  revalidatePath("/", "layout");
   redirect("/");
 }
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  revalidatePath("/", "layout");
   redirect("/");
 }
 
@@ -163,6 +166,7 @@ export async function resetPassword(
 /**
  * Get the current user and profile.
  * Returns null if not authenticated.
+ * Auto-creates the profile row if it doesn't exist yet (e.g. after OAuth).
  */
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -173,11 +177,33 @@ export async function getCurrentUser() {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
+
+  // Auto-create profile if missing (e.g. after Google OAuth or manual DB setup)
+  if (!profile) {
+    const username =
+      user.user_metadata?.username ||
+      user.user_metadata?.full_name?.replace(/\s+/g, "").toLowerCase() ||
+      user.email?.split("@")[0] ||
+      `user_${user.id.slice(0, 8)}`;
+
+    const { data: created } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        username,
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        display_name: user.user_metadata?.full_name ?? null,
+      })
+      .select("*")
+      .single();
+
+    profile = created;
+  }
 
   return {
     user,

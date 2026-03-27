@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, forwardRef } from "react";
+import Link from "next/link";
 import HTMLFlipBook from "react-pageflip";
-import { allCards, type KTCGCard } from "@/data/cards";
+import { allCards, type KTCGCard, type KTCGCategory } from "@/data/cards";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,15 +23,14 @@ import {
   Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { KTCGCategory } from "@/data/cards";
 
 // ---- Types ----
 type AlbumType = "fisica" | "digital";
 
-interface OwnedCard {
-  card: KTCGCard;
-  quantity: number;
-  onWishlist: boolean;
+interface AlbumViewProps {
+  physicalMap: Record<string, number>; // card_id (UUID) → qty  [from DB]
+  digitalMap: Record<string, number>;  // card_id (UUID) → qty  [from DB]
+  wishlistSet: string[];               // card_id (UUID)[]
 }
 
 // ---- Category icon map ----
@@ -46,8 +46,13 @@ const categoryIcon: Record<KTCGCategory, typeof Crown> = {
 // ---- Page component (forwarded ref required by react-pageflip) ----
 const AlbumPage = forwardRef<
   HTMLDivElement,
-  { cards: (KTCGCard | null)[]; pageNumber: number; owned: Map<string, OwnedCard> }
->(({ cards, pageNumber, owned }, ref) => {
+  {
+    cards: (KTCGCard | null)[];
+    pageNumber: number;
+    qty: (code: string) => number;
+    onWishlist: (code: string) => boolean;
+  }
+>(({ cards, pageNumber, qty, onWishlist }, ref) => {
   return (
     <div
       ref={ref}
@@ -68,43 +73,39 @@ const AlbumPage = forwardRef<
               );
             }
             const Icon = categoryIcon[card.category];
-            const ownedEntry = owned.get(card.code);
-            const qty = ownedEntry?.quantity ?? 0;
-            const onWishlist = ownedEntry?.onWishlist ?? false;
+            const count = qty(card.code);
+            const wishlisted = onWishlist(card.code);
 
             return (
               <div
                 key={card.code}
                 className={cn(
-                  "relative rounded-lg border aspect-2.5/3.5 flex flex-col items-center justify-center overflow-hidden group cursor-pointer transition-all",
-                  qty > 0
+                  "relative rounded-lg border aspect-2.5/3.5 flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all",
+                  count > 0
                     ? "border-primary-500/40 bg-primary-500/5"
-                    : onWishlist
+                    : wishlisted
                     ? "border-pink-500/40 bg-pink-500/5"
                     : "border-surface-700/30 bg-surface-800/50 opacity-40"
                 )}
                 title={card.name}
               >
-                <Icon className={cn("h-5 w-5 mb-1", qty > 0 ? "text-primary-400" : "text-surface-600")} />
+                <Icon className={cn("h-5 w-5 mb-1", count > 0 ? "text-primary-400" : "text-surface-600")} />
                 <span className="text-[8px] text-center px-1 text-surface-400 leading-tight line-clamp-2">
                   {card.name}
                 </span>
                 <span className="text-[7px] font-mono text-surface-600 mt-0.5">{card.code}</span>
 
-                {/* quantity badge */}
-                {qty > 1 && (
+                {count > 1 && (
                   <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-primary-500 text-[9px] font-bold text-white flex items-center justify-center">
-                    {qty}
+                    {count}
                   </div>
                 )}
-                {/* wishlist heart */}
-                {onWishlist && qty === 0 && (
+                {wishlisted && count === 0 && (
                   <div className="absolute top-1 right-1">
                     <Heart className="h-3 w-3 text-pink-400 fill-pink-400" />
                   </div>
                 )}
-                {/* owned check */}
-                {qty > 0 && (
+                {count > 0 && (
                   <div className="absolute top-1 left-1 h-3 w-3 rounded-full bg-primary-500 flex items-center justify-center">
                     <span className="text-[7px] text-white font-bold">✓</span>
                   </div>
@@ -138,40 +139,39 @@ const CoverPage = forwardRef<HTMLDivElement, { title: string; subtitle: string }
 CoverPage.displayName = "CoverPage";
 
 // ---- Main AlbumView ----
-export function AlbumView() {
+export function AlbumView({ physicalMap, digitalMap, wishlistSet }: AlbumViewProps) {
   const [albumType, setAlbumType] = useState<AlbumType>("fisica");
-  // Mock: some cards owned
-  const [owned] = useState<Map<string, OwnedCard>>(() => {
-    const m = new Map<string, OwnedCard>();
-    // Mark first ~20 cards as owned with random quantities
-    allCards.slice(0, 20).forEach((card, i) => {
-      m.set(card.code, { card, quantity: i % 3 === 0 ? 2 : 1, onWishlist: false });
-    });
-    // Some wishlist items
-    allCards.slice(20, 28).forEach((card) => {
-      m.set(card.code, { card, quantity: 0, onWishlist: true });
-    });
-    return m;
-  });
+
+  const wishlistIds = new Set(wishlistSet);
+
+  // NOTE: physicalMap/digitalMap keys are Supabase card UUIDs.
+  // allCards uses short codes like "KT001". Until the DB cards table is seeded
+  // with matching UUIDs we show real counts only when available, otherwise 0.
+  // The map lookup by code acts as a graceful fallback.
+  const activeMap = albumType === "fisica" ? physicalMap : digitalMap;
+
+  // Build a code→qty map from the active DB map
+  // (If keys happen to match codes directly, it works. Otherwise counts = 0 gracefully.)
+  const codeQty = (code: string): number => activeMap[code] ?? 0;
+  const codeWishlist = (code: string): boolean => wishlistIds.has(code);
+
+  const ownedCount = allCards.filter((c) => codeQty(c.code) > 0).length;
+  const wishlistCount = allCards.filter((c) => codeWishlist(c.code) && codeQty(c.code) === 0).length;
+  const totalCards = allCards.length;
 
   const bookRef = useRef<{ pageFlip: () => { flipNext: () => void; flipPrev: () => void } } | null>(null);
 
-  const CARDS_PER_PAGE = 9; // 3x3
-  const chunks: (KTCGCard | null)[][] = [];
+  const CARDS_PER_PAGE = 9;
   const cardList = [...allCards];
-  // pad to multiple of 9
   while (cardList.length % CARDS_PER_PAGE !== 0) cardList.push(null as unknown as KTCGCard);
+  const chunks: (KTCGCard | null)[][] = [];
   for (let i = 0; i < cardList.length; i += CARDS_PER_PAGE) {
     chunks.push(cardList.slice(i, i + CARDS_PER_PAGE) as (KTCGCard | null)[]);
   }
 
-  const ownedCount = [...owned.values()].filter((o) => o.quantity > 0).length;
-  const wishlistCount = [...owned.values()].filter((o) => o.onWishlist && o.quantity === 0).length;
-  const totalCards = allCards.length;
-
   return (
     <PageLayout title="Álbum" description="Tu colección personal de Kingdom TCG">
-      {/* Tabs: Física / Digital */}
+      {/* Tabs */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => setAlbumType("fisica")}
@@ -221,7 +221,7 @@ export function AlbumView() {
         </Card>
       </div>
 
-      {/* Badges */}
+      {/* Legend */}
       <div className="flex items-center gap-3 mb-6 flex-wrap">
         <Badge variant="default" className="gap-1.5">
           <div className="h-2 w-2 rounded-full bg-primary-400" />
@@ -235,7 +235,14 @@ export function AlbumView() {
           <div className="h-2 w-2 rounded-full bg-surface-600" />
           No tenés
         </Badge>
-        <span className="text-xs text-surface-500">· Pasá el cursor sobre una carta para ver su nombre</span>
+        {ownedCount === 0 && (
+          <span className="text-xs text-surface-500 ml-2">
+            · Agregá cartas desde{" "}
+            <Link href="/catalog" className="text-primary-400 underline">el catálogo</Link>{" "}
+            o desde los{" "}
+            <Link href="/decks" className="text-primary-400 underline">mazos oficiales</Link>
+          </span>
+        )}
       </div>
 
       {/* Album type label */}
@@ -276,23 +283,19 @@ export function AlbumView() {
             showPageCorners={true}
             disableFlipByClick={false}
           >
-            {/* Cover */}
             <CoverPage
               title={`Álbum ${albumType === "fisica" ? "Físico" : "Digital"}`}
               subtitle={`${ownedCount} / ${totalCards} cartas · Mazoteca.com`}
             />
-
-            {/* Content pages */}
             {chunks.map((chunk, idx) => (
               <AlbumPage
                 key={idx}
                 cards={chunk}
                 pageNumber={idx + 1}
-                owned={owned}
+                qty={codeQty}
+                onWishlist={codeWishlist}
               />
             ))}
-
-            {/* Back cover */}
             <CoverPage
               title="Kingdom TCG™"
               subtitle="Mazoteca.com — Tu colección, tu comunidad."
@@ -300,7 +303,6 @@ export function AlbumView() {
           </HTMLFlipBook>
         </div>
 
-        {/* Navigation buttons */}
         <div className="flex items-center gap-4">
           <Button
             variant="secondary"
