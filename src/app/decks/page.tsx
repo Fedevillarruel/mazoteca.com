@@ -114,7 +114,7 @@ export default function DecksPage() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {officialDecks.map((deck) => (
-            <a key={deck.id} href={deck.url} target="_blank" rel="noopener noreferrer">
+            <Link key={deck.id} href={`/decks/${deck.id}`}>
               <Card variant="interactive" className="h-full overflow-hidden">
                 {/* Deck image */}
                 <div className="relative h-40 bg-surface-800 overflow-hidden">
@@ -142,7 +142,7 @@ export default function DecksPage() {
                   </div>
                 </CardContent>
               </Card>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
