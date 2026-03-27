@@ -323,7 +323,7 @@ export function CatalogView() {
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {visible.map((card) => (
             <CatalogListItem key={card.code} card={card} />
           ))}
@@ -442,18 +442,22 @@ function CatalogListItem({ card }: { card: KTCGCard }) {
   return (
     <Link href={`/catalog/${card.slug}`}>
       <Card variant="interactive">
-        <CardContent className="p-5 flex items-center gap-6">
+        <CardContent className="p-5 sm:p-6 flex items-center gap-6">
           {/* Thumbnail */}
-          <div className="h-20 w-14 bg-surface-800 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
-            <Icon className="h-6 w-6 text-surface-600" />
-            <div className="absolute bottom-1 right-1 text-[10px] text-accent-300 font-mono">{card.cost}</div>
+          <div className="h-24 w-16 bg-surface-800 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
+            <Icon className="h-7 w-7 text-surface-600" />
+            {card.cost != null && (
+              <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full bg-surface-900/90 border border-accent-500/50 flex items-center justify-center text-[10px] font-bold text-accent-300">
+                {card.cost}
+              </div>
+            )}
           </div>
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-surface-200 truncate">
+            <p className="text-sm font-semibold text-surface-100 truncate">
               {card.name}
             </p>
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <Badge variant="default">{card.category}</Badge>
               {card.level != null && (
                 <Badge variant="info">Nv. {card.level}</Badge>
@@ -467,16 +471,21 @@ function CatalogListItem({ card }: { card: KTCGCard }) {
                 </span>
               )}
             </div>
+            {card.flavor_text && (
+              <p className="text-xs text-surface-500 italic mt-2 line-clamp-1">
+                {card.flavor_text}
+              </p>
+            )}
           </div>
           {/* Crowned info */}
           {card.crowned && (
-            <div className="hidden sm:block text-xs text-surface-400 text-right">
+            <div className="hidden sm:block text-xs text-surface-400 text-right shrink-0">
               <p className="text-surface-500">Coronado</p>
               <p className="text-surface-300">{card.crowned}</p>
             </div>
           )}
           {/* Actions */}
-          <div className="flex gap-1">
+          <div className="flex gap-1 shrink-0">
             <button
               className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors"
               onClick={(e) => e.preventDefault()}
