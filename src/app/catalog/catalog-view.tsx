@@ -323,7 +323,7 @@ export function CatalogView() {
           ))}
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-7">
           {visible.map((card) => (
             <CatalogListItem key={card.code} card={card} />
           ))}

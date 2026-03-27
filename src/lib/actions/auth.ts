@@ -7,6 +7,28 @@ import { loginSchema, registerSchema } from "@/lib/validations";
 export interface AuthActionResult {
   error?: string;
   success?: boolean;
+  redirectUrl?: string;
+}
+
+export async function signInWithGoogle(): Promise<AuthActionResult> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+    },
+  });
+
+  if (error) {
+    return { error: "Error al iniciar sesión con Google" };
+  }
+
+  if (data.url) {
+    redirect(data.url);
+  }
+
+  return { error: "No se pudo obtener la URL de autenticación" };
 }
 
 export async function signUp(formData: FormData): Promise<AuthActionResult> {

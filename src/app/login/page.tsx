@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
+import { AdBanner } from "@/components/ads/ad-banner";
 
 export const metadata: Metadata = {
   title: "Iniciar Sesión",
@@ -20,6 +21,11 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Ad banner top */}
+        <div className="mb-5">
+          <AdBanner slot="login-top" format="horizontal" className="min-h-22.5" />
+        </div>
+
         {/* Form Card */}
         <div className="bg-surface-900 border border-surface-800 rounded-xl p-6 sm:p-8">
           <LoginForm />
@@ -35,6 +41,11 @@ export default function LoginPage() {
             Registrate gratis
           </a>
         </p>
+
+        {/* Ad banner bottom */}
+        <div className="mt-5">
+          <AdBanner slot="login-bottom" format="horizontal" className="min-h-22.5" />
+        </div>
       </div>
     </div>
   );

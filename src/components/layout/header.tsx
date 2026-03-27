@@ -16,6 +16,7 @@ import {
   Crown,
   Bell,
   Layers,
+  BookMarked,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -24,6 +25,7 @@ const mainNav = [
   { href: "/catalog", label: "Catálogo", icon: BookOpen },
   { href: "/decks", label: "Mazos", icon: Swords },
   { href: "/singles", label: "Singles", icon: Store },
+  { href: "/album", label: "Álbum", icon: BookMarked },
   { href: "/forum", label: "Comunidad", icon: MessageSquare },
 ];
 
