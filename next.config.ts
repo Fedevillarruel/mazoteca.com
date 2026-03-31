@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
         hostname: "fedini.app",
         pathname: "/_next/image/**",
       },
+      // Tiendanube CDN images (product photos)
+      {
+        protocol: "https",
+        hostname: "dcdn-us.mitiendanube.com",
+      },
+      {
+        protocol: "https",
+        hostname: "d3ugyf2ht4lz5a.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.mitiendanube.com",
+      },
     ],
     formats: ["image/avif", "image/webp"],
   },
