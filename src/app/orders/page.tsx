@@ -12,7 +12,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/actions/auth";
-import { getMyOrders, getStatusLabel, type TnOrder } from "@/lib/actions/orders";
+import { getMyOrders, type TnOrder } from "@/lib/actions/orders";
+import { getStatusLabel } from "@/lib/utils/order-labels";
 
 export const metadata: Metadata = {
   title: "Mis Pedidos",
