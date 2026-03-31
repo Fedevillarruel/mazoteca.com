@@ -33,9 +33,10 @@ export interface TNVariant {
   id: number;
   product_id: number;
   price: string;
-  promotional_price: string | null;
+  compare_at_price: string | null;   // precio tachado (precio original)
+  promotional_price: string | null;  // precio con descuento (si aplica)
   stock_management: boolean;
-  stock: number;
+  stock: number | null;
   sku: string | null;
   values: { es: string }[];
   image_id: number | null;
@@ -139,31 +140,41 @@ export async function fetchVariants(productId: number): Promise<TNVariant[]> {
  *  3. Handle/slug contains the code
  *  4. First variant SKU looks like a card code
  */
+/**
+ * Normalizes a raw TN code match like "KA000001" → "KA001"
+ * (2 prefix letters + number without leading zeros, minimum 3 digits)
+ */
+function normalizeCardCode(raw: string): string {
+  const prefix = raw.slice(0, 2).toUpperCase();
+  const num = parseInt(raw.slice(2), 10);
+  return `${prefix}${String(num).padStart(3, "0")}`;
+}
+
 export function extractCardCode(product: TNProduct): string | null {
-  // Accepts codes like KA001, KA0001, KA000001 (3 to 6 digits)
+  // Accepts codes like KA001, KA0001, KA000001 (2 letters + 3 to 6 digits)
   const cardCodeRegex = /\b(K[TCREPA][0-9]{3,6})\b/i;
 
-  // 1. Tags
+  // 1. Tags (most reliable — set manually in TN)
   if (product.tags) {
     const m = product.tags.match(cardCodeRegex);
-    if (m) return m[1].toUpperCase();
+    if (m) return normalizeCardCode(m[1]);
   }
 
   // 2. Name
   const name = product.name?.es ?? "";
   const mName = name.match(cardCodeRegex);
-  if (mName) return mName[1].toUpperCase();
+  if (mName) return normalizeCardCode(mName[1]);
 
   // 3. Handle
   const handle = product.handle?.es ?? "";
   const mHandle = handle.match(cardCodeRegex);
-  if (mHandle) return mHandle[1].toUpperCase();
+  if (mHandle) return normalizeCardCode(mHandle[1]);
 
   // 4. First variant SKU
   for (const v of product.variants ?? []) {
     if (v.sku) {
       const mSku = v.sku.match(cardCodeRegex);
-      if (mSku) return mSku[1].toUpperCase();
+      if (mSku) return normalizeCardCode(mSku[1]);
     }
   }
 
@@ -171,44 +182,23 @@ export function extractCardCode(product: TNProduct): string | null {
 }
 
 /**
- * Parse finish name from a TN variant.
- * TN variants have a `values` array of option values (e.g. [{es: "Foil"}])
+ * Returns the variant option values exactly as loaded in TN (e.g. "Foil / Near Mint").
+ * Empty if the product has no attributes.
  */
-export function extractFinish(variant: TNVariant): string {
+export function extractFinish(variant: TNVariant): string | null {
   if (variant.values && variant.values.length > 0) {
     return variant.values.map((v) => v.es).join(" / ");
   }
-  return "Estándar";
+  return null;
 }
 
-/** Parse condition from variant values or SKU */
-export function extractCondition(variant: TNVariant): string {
-  const conditionRegex = /near\s*mint|nm|lightly\s*played|lp|good|excellent|moderately\s*played|mp|heavily\s*played|hp|damaged/i;
-
-  const allText = [
-    ...(variant.values ?? []).map((v) => v.es),
-    variant.sku ?? "",
-  ].join(" ");
-
-  const m = allText.match(conditionRegex);
-  if (!m) return "Near Mint";
-
-  const raw = m[0].toLowerCase().trim();
-  const map: Record<string, string> = {
-    nm: "Near Mint",
-    "near mint": "Near Mint",
-    lp: "Lightly Played",
-    "lightly played": "Lightly Played",
-    good: "Lightly Played",
-    excellent: "Near Mint",
-    mp: "Moderately Played",
-    "moderately played": "Moderately Played",
-    hp: "Heavily Played",
-    "heavily played": "Heavily Played",
-    damaged: "Damaged",
-  };
-
-  return map[raw] ?? "Near Mint";
+/** Returns the condition exactly as set in TN variant values, or null. */
+export function extractCondition(variant: TNVariant): string | null {
+  // Condition is conventionally the second value option, if present
+  if (variant.values && variant.values.length >= 2) {
+    return variant.values[1].es ?? null;
+  }
+  return null;
 }
 
 // ── Store info ───────────────────────────────────────────────

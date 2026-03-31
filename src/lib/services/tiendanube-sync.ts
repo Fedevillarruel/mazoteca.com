@@ -126,7 +126,7 @@ async function upsertProduct(product: TNProduct) {
 
   const cardCode = extractCardCode(product);
 
-  // 1. Upsert product row
+  // 1. Upsert product row — guardamos todo tal cual viene de TN
   await supabase.from("tiendanube_products").upsert(
     {
       id: product.id,
@@ -142,14 +142,30 @@ async function upsertProduct(product: TNProduct) {
     { onConflict: "id" }
   );
 
-  // 2. Upsert each variant as its own row
+  // 2. Upsert cada variante con datos exactos de TN
   const primaryImage = product.images?.[0]?.src ?? null;
 
   for (const variant of product.variants ?? []) {
-    // Find the image for this variant if it has one
     const variantImage =
       product.images?.find((img) => img.id === variant.image_id)?.src ??
       primaryImage;
+
+    // Stock: si TN no gestiona stock → disponible (stock = 999)
+    //        si gestiona → usar el valor real (puede ser 0)
+    const stock = variant.stock_management
+      ? (variant.stock ?? 0)
+      : 999;
+
+    // Precio: en TN, price = precio de venta actual
+    //         compare_at_price = precio original tachado (cuando hay descuento)
+    //         promotional_price = precio especial (menos común)
+    const price = variant.price ? Number(variant.price) : null;
+    const compareAtPrice = variant.compare_at_price
+      ? Number(variant.compare_at_price)
+      : null;
+    // Solo guardar precio tachado si es distinto al precio actual
+    const promotional_price =
+      compareAtPrice && compareAtPrice > price! ? compareAtPrice : null;
 
     await supabase.from("tiendanube_variants").upsert(
       {
@@ -159,11 +175,9 @@ async function upsertProduct(product: TNProduct) {
         sku: variant.sku ?? null,
         finish: extractFinish(variant),
         condition: extractCondition(variant),
-        price: variant.price ? Number(variant.price) : null,
-        promotional_price: variant.promotional_price
-          ? Number(variant.promotional_price)
-          : null,
-        stock: variant.stock_management ? variant.stock : 999,
+        price,
+        promotional_price,
+        stock,
         image_url: variantImage,
         synced_at: new Date().toISOString(),
       },
@@ -171,7 +185,7 @@ async function upsertProduct(product: TNProduct) {
     );
   }
 
-  // 3. Remove variants that no longer exist in TN
+  // 3. Eliminar variantes que ya no existen en TN
   const currentVariantIds = product.variants?.map((v) => v.id) ?? [];
   if (currentVariantIds.length > 0) {
     await supabase
