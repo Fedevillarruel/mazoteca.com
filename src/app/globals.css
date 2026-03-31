@@ -1,52 +1,52 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Mazoteca — Design System
+   Mazoteca — Design System v2
    ============================================================
    Dark-first, premium TCG aesthetic.
-   Royal purple primary + warm gold accent on dark slate surfaces.
+   Deep violet primary + warm gold accent on rich dark surfaces.
    ============================================================ */
 
 @theme {
-  /* Primary — Royal Purple */
-  --color-primary-50: #f5f0ff;
-  --color-primary-100: #ede5ff;
-  --color-primary-200: #dcceff;
-  --color-primary-300: #c4a8ff;
-  --color-primary-400: #a875ff;
-  --color-primary-500: #8b42ff;
-  --color-primary-600: #7c2df7;
-  --color-primary-700: #6a1ee3;
-  --color-primary-800: #5918bf;
-  --color-primary-900: #49159c;
-  --color-primary-950: #2d0b6a;
+  /* Primary — Deep Violet */
+  --color-primary-50: #f3eeff;
+  --color-primary-100: #e9e0ff;
+  --color-primary-200: #d5c5ff;
+  --color-primary-300: #b89aff;
+  --color-primary-400: #9b6eff;
+  --color-primary-500: #8040ff;
+  --color-primary-600: #6e22f5;
+  --color-primary-700: #5c14d4;
+  --color-primary-800: #4c13ae;
+  --color-primary-900: #3f138e;
+  --color-primary-950: #25085e;
 
   /* Accent — Warm Gold */
-  --color-accent-50: #fff9eb;
-  --color-accent-100: #ffefc6;
-  --color-accent-200: #ffdc88;
-  --color-accent-300: #ffc64a;
-  --color-accent-400: #ffad20;
-  --color-accent-500: #f99007;
-  --color-accent-600: #dd6a02;
-  --color-accent-700: #b74906;
-  --color-accent-800: #94370c;
-  --color-accent-900: #7a2e0d;
-  --color-accent-950: #461602;
+  --color-accent-50: #fff8e6;
+  --color-accent-100: #ffedbb;
+  --color-accent-200: #ffd96e;
+  --color-accent-300: #ffbf30;
+  --color-accent-400: #ffa500;
+  --color-accent-500: #e88c00;
+  --color-accent-600: #cc7100;
+  --color-accent-700: #a65800;
+  --color-accent-800: #874300;
+  --color-accent-900: #6e3600;
+  --color-accent-950: #3d1d00;
 
-  /* Surface — Dark Slate */
-  --color-surface-50: #f6f7f9;
-  --color-surface-100: #eceef2;
-  --color-surface-200: #d5dae2;
-  --color-surface-300: #b0bac9;
-  --color-surface-400: #8695ab;
-  --color-surface-500: #677891;
-  --color-surface-600: #526078;
-  --color-surface-700: #434e62;
-  --color-surface-800: #333c4d;
-  --color-surface-850: #272e3d;
-  --color-surface-900: #1e2433;
-  --color-surface-950: #0f1219;
+  /* Surface — Rich Dark Blue-Black */
+  --color-surface-50: #f4f5f7;
+  --color-surface-100: #e8eaee;
+  --color-surface-200: #cdd2db;
+  --color-surface-300: #a5afc0;
+  --color-surface-400: #7a879e;
+  --color-surface-500: #5e6e84;
+  --color-surface-600: #4a5668;
+  --color-surface-700: #3a4354;
+  --color-surface-800: #2a3244;
+  --color-surface-850: #1f2636;
+  --color-surface-900: #161c2d;
+  --color-surface-950: #0c1120;
 
   /* Semantic */
   --color-success: #22c55e;
@@ -61,10 +61,11 @@
   --radius-xl: 1rem;
 
   /* Shadows for dark mode */
-  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
-  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(139, 66, 255, 0.15);
-  --shadow-glow-accent: 0 0 20px rgba(249, 144, 7, 0.12);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 4px 16px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(128, 64, 255, 0.2);
+  --shadow-glow-accent: 0 0 30px rgba(255, 165, 0, 0.15);
+  --shadow-glow-sm: 0 0 12px rgba(128, 64, 255, 0.25);
 }
 
 /* ============================================================
@@ -86,6 +87,8 @@ body {
   background-color: var(--color-surface-950);
   color: var(--color-surface-100);
   line-height: 1.6;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 64, 255, 0.08) 0%, transparent 60%);
 }
 
 /* ============================================================
@@ -175,7 +178,7 @@ body {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+  background: linear-gradient(135deg, var(--color-primary-300) 0%, var(--color-accent-400) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -183,10 +186,18 @@ body {
 
 /* Glass effect for cards */
 .glass {
-  background: rgba(30, 36, 51, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(22, 28, 45, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Glow button */
+.btn-glow {
+  box-shadow: 0 0 20px rgba(128, 64, 255, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+.btn-glow:hover {
+  box-shadow: 0 0 30px rgba(128, 64, 255, 0.6), 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* Skeleton loading */
@@ -204,6 +215,34 @@ body {
 @keyframes skeleton-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* Fade in up */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease both;
+}
+
+/* Shimmer overlay */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-300) 0%,
+    var(--color-accent-300) 40%,
+    var(--color-primary-300) 80%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
 }
 
 /* Rarity colors */

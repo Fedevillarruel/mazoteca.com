@@ -153,3 +153,107 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   decrementUnread: () => set((s) => ({ unreadCount: Math.max(0, s.unreadCount - 1) })),
   clearUnread: () => set({ unreadCount: 0 }),
 }));
+
+// =============================================================================
+// Cart Store — Carrito local con persistencia en localStorage
+// =============================================================================
+
+export interface CartItem {
+  /** ID de variante de Tiendanube */
+  variantId: number | string;
+  /** ID del producto TN (para el link de imagen/nombre) */
+  productId: number | string;
+  /** Nombre legible */
+  name: string;
+  /** Acabado / Condición */
+  subtitle?: string;
+  /** URL de imagen */
+  imageUrl?: string;
+  /** Precio unitario en ARS (sin centavos) */
+  price: number;
+  /** Cantidad */
+  quantity: number;
+  /** Stock máximo disponible */
+  maxStock: number;
+}
+
+interface CartState {
+  items: CartItem[];
+  isOpen: boolean;
+  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void;
+  removeItem: (variantId: number | string) => void;
+  updateQuantity: (variantId: number | string, quantity: number) => void;
+  clearCart: () => void;
+  openCart: () => void;
+  closeCart: () => void;
+  totalItems: () => number;
+  totalPrice: () => number;
+  /** Genera la URL de checkout de Tiendanube con todos los items */
+  checkoutUrl: () => string;
+}
+
+const TN_DOMAIN_CART = typeof window !== "undefined"
+  ? (process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "")
+  : "";
+
+function buildCheckoutUrl(items: CartItem[]): string {
+  if (!TN_DOMAIN_CART || items.length === 0) return "#";
+  const base = TN_DOMAIN_CART.startsWith("http")
+    ? TN_DOMAIN_CART
+    : `https://${TN_DOMAIN_CART}`;
+  // Tiendanube acepta múltiples productos en el carrito via:
+  // /carrito/agregar?add_to_cart[{variantId}]={qty}&add_to_cart[{variantId2}]={qty2}
+  const params = items
+    .map((i) => `add_to_cart[${i.variantId}]=${i.quantity}`)
+    .join("&");
+  return `${base}/carrito/agregar?${params}`;
+}
+
+export const useCartStore = create<CartState>()(
+  (set, get) => ({
+    items: [],
+    isOpen: false,
+
+    addItem: (item) =>
+      set((state) => {
+        const existing = state.items.find((i) => i.variantId === item.variantId);
+        const qty = item.quantity ?? 1;
+        if (existing) {
+          const newQty = Math.min(existing.quantity + qty, existing.maxStock);
+          return {
+            items: state.items.map((i) =>
+              i.variantId === item.variantId ? { ...i, quantity: newQty } : i
+            ),
+            isOpen: true,
+          };
+        }
+        return {
+          items: [...state.items, { ...item, quantity: Math.min(qty, item.maxStock) }],
+          isOpen: true,
+        };
+      }),
+
+    removeItem: (variantId) =>
+      set((state) => ({
+        items: state.items.filter((i) => i.variantId !== variantId),
+      })),
+
+    updateQuantity: (variantId, quantity) =>
+      set((state) => ({
+        items: state.items.map((i) =>
+          i.variantId === variantId
+            ? { ...i, quantity: Math.min(Math.max(1, quantity), i.maxStock) }
+            : i
+        ),
+      })),
+
+    clearCart: () => set({ items: [] }),
+    openCart: () => set({ isOpen: true }),
+    closeCart: () => set({ isOpen: false }),
+
+    totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+    totalPrice: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    checkoutUrl: () => buildCheckoutUrl(get().items),
+  })
+);
+

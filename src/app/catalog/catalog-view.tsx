@@ -20,6 +20,7 @@ import {
   Sparkles,
   Crosshair,
   ShoppingCart,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -30,16 +31,10 @@ import {
   type KTCGCategory,
 } from "@/data/cards";
 import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
+import { useCartStore } from "@/lib/stores";
 
 // ── TN domain (for buy links) ────────────────────────────────
-const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
-
-function buildCartUrl(variantId: number): string {
-  if (!TN_DOMAIN) return "#";
-  const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-  // /comprar/?add_to_cart={id}&quantity=1 lleva directo al carrito con el producto
-  return `${base}/comprar/?add_to_cart=${variantId}&quantity=1`;
-}
+// (usado solo para imagen de fallback de tienda si es necesario)
 
 interface CardWithSingle extends KTCGCard {
   single: CatalogSingleEntry;
@@ -301,7 +296,26 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const originalPrice = hasDiscount ? single.min_price : null;
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
-  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
+
+  const { addItem, items } = useCartStore();
+  const variantId = single.variant_ids[0];
+  const inCart = variantId != null && items.some((i) => i.variantId === variantId);
+  const [added, setAdded] = useState(false);
+
+  function handleAddToCart() {
+    if (!variantId || outOfStock) return;
+    addItem({
+      variantId,
+      productId: variantId,
+      name: card.name,
+      subtitle: card.category + (card.level != null ? ` · Nv.${card.level}` : ""),
+      imageUrl: single.image_url ?? undefined,
+      price: displayPrice ?? 0,
+      maxStock: Math.min(single.total_stock, 10),
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  }
 
   return (
     <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5">
@@ -369,22 +383,29 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
           )}
         </div>
 
-        {/* Buy button */}
-        <a
-          href={buyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Add to cart button */}
+        <button
+          onClick={handleAddToCart}
+          disabled={outOfStock}
           className={cn(
-            "mt-auto flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-colors",
+            "mt-auto flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
             outOfStock
-              ? "bg-surface-800 text-surface-500 cursor-not-allowed pointer-events-none"
+              ? "bg-surface-800 text-surface-500 cursor-not-allowed"
+              : added || inCart
+              ? "bg-green-600 hover:bg-green-500 text-white"
               : "bg-primary-600 hover:bg-primary-500 text-white"
           )}
-          onClick={(e) => outOfStock && e.preventDefault()}
         >
-          <ShoppingCart className="h-3 w-3" />
-          {outOfStock ? "Sin stock" : "Comprar"}
-        </a>
+          {added ? (
+            <><Check className="h-3 w-3" />¡Agregado!</>
+          ) : inCart ? (
+            <><Check className="h-3 w-3" />En el carrito</>
+          ) : outOfStock ? (
+            "Sin stock"
+          ) : (
+            <><ShoppingCart className="h-3 w-3" />Agregar al carrito</>
+          )}
+        </button>
       </div>
     </div>
   );
@@ -400,7 +421,26 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   const originalPrice = hasDiscount ? single.min_price : null;
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
-  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
+
+  const { addItem, items } = useCartStore();
+  const variantId = single.variant_ids[0];
+  const inCart = variantId != null && items.some((i) => i.variantId === variantId);
+  const [added, setAdded] = useState(false);
+
+  function handleAddToCart() {
+    if (!variantId || outOfStock) return;
+    addItem({
+      variantId,
+      productId: variantId,
+      name: card.name,
+      subtitle: card.category + (card.level != null ? ` · Nv.${card.level}` : ""),
+      imageUrl: single.image_url ?? undefined,
+      price: displayPrice ?? 0,
+      maxStock: Math.min(single.total_stock, 10),
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  }
 
   return (
     <div className="flex items-center gap-4 bg-surface-900 border border-surface-800 rounded-xl p-4 hover:border-surface-700 transition-colors">
@@ -434,7 +474,7 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
         </p>
       </div>
 
-      {/* Price + buy */}
+      {/* Price + add to cart */}
       <div className="shrink-0 text-right flex flex-col items-end gap-2">
         {displayPrice != null && (
           <div className="flex flex-col items-end">
@@ -444,21 +484,28 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
             )}
           </div>
         )}
-        <a
-          href={buyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleAddToCart}
+          disabled={outOfStock}
           className={cn(
-            "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-colors",
+            "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200",
             outOfStock
-              ? "bg-surface-800 text-surface-500 cursor-not-allowed pointer-events-none"
+              ? "bg-surface-800 text-surface-500 cursor-not-allowed"
+              : added || inCart
+              ? "bg-green-600 hover:bg-green-500 text-white"
               : "bg-primary-600 hover:bg-primary-500 text-white"
           )}
-          onClick={(e) => outOfStock && e.preventDefault()}
         >
-          <ShoppingCart className="h-3.5 w-3.5" />
-          {outOfStock ? "Sin stock" : "Comprar"}
-        </a>
+          {added ? (
+            <><Check className="h-3.5 w-3.5" />¡Agregado!</>
+          ) : inCart ? (
+            <><Check className="h-3.5 w-3.5" />En carrito</>
+          ) : outOfStock ? (
+            "Sin stock"
+          ) : (
+            <><ShoppingCart className="h-3.5 w-3.5" />Agregar al carrito</>
+          )}
+        </button>
       </div>
     </div>
   );

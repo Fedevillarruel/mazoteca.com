@@ -24,10 +24,13 @@ import {
   BookCopy,
   RefreshCw,
   ShoppingBag,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "@/lib/actions/auth";
+import { useCartStore } from "@/lib/stores";
+import { CartDrawer } from "@/components/ui/cart-drawer";
 
 const mainNav = [
   { href: "/catalog", label: "Catálogo", icon: BookOpen },
@@ -199,21 +202,30 @@ export function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { totalItems, openCart } = useCartStore();
+  const cartCount = totalItems();
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-surface-800 bg-surface-950/80 backdrop-blur-xl">
+    <>
+    <header className="sticky top-0 z-40 w-full border-b border-surface-800/60 bg-surface-950/85 backdrop-blur-2xl">
+      {/* Subtle top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary-500/40 to-transparent" />
+
       <div className="mx-auto max-w-350 px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 shrink-0">
-              <span className="text-lg font-bold text-surface-50">
-                Mazoteca<span className="text-primary-400">.com</span>
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+              <div className="h-7 w-7 rounded-lg bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/30 group-hover:bg-primary-500 transition-colors">
+                <Crown className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-lg font-bold tracking-tight">
+                <span className="text-surface-50">Mazoteca</span><span className="text-primary-400">.com</span>
               </span>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-0.5">
               {mainNav.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
@@ -222,13 +234,13 @@ export function Header({ user }: HeaderProps) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                      "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150",
                       isActive
-                        ? "text-primary-400 bg-primary-500/10"
-                        : "text-surface-300 hover:text-surface-100 hover:bg-surface-800"
+                        ? "text-primary-300 bg-primary-500/15 shadow-sm"
+                        : "text-surface-400 hover:text-surface-100 hover:bg-surface-800/70"
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                     {item.label}
                   </Link>
                 );
@@ -237,14 +249,28 @@ export function Header({ user }: HeaderProps) {
           </div>
 
           {/* Right side */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Search Toggle */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors"
+              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all"
               aria-label="Buscar"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4.5 w-4.5" />
+            </button>
+
+            {/* Cart button */}
+            <button
+              onClick={openCart}
+              className="relative p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all"
+              aria-label="Carrito de compras"
+            >
+              <ShoppingCart className="h-4.5 w-4.5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 rounded-full bg-primary-500 text-white text-[9px] font-bold flex items-center justify-center leading-none shadow-lg shadow-primary-500/40">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </button>
 
             {user ? (
@@ -252,24 +278,24 @@ export function Header({ user }: HeaderProps) {
                 {/* Notifications */}
                 <Link
                   href="/notifications"
-                  className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors relative"
+                  className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all relative"
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-4.5 w-4.5" />
                 </Link>
 
                 {/* Profile dropdown */}
                 <ProfileDropdown user={user} />
               </>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ml-1">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="hidden sm:flex">
+                  <Button variant="ghost" size="sm" className="hidden sm:flex text-surface-300 hover:text-surface-100">
                     <LogIn className="h-4 w-4" />
-                    Iniciar Sesión
+                    Ingresar
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button variant="primary" size="sm">
+                  <Button variant="primary" size="sm" className="btn-glow">
                     <User className="h-4 w-4" />
                     <span className="hidden sm:inline">Registrarse</span>
                   </Button>
@@ -280,7 +306,7 @@ export function Header({ user }: HeaderProps) {
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors lg:hidden"
+              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all lg:hidden ml-1"
               aria-label="Menú"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -292,11 +318,11 @@ export function Header({ user }: HeaderProps) {
         {searchOpen && (
           <div className="pb-4 pt-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-500" />
               <input
                 type="search"
                 placeholder="Buscar cartas, mazos, usuarios, publicaciones..."
-                className="w-full h-10 pl-10 pr-4 bg-surface-900 border border-surface-700 rounded-lg text-sm text-surface-100 placeholder:text-surface-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none"
+                className="w-full h-10 pl-10 pr-4 bg-surface-900/80 border border-surface-700/60 rounded-xl text-sm text-surface-100 placeholder:text-surface-500 focus:border-primary-500/70 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -306,8 +332,8 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-surface-800 bg-surface-950">
-          <nav className="px-4 py-3 space-y-1">
+        <div className="lg:hidden border-t border-surface-800/60 bg-surface-950/95 backdrop-blur-xl">
+          <nav className="px-4 py-3 space-y-0.5">
             {mainNav.map((item) => {
               const Icon = item.icon;
               const isActive = pathname.startsWith(item.href);
@@ -317,10 +343,10 @@ export function Header({ user }: HeaderProps) {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-colors",
                     isActive
-                      ? "text-primary-400 bg-primary-500/10"
-                      : "text-surface-300 hover:text-surface-100 hover:bg-surface-800"
+                      ? "text-primary-300 bg-primary-500/15"
+                      : "text-surface-300 hover:text-surface-100 hover:bg-surface-800/70"
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -331,8 +357,7 @@ export function Header({ user }: HeaderProps) {
 
             {user && (
               <>
-                <div className="border-t border-surface-800 my-2" />
-                {/* User info in mobile */}
+                <div className="border-t border-surface-800/60 my-2" />
                 <div className="flex items-center gap-3 px-3 py-2 mb-1">
                   <UserAvatar user={user} size={8} />
                   <div>
@@ -345,20 +370,20 @@ export function Header({ user }: HeaderProps) {
                   </div>
                 </div>
                 <Link href={`/profile/${user.username}`} onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800 rounded-lg">
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <User className="h-5 w-5" />Mi perfil
                 </Link>
                 <Link href="/collection" onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800 rounded-lg">
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <Layers className="h-5 w-5" />Mi Colección
                 </Link>
                 <Link href="/settings" onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800 rounded-lg">
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <Settings className="h-5 w-5" />Configuración
                 </Link>
                 <button
                   onClick={async () => { setMobileMenuOpen(false); await signOut(); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-error hover:bg-error/10 rounded-lg"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-error hover:bg-error/10 rounded-xl"
                 >
                   <LogOut className="h-5 w-5" />Cerrar sesión
                 </button>
@@ -368,5 +393,7 @@ export function Header({ user }: HeaderProps) {
         </div>
       )}
     </header>
+      <CartDrawer />
+    </>
   );
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Search,
   ShoppingCart,
+  Check,
   X,
   Package,
   Crown,
@@ -23,6 +24,7 @@ import {
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "@/lib/stores";
 import type { TNGameTree } from "@/lib/services/tiendanube";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,8 +97,6 @@ const SUBCATEGORY_COLORS: Record<string, string> = {
   "Estrategia Primigenia": "text-pink-400 bg-pink-400/10 border-pink-400/20",
   Arroje: "text-orange-400 bg-orange-400/10 border-orange-400/20",
 };
-
-const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
 // Deriva el juego de una variante comparando su cards.category
 // con las subcategorías de cada juego en TN
@@ -389,7 +389,7 @@ function DerivedCategoryFilter({
 
 // ── Single listing card ───────────────────────────────────────
 
-function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail: string | null }) {
+function SingleCard({ variant }: { variant: SingleVariant; userEmail: string | null }) {
   const card = variant.cards;
   const product = variant.tiendanube_products;
   const Icon = SUBCATEGORY_ICONS[card?.category ?? ""] ?? Shield;
@@ -404,9 +404,30 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
   const stockUnlimited = variant.stock >= 999;
   const maxQty = stockUnlimited ? 10 : variant.stock;
   const stockLow = !stockUnlimited && variant.stock <= 3 && variant.stock > 0;
+  const outOfStock = variant.stock === 0;
 
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState(false);
   const cardHref = card?.slug ? `/catalog/${card.slug}` : `/singles/${variant.product_id}`;
+
+  const { addItem, items } = useCartStore();
+  const inCart = items.some((i) => i.variantId === variant.id);
+
+  function handleAddToCart() {
+    if (outOfStock) return;
+    addItem({
+      variantId: variant.id,
+      productId: variant.product_id,
+      name: displayName,
+      subtitle: [variant.finish, variant.condition].filter(Boolean).join(" · ") || undefined,
+      imageUrl: variant.image_url ?? undefined,
+      price: currentPrice ?? 0,
+      maxStock: maxQty,
+      quantity: qty,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  }
 
   return (
     <div className="group flex flex-col bg-surface-900 border border-surface-800 rounded-2xl overflow-hidden hover:border-surface-600 hover:shadow-lg hover:shadow-black/30 transition-all duration-200">
@@ -482,8 +503,8 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
           {variant.condition && <span className="text-surface-400">{variant.condition}</span>}
         </div>
 
-        {/* Selector de cantidad — solo si hay stock > 1 y el usuario está logueado */}
-        {userEmail !== null && maxQty > 1 && (
+        {/* Selector de cantidad — solo si hay más de 1 en stock */}
+        {maxQty > 1 && (
           <div className="flex items-center justify-between bg-surface-800 rounded-lg px-3 py-2">
             <span className="text-xs text-surface-400">Cantidad</span>
             <div className="flex items-center gap-2">
@@ -507,38 +528,28 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
         )}
 
         {/* CTA */}
-        {userEmail === null ? (
-          <a
-            href="/login?redirect=/singles"
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Iniciá sesión para comprar
-          </a>
-        ) : (
-          <button
-            onClick={async () => {
-              if (!TN_DOMAIN) return;
-              const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-              try {
-                await fetch(`${base}/carrito/agregar`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                  body: `add_to_cart=${variant.id}&quantity=${qty}`,
-                  mode: "no-cors",
-                  credentials: "include",
-                });
-              } catch {
-                // no-cors siempre rechaza la promise — ignoramos
-              }
-              window.open(`${base}/carrito`, "_blank");
-            }}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            {qty > 1 ? `Comprar ${qty}` : "Comprar ahora"}
-          </button>
-        )}
+        <button
+          onClick={handleAddToCart}
+          disabled={outOfStock}
+          className={cn(
+            "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95",
+            outOfStock
+              ? "bg-surface-800 text-surface-500 cursor-not-allowed"
+              : added || inCart
+              ? "bg-green-600 hover:bg-green-500 text-white shadow-sm shadow-green-600/30"
+              : "bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40"
+          )}
+        >
+          {added ? (
+            <><Check className="h-4 w-4" />¡Agregado al carrito!</>
+          ) : inCart ? (
+            <><Check className="h-4 w-4" />En el carrito</>
+          ) : outOfStock ? (
+            "Sin stock"
+          ) : (
+            <><ShoppingCart className="h-4 w-4" />{qty > 1 ? `Agregar ${qty} al carrito` : "Agregar al carrito"}</>
+          )}
+        </button>
       </div>
     </div>
   );
