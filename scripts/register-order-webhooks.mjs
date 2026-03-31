@@ -20,10 +20,14 @@ for (const line of readFileSync(envPath, "utf8").split("\n")) {
   if (match) envVars[match[1].trim()] = match[2].trim();
 }
 
-const TN_STORE_ID = envVars["TIENDANUBE_STORE_ID"];
-const TN_ACCESS_TOKEN = envVars["TIENDANUBE_ACCESS_TOKEN"];
+const TN_STORE_ID = process.env.TIENDANUBE_STORE_ID || envVars["TIENDANUBE_STORE_ID"];
+const TN_ACCESS_TOKEN = process.env.TIENDANUBE_ACCESS_TOKEN || envVars["TIENDANUBE_ACCESS_TOKEN"];
 const TN_APP_ID = "28885";
-const APP_URL = envVars["NEXT_PUBLIC_APP_URL"] || "https://mazoteca.com";
+// Argumento CLI tiene máxima prioridad: node script.mjs https://mi-url.com
+const cliUrl = process.argv[2];
+const APP_URL = cliUrl || process.env.NEXT_PUBLIC_APP_URL || envVars["NEXT_PUBLIC_APP_URL"] || "https://mazoteca.com";
+// Si la URL apunta a localhost, usamos la de producción como fallback
+const FINAL_URL = (APP_URL.includes("localhost") && !cliUrl) ? "https://mazoteca.com" : APP_URL;
 
 const TN_HEADERS = {
   Authentication: `bearer ${TN_ACCESS_TOKEN}`,
@@ -31,7 +35,7 @@ const TN_HEADERS = {
   "Content-Type": "application/json",
 };
 
-const WEBHOOK_URL = `${APP_URL}/api/tiendanube/orders`;
+const WEBHOOK_URL = `${FINAL_URL}/api/tiendanube/orders`;
 
 const EVENTS = ["order/created", "order/updated", "order/paid"];
 

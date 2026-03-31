@@ -65,8 +65,13 @@ interface DeckBuilderState {
   isValid: () => boolean;
 }
 
-const COMBATANTS_MAX = 33;
+const COMBATANTS_MAX = 33; // tropas (sin contar el coronado)
 const STRATEGY_MAX = 30;
+
+// Mazo combatientes: 1 copia por carta (selección libre)
+const COMBATANTS_MAX_COPIES = 1;
+// Mazo estrategia: máx 2 cartas con el mismo nombre (realeza siempre 1)
+const STRATEGY_MAX_COPIES = 2;
 
 export const useDeckBuilderStore = create<DeckBuilderState>((set, get) => ({
   deckName: "",
@@ -81,12 +86,14 @@ export const useDeckBuilderStore = create<DeckBuilderState>((set, get) => ({
   addCard: (cardId) =>
     set((state) => {
       const max = state.deckType === "combatants" ? COMBATANTS_MAX : STRATEGY_MAX;
+      const maxCopies =
+        state.deckType === "combatants" ? COMBATANTS_MAX_COPIES : STRATEGY_MAX_COPIES;
       const total = state.cards.reduce((s, e) => s + e.quantity, 0);
       if (total >= max) return state;
 
       const existing = state.cards.find((e) => e.cardId === cardId);
       if (existing) {
-        if (existing.quantity >= 3) return state;
+        if (existing.quantity >= maxCopies) return state;
         return {
           cards: state.cards.map((e) =>
             e.cardId === cardId ? { ...e, quantity: e.quantity + 1 } : e

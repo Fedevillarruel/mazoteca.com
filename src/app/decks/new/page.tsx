@@ -23,8 +23,24 @@ import {
 import { allCards } from "@/data/cards";
 
 const DECK_TYPES = [
-  { id: "combatants", label: "Combatientes", max: 33, hasCrowned: true, description: "33 cartas + 1 coronado" },
-  { id: "strategy", label: "Estrategia", max: 30, hasCrowned: false, description: "30 cartas exactas" },
+  {
+    id: "combatants",
+    label: "Combatientes",
+    max: 33,
+    hasCrowned: true,
+    description: "33 tropas + 1 coronado",
+    maxCopies: 1, // 1 copia por carta (libre elección)
+    hint: "Nv1×12 · Nv2×12 · Nv3×6 · Nv4×3",
+  },
+  {
+    id: "strategy",
+    label: "Estrategia",
+    max: 30,
+    hasCrowned: false,
+    description: "30 cartas exactas",
+    maxCopies: 2, // máx 2 cartas del mismo nombre
+    hint: "Estrategia (mín 15) · Realeza (máx 5, 1 de cada) · Arroje (máx 10)",
+  },
 ] as const;
 
 type DeckType = (typeof DECK_TYPES)[number]["id"];
@@ -51,9 +67,11 @@ export default function DeckBuilderPage() {
 
   const addCard = (cardId: string) => {
     setDeckCards((prev) => {
+      const total = prev.reduce((sum, e) => sum + e.quantity, 0);
+      if (total >= maxCards) return prev;
       const existing = prev.find((e) => e.cardId === cardId);
       if (existing) {
-        if (existing.quantity >= 3) return prev;
+        if (existing.quantity >= deckConfig.maxCopies) return prev;
         return prev.map((e) => (e.cardId === cardId ? { ...e, quantity: e.quantity + 1 } : e));
       }
       return [...prev, { cardId, quantity: 1 }];
@@ -105,7 +123,7 @@ export default function DeckBuilderPage() {
             Tipo de mazo
           </label>
           <div className="flex gap-2">
-            {DECK_TYPES.map((dt) => (
+              {DECK_TYPES.map((dt) => (
               <button
                 key={dt.id}
                 onClick={() => {
@@ -121,6 +139,7 @@ export default function DeckBuilderPage() {
               >
                 {dt.label}
                 <span className="block text-xs opacity-70">{dt.description}</span>
+                <span className="block text-[10px] opacity-50 mt-0.5">{dt.hint}</span>
               </button>
             ))}
           </div>

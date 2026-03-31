@@ -310,8 +310,8 @@ export default function HomePage() {
                 Armá tu mazo
               </h2>
               <p className="text-surface-300 mb-6 max-w-lg">
-                Mazo de combatientes: elegí 1 de los 4 coronados, sumá 33 tropas
-                de tu facción y completá con 30 cartas de estrategia.
+                Mazo de Combatientes: 1 coronado + 33 tropas (Nv1×12, Nv2×12, Nv3×6, Nv4×3).
+                Mazo de Estrategia: 30 cartas (Estrategia, Realeza y/o Arroje).
                 Validación de reglas en tiempo real.
               </p>
               <div className="flex gap-3">

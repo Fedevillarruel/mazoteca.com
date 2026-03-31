@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
@@ -26,10 +27,8 @@ const footerSections = [
     title: "Recursos",
     links: [
       { label: "Guía de inicio", href: "/guide" },
-      { label: "Reglas del juego", href: "/rules" },
       { label: "FAQ", href: "/faq" },
       { label: "Soporte", href: "/support" },
-      { label: "API (próximamente)", href: "#" },
     ],
   },
   {
@@ -115,9 +114,27 @@ export function Footer() {
             © {new Date().getFullYear()} {siteConfig.name}. Todos los derechos
             reservados. Los juegos de cartas son propiedad de sus respectivos autores.
           </p>
-          <p className="text-xs text-surface-600">
-            mazoteca.com no está afiliado oficialmente con ningún editor de TCG.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p className="text-xs text-surface-600">
+              mazoteca.com no está afiliado oficialmente con ningún editor de TCG.
+            </p>
+            <a
+              href="https://fedini.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-surface-500 hover:text-surface-300 transition-colors"
+            >
+              <Image
+                src="https://fedini.app/_next/image?url=https%3A%2F%2Fjtujtceemarxedagazge.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Fbusiness-photos%2Fapp-icon-logos%2Flogo2.png&w=48&q=75"
+                alt="Fedini"
+                width={16}
+                height={16}
+                className="rounded-sm"
+              />
+              Mazoteca® es marca registrada de{" "}
+              <span className="font-medium text-surface-400">Fedini</span>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

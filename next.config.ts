@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "fedini.app",
+        pathname: "/_next/image/**",
+      },
     ],
     formats: ["image/avif", "image/webp"],
   },

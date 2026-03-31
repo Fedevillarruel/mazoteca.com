@@ -36,18 +36,27 @@ export const gameConfig = {
   deckRules: {
     strategy: {
       name: "Mazo de Estrategia",
-      minCards: 30,
-      maxCards: 30,
-      maxCopiesPerCard: 3,
+      totalCards: 30,          // exactamente 30 cartas
+      minStrategyCards: 15,    // mín 15 cartas de estrategia
+      maxStrategyCards: 30,    // máx 30 cartas de estrategia
+      maxCopiesStrategyPerName: 2, // máx 2 cartas con el mismo nombre
+      maxRoyaltyCards: 5,      // máx 5 cartas de realeza (opcionales)
+      maxCopiesRoyaltyPerName: 1,  // cada carta de realeza debe tener nombre distinto
+      maxThrowCards: 10,       // máx 10 cartas de arroje (opcionales)
+      maxCopiesThrowPerName: 2,    // máx 2 cartas de arroje con el mismo nombre
     },
     combatants: {
       name: "Mazo de Combatientes",
-      minCards: 34, // 33 + 1 crowned
-      maxCards: 34,
-      maxCopiesPerCard: 3,
-      requiresCrowned: true,
-      crownedSlots: 1,
-      combatantSlots: 33,
+      totalCards: 34,          // 33 tropas + 1 coronado
+      crownedSlots: 1,         // exactamente 1 coronado (libre elección)
+      troopSlots: 33,          // exactamente 33 tropas
+      troopsByLevel: {         // distribución exacta por nivel
+        1: 12,
+        2: 12,
+        3: 6,
+        4: 3,
+      },
+      maxCopiesPerCard: 1,     // 1 copia por carta (selección libre)
     },
   },
 
