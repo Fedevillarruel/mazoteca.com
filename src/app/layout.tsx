@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { unstable_noStore as noStore } from "next/cache";
 import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Providers } from "./providers";
 import { getCurrentUser } from "@/lib/actions/auth";
@@ -66,6 +67,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  noStore(); // Fuerza re-ejecución en cada request — necesario para que el header detecte el login
   const session = await getCurrentUser();
   const headerUser = session?.profile
     ? {
