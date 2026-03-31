@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Providers } from "./providers";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { siteConfig } from "@/config/site";
@@ -84,9 +83,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-surface-950 text-surface-100">
         <Providers>
-          <Header user={headerUser} />
-          <div className="flex-1">{children}</div>
-          <Footer />
+          <ConditionalShell user={headerUser}>
+            {children}
+          </ConditionalShell>
         </Providers>
         {/* Google AdSense */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (

@@ -378,18 +378,29 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
         </div>
 
         {/* CTA */}
-        <a
-          href={buyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(
-            "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200",
-            "bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
-          )}
-        >
-          <ShoppingCart className="h-4 w-4" />
-          Comprar ahora
-        </a>
+        {userEmail === null ? (
+          // Sin sesión → redirigir al login con redirect de vuelta
+          <a
+            href={`/login?redirect=/singles`}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Iniciá sesión para comprar
+          </a>
+        ) : (
+          <a
+            href={buyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200",
+              "bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
+            )}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Comprar ahora
+          </a>
+        )}
       </div>
     </div>
   );
