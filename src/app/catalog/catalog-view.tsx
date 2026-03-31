@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { addToAlbum } from "@/lib/actions/profile";
 import {
   Search,
   Grid3X3,
@@ -21,6 +22,7 @@ import {
   Crosshair,
   ShoppingCart,
   Check,
+  BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -301,6 +303,7 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const variantId = single.variant_ids[0];
   const inCart = variantId != null && items.some((i) => i.variantId === variantId);
   const [added, setAdded] = useState(false);
+  const [addedAlbum, setAddedAlbum] = useState(false);
 
   function handleAddToCart() {
     if (!variantId || outOfStock) return;
@@ -315,6 +318,12 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
+  }
+
+  async function handleAddToAlbum() {
+    const res = await addToAlbum(card.code);
+    if (res.needsAuth) { window.location.href = "/login"; return; }
+    if (res.success) { setAddedAlbum(true); setTimeout(() => setAddedAlbum(false), 2000); }
   }
 
   return (
@@ -383,29 +392,47 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
           )}
         </div>
 
-        {/* Add to cart button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={outOfStock}
-          className={cn(
-            "mt-auto flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
-            outOfStock
-              ? "bg-surface-800 text-surface-500 cursor-not-allowed"
-              : added || inCart
-              ? "bg-green-600 hover:bg-green-500 text-white"
-              : "bg-primary-600 hover:bg-primary-500 text-white"
-          )}
-        >
-          {added ? (
-            <><Check className="h-3 w-3" />¡Agregado!</>
-          ) : inCart ? (
-            <><Check className="h-3 w-3" />En el carrito</>
-          ) : outOfStock ? (
-            "Sin stock"
-          ) : (
-            <><ShoppingCart className="h-3 w-3" />Agregar al carrito</>
-          )}
-        </button>
+        {/* Buttons row */}
+        <div className="mt-auto flex gap-1.5">
+          {/* Add to cart */}
+          <button
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            title="Agregar al carrito"
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
+              outOfStock
+                ? "bg-surface-800 text-surface-500 cursor-not-allowed"
+                : added || inCart
+                ? "bg-green-600 hover:bg-green-500 text-white"
+                : "bg-primary-600 hover:bg-primary-500 text-white"
+            )}
+          >
+            {added ? (
+              <><Check className="h-3 w-3" />¡Listo!</>
+            ) : inCart ? (
+              <><Check className="h-3 w-3" />En carrito</>
+            ) : outOfStock ? (
+              "Sin stock"
+            ) : (
+              <><ShoppingCart className="h-3 w-3" />Comprar</>
+            )}
+          </button>
+
+          {/* Add to album */}
+          <button
+            onClick={handleAddToAlbum}
+            title="Agregar al álbum"
+            className={cn(
+              "flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border",
+              addedAlbum
+                ? "bg-violet-600 border-violet-500 text-white"
+                : "bg-surface-800 border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-primary-300 hover:border-primary-500"
+            )}
+          >
+            {addedAlbum ? <Check className="h-3 w-3" /> : <BookMarked className="h-3 w-3" />}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -426,6 +453,7 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   const variantId = single.variant_ids[0];
   const inCart = variantId != null && items.some((i) => i.variantId === variantId);
   const [added, setAdded] = useState(false);
+  const [addedAlbum, setAddedAlbum] = useState(false);
 
   function handleAddToCart() {
     if (!variantId || outOfStock) return;
@@ -440,6 +468,12 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
+  }
+
+  async function handleAddToAlbum() {
+    const res = await addToAlbum(card.code);
+    if (res.needsAuth) { window.location.href = "/login"; return; }
+    if (res.success) { setAddedAlbum(true); setTimeout(() => setAddedAlbum(false), 2000); }
   }
 
   return (
@@ -474,7 +508,7 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
         </p>
       </div>
 
-      {/* Price + add to cart */}
+      {/* Price + buttons */}
       <div className="shrink-0 text-right flex flex-col items-end gap-2">
         {displayPrice != null && (
           <div className="flex flex-col items-end">
@@ -484,28 +518,45 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
             )}
           </div>
         )}
-        <button
-          onClick={handleAddToCart}
-          disabled={outOfStock}
-          className={cn(
-            "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200",
-            outOfStock
-              ? "bg-surface-800 text-surface-500 cursor-not-allowed"
-              : added || inCart
-              ? "bg-green-600 hover:bg-green-500 text-white"
-              : "bg-primary-600 hover:bg-primary-500 text-white"
-          )}
-        >
-          {added ? (
-            <><Check className="h-3.5 w-3.5" />¡Agregado!</>
-          ) : inCart ? (
-            <><Check className="h-3.5 w-3.5" />En carrito</>
-          ) : outOfStock ? (
-            "Sin stock"
-          ) : (
-            <><ShoppingCart className="h-3.5 w-3.5" />Agregar al carrito</>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Add to cart */}
+          <button
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            className={cn(
+              "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200",
+              outOfStock
+                ? "bg-surface-800 text-surface-500 cursor-not-allowed"
+                : added || inCart
+                ? "bg-green-600 hover:bg-green-500 text-white"
+                : "bg-primary-600 hover:bg-primary-500 text-white"
+            )}
+          >
+            {added ? (
+              <><Check className="h-3.5 w-3.5" />¡Listo!</>
+            ) : inCart ? (
+              <><Check className="h-3.5 w-3.5" />En carrito</>
+            ) : outOfStock ? (
+              "Sin stock"
+            ) : (
+              <><ShoppingCart className="h-3.5 w-3.5" />Comprar</>
+            )}
+          </button>
+
+          {/* Add to album */}
+          <button
+            onClick={handleAddToAlbum}
+            title="Agregar al álbum"
+            className={cn(
+              "flex items-center justify-center py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 border",
+              addedAlbum
+                ? "bg-violet-600 border-violet-500 text-white"
+                : "bg-surface-800 border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-primary-300 hover:border-primary-500"
+            )}
+          >
+            {addedAlbum ? <Check className="h-3.5 w-3.5" /> : <BookMarked className="h-3.5 w-3.5" />}
+          </button>
+        </div>
       </div>
     </div>
   );

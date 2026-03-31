@@ -280,3 +280,50 @@ export async function submitReport(formData: FormData) {
 
   return { success: true };
 }
+
+/**
+ * Agrega 1 carta al álbum digital del usuario (digital_inventory).
+ * Recibe el `code` de la carta (ej: "KT001") y busca el UUID internamente.
+ * Si ya existe, incrementa la cantidad en 1.
+ */
+export async function addToAlbum(cardCode: string): Promise<{ success?: boolean; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { needsAuth: true };
+
+  // Buscar el UUID de la carta por su code
+  const { data: card } = await supabase
+    .from("cards")
+    .select("id")
+    .eq("code", cardCode)
+    .single();
+
+  if (!card) return { error: "Carta no encontrada." };
+
+  const { data: existing } = await supabase
+    .from("digital_inventory")
+    .select("id, quantity")
+    .eq("profile_id", user.id)
+    .eq("card_id", card.id)
+    .is("variant_id", null)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("digital_inventory")
+      .update({ quantity: existing.quantity + 1 })
+      .eq("id", existing.id);
+    if (error) return { error: "Error al actualizar la carta." };
+  } else {
+    const { error } = await supabase
+      .from("digital_inventory")
+      .insert({ profile_id: user.id, card_id: card.id, quantity: 1 });
+    if (error) return { error: "Error al agregar la carta." };
+  }
+
+  revalidatePath("/album");
+  return { success: true };
+}

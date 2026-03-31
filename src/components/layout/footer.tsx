@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ExternalLink, MessageSquare } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
 const footerSections = [
@@ -28,7 +27,6 @@ const footerSections = [
     links: [
       { label: "Guía de inicio", href: "/guide" },
       { label: "FAQ", href: "/faq" },
-      { label: "Soporte", href: "/support" },
     ],
   },
   {
@@ -45,7 +43,7 @@ const footerSections = [
 export function Footer() {
   return (
     <footer className="border-t border-surface-800 bg-surface-950">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6">
+      <div className="mx-auto max-w-350 px-4 sm:px-6">
         {/* Main footer content */}
         <div className="py-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {/* Brand column */}
@@ -59,31 +57,6 @@ export function Footer() {
               Tu plataforma de TCG: catálogo, singles, mazos e intercambios.
               Hoy Kingdom TCG, mañana más juegos.
             </p>
-            {/* Social links */}
-            <div className="flex gap-3">
-              {siteConfig.links.discord && (
-                <a
-                  href={siteConfig.links.discord}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 text-surface-400 hover:text-primary-400 hover:bg-surface-800 rounded-lg transition-colors"
-                  aria-label="Discord"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                </a>
-              )}
-              {siteConfig.links.twitter && (
-                <a
-                  href={siteConfig.links.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 text-surface-400 hover:text-primary-400 hover:bg-surface-800 rounded-lg transition-colors"
-                  aria-label="Twitter"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                </a>
-              )}
-            </div>
           </div>
 
           {/* Link columns */}
@@ -131,8 +104,10 @@ export function Footer() {
                 height={16}
                 className="rounded-sm"
               />
-              Mazoteca® es marca registrada de{" "}
-              <span className="font-medium text-surface-400">Fedini</span>
+              <span>
+                Mazoteca<sup>®</sup> es marca registrada de{" "}
+                <span className="font-semibold text-primary-400">Fedini</span>
+              </span>
             </a>
           </div>
         </div>

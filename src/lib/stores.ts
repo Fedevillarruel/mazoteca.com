@@ -192,15 +192,12 @@ interface CartState {
   checkoutUrl: () => string;
 }
 
-const TN_DOMAIN_CART = typeof window !== "undefined"
-  ? (process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "")
-  : "";
-
 function buildCheckoutUrl(items: CartItem[]): string {
-  if (!TN_DOMAIN_CART || items.length === 0) return "#";
-  const base = TN_DOMAIN_CART.startsWith("http")
-    ? TN_DOMAIN_CART
-    : `https://${TN_DOMAIN_CART}`;
+  const domain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
+  if (!domain || items.length === 0) return "#";
+  const base = domain.startsWith("http")
+    ? domain
+    : `https://${domain}`;
   // Tiendanube acepta múltiples productos en el carrito via:
   // /carrito/agregar?add_to_cart[{variantId}]={qty}&add_to_cart[{variantId2}]={qty2}
   const params = items
