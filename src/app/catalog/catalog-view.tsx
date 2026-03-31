@@ -33,10 +33,12 @@ import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
 // ── TN domain (for buy links) ────────────────────────────────
 const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
-function buildCartUrl(variantId: number): string {
+function buildCartUrl(variantId: number, handle: string | null): string {
   if (!TN_DOMAIN) return "#";
   const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-  return `${base}/cart/add?id=${variantId}&quantity=1&redirect_to=checkout`;
+  // /cart/add no existe en TN — usar /productos/{handle}?variant={id} si hay handle
+  if (handle) return `${base}/productos/${handle}?variant=${variantId}`;
+  return `${base}/comprar/?add_to_cart=${variantId}&quantity=1`;
 }
 
 interface CardWithSingle extends KTCGCard {
@@ -299,7 +301,7 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const originalPrice = hasDiscount ? single.min_price : null;
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
-  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
+  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0], single.handle) : "#";
 
   return (
     <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5">
@@ -396,7 +398,7 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   const originalPrice = hasDiscount ? single.min_price : null;
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
-  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
+  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0], single.handle) : "#";
 
   return (
     <div className="flex items-center gap-4 bg-surface-900 border border-surface-800 rounded-xl p-4 hover:border-surface-700 transition-colors">

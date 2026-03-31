@@ -105,8 +105,14 @@ const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 function buildBuyUrl(variantId: number | string, handle: string | null, userEmail: string | null): string {
   if (TN_DOMAIN) {
     const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-    let url = `${base}/cart/add?id=${variantId}&quantity=1&redirect_to=checkout`;
-    // Pre-fill checkout email with app user's email
+    // /cart/add no existe en TN — usar /productos/{handle}?variant={id} si hay handle,
+    // sino /comprar/?add_to_cart={id}&quantity=1 como fallback
+    let url: string;
+    if (handle) {
+      url = `${base}/productos/${handle}?variant=${variantId}`;
+    } else {
+      url = `${base}/comprar/?add_to_cart=${variantId}&quantity=1`;
+    }
     if (userEmail) {
       url += `&contact_email=${encodeURIComponent(userEmail)}`;
     }
