@@ -121,10 +121,22 @@ export async function deleteProduct(productId: number) {
 
 // ── Upsert helpers ───────────────────────────────────────────
 
+/**
+ * Normaliza el tag de TN (ej. "KA000001") al código de FK de cards (ej. "KA001").
+ * cards.code usa padStart(3), TN puede usar padStart(6) u otras variantes.
+ */
+function toCardsFKCode(raw: string | null): string | null {
+  if (!raw) return null;
+  const m = raw.match(/^(K[TCREPA])0*(\d+)$/i);
+  if (!m) return raw.toUpperCase();
+  return (m[1] + m[2].padStart(3, "0")).toUpperCase();
+}
+
 async function upsertProduct(product: TNProduct) {
   const supabase = createAdminClient();
 
-  const cardCode = extractCardCode(product);
+  const tnTag = extractCardCode(product);       // tag exacto de TN: "KA000001"
+  const cardCode = toCardsFKCode(tnTag);        // normalizado para FK: "KA001"
 
   // 1. Upsert product row — guardamos todo tal cual viene de TN
   await supabase.from("tiendanube_products").upsert(

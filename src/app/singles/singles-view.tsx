@@ -4,21 +4,20 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
-  ShoppingBag,
-  ExternalLink,
-  Filter,
+  ShoppingCart,
   X,
   Package,
-  RefreshCw,
   Crown,
   Shield,
   Star,
   Scroll,
   Sparkles,
   Crosshair,
+  Tag,
+  ChevronDown,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,7 +66,6 @@ function normalize(raw: RawVariant): SingleVariant {
 }
 
 interface Props {
-  // Accept raw Supabase response (joins can be arrays or objects)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData: any[];
   totalCount: number;
@@ -82,23 +80,41 @@ const CATEGORY_ICONS: Record<string, typeof Crown> = {
   Arroje: Crosshair,
 };
 
-const CONDITION_BADGE: Record<string, "success" | "info" | "warning" | "error" | "default"> = {
-  "Near Mint": "success",
-  "Lightly Played": "info",
-  "Moderately Played": "warning",
-  "Heavily Played": "error",
-  Damaged: "error",
+const CATEGORY_COLORS: Record<string, string> = {
+  Tropas: "text-blue-400 bg-blue-400/10 border-blue-400/20",
+  Coronados: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
+  Realeza: "text-purple-400 bg-purple-400/10 border-purple-400/20",
+  Estrategia: "text-green-400 bg-green-400/10 border-green-400/20",
+  "Estrategia Primigenia": "text-pink-400 bg-pink-400/10 border-pink-400/20",
+  Arroje: "text-orange-400 bg-orange-400/10 border-orange-400/20",
 };
 
-const CATEGORIES = ["Todas", "Tropas", "Coronados", "Realeza", "Estrategia", "Estrategia Primigenia", "Arroje"];
+const CATEGORIES = [
+  "Todas",
+  "Tropas",
+  "Coronados",
+  "Realeza",
+  "Estrategia",
+  "Estrategia Primigenia",
+  "Arroje",
+];
+
+const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
+
+function buildBuyUrl(variantId: number | string, handle: string | null): string {
+  if (TN_DOMAIN) {
+    const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
+    return `${base}/checkout/v3/start?items[0][variant_id]=${variantId}&items[0][quantity]=1`;
+  }
+  if (handle) return `https://www.tiendanube.com/productos/${handle}`;
+  return "#";
+}
 
 export function SinglesView({ initialData, totalCount }: Props) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
-  const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<"price_asc" | "price_desc" | "name_asc">("price_asc");
 
-  // Normalise Supabase join arrays → objects
   const normalized: SingleVariant[] = useMemo(() => initialData.map(normalize), [initialData]);
 
   const filtered = useMemo(() => {
@@ -131,12 +147,13 @@ export function SinglesView({ initialData, totalCount }: Props) {
   const hasSingles = normalized.length > 0;
 
   return (
-    <div className="space-y-6">
-      {/* ── Search + Filters bar ── */}
+    <div className="space-y-5">
+
+      {/* ── Search + Sort ── */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
           <Input
-            placeholder="Buscar carta, código, acabado..."
+            placeholder="Buscar por nombre, código..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
@@ -149,113 +166,87 @@ export function SinglesView({ initialData, totalCount }: Props) {
             }
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setShowFilters(!showFilters)}
-            className="relative"
-          >
-            <Filter className="h-4 w-4" />
-            Filtros
-          </Button>
+        <div className="relative">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="h-10 px-3 rounded-lg border border-surface-700 bg-surface-900 text-sm text-surface-200 focus:outline-none focus:border-primary-500"
+            className="h-10 pl-3 pr-8 rounded-lg border border-surface-700 bg-surface-900 text-sm text-surface-200 focus:outline-none focus:border-primary-500 appearance-none cursor-pointer"
           >
             <option value="price_asc">Menor precio</option>
             <option value="price_desc">Mayor precio</option>
-            <option value="name_asc">Nombre A-Z</option>
+            <option value="name_asc">Nombre A–Z</option>
           </select>
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400 pointer-events-none" />
         </div>
       </div>
 
-      {/* ── Category tabs ── */}
+      {/* ── Category chips ── */}
       <div className="flex gap-2 flex-wrap">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={cn(
-              "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
-              category === cat
-                ? "bg-primary-600 text-white"
-                : "bg-surface-800 text-surface-400 hover:text-surface-200 hover:bg-surface-700"
-            )}
-          >
-            {cat}
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const Icon = CATEGORY_ICONS[cat];
+          const isActive = category === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                isActive
+                  ? "bg-primary-600 border-primary-500 text-white shadow-sm shadow-primary-500/30"
+                  : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200 hover:border-surface-500"
+              )}
+            >
+              {Icon && <Icon className="h-3 w-3" />}
+              {cat}
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── Filters panel ── */}
-      {showFilters && (
-        <div className="bg-surface-900 border border-surface-800 rounded-xl p-4">
-          <p className="text-sm text-surface-400">
-            Los filtros avanzados se aplican después de la sincronización con Tiendanube.
-            Podés filtrar por categoría en las tabs de arriba.
-          </p>
+      {/* ── Counter ── */}
+      {hasSingles && (
+        <div className="flex items-center justify-between text-xs text-surface-500">
+          <span>
+            <span className="text-surface-300 font-medium">{filtered.length}</span>
+            {" "}resultado{filtered.length !== 1 ? "s" : ""}
+            {totalCount > initialData.length && (
+              <span className="ml-1">de {totalCount} totales</span>
+            )}
+          </span>
+          <span className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-green-400" />
+            Stock en tiempo real
+          </span>
         </div>
       )}
 
-      {/* ── Results count ── */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-surface-400">
-          Mostrando{" "}
-          <span className="text-surface-200 font-medium">{filtered.length}</span>
-          {" "}de{" "}
-          <span className="text-surface-200 font-medium">{initialData.length}</span>
-          {" "}singles disponibles
-          {totalCount > initialData.length && (
-            <span className="ml-1 text-surface-500">
-              ({totalCount} en total)
-            </span>
-          )}
-        </p>
-        <p className="text-xs text-surface-500 flex items-center gap-1">
-          <RefreshCw className="h-3 w-3" />
-          Stock en tiempo real desde Tiendanube
-        </p>
-      </div>
-
-      {/* ── No singles state ── */}
+      {/* ── Empty state ── */}
       {!hasSingles && (
         <div className="text-center py-20">
           <Package className="h-12 w-12 text-surface-600 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-surface-200 mb-2">
-            Sin singles disponibles ahora
+            Sin singles disponibles
           </h3>
-          <p className="text-sm text-surface-400 max-w-sm mx-auto mb-6">
-            El stock se sincroniza desde nuestra tienda oficial. Revisá más tarde
-            o seguinos en redes para saber cuándo hay novedades.
+          <p className="text-sm text-surface-400 max-w-sm mx-auto">
+            El stock se sincroniza desde la tienda oficial. Revisá más tarde.
           </p>
-          <a
-            href={`https://www.tiendanube.com/tienda/${process.env.NEXT_PUBLIC_TN_STORE_SLUG ?? ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button variant="accent">
-              <ExternalLink className="h-4 w-4" />
-              Ver tienda oficial
-            </Button>
-          </a>
         </div>
       )}
 
-      {/* ── No results (post-filter) ── */}
+      {/* ── No results post-filter ── */}
       {hasSingles && filtered.length === 0 && (
         <div className="text-center py-12">
           <Search className="h-8 w-8 text-surface-600 mx-auto mb-3" />
-          <p className="text-surface-300 font-medium">No se encontraron cartas</p>
+          <p className="text-surface-300 font-medium">Sin resultados para esa búsqueda</p>
           <Button variant="ghost" size="sm" className="mt-3" onClick={() => { setSearch(""); setCategory("Todas"); }}>
             Limpiar filtros
           </Button>
         </div>
       )}
 
-      {/* ── Singles Grid ── */}
+      {/* ── Grid ── */}
       {filtered.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((variant) => (
             <SingleCard key={variant.id} variant={variant} />
           ))}
@@ -265,111 +256,134 @@ export function SinglesView({ initialData, totalCount }: Props) {
   );
 }
 
-// ── Single card tile ──────────────────────────────────────────
+// ── Single listing card ───────────────────────────────────────
 
 function SingleCard({ variant }: { variant: SingleVariant }) {
   const card = variant.cards;
   const product = variant.tiendanube_products;
   const Icon = CATEGORY_ICONS[card?.category ?? ""] ?? Shield;
+  const catColor = CATEGORY_COLORS[card?.category ?? ""] ?? "text-surface-400 bg-surface-700/30 border-surface-600/20";
 
-  const displayPrice = variant.promotional_price ?? variant.price;
-  const hasDiscount = variant.promotional_price != null && variant.price != null
-    && variant.promotional_price < variant.price;
+  const displayName = card?.name ?? product?.name ?? `Single #${variant.id}`;
 
-  // Link to catalog detail or TN product
+  // promotional_price = precio tachado (compare_at_price de TN cuando hay descuento)
+  // price = precio actual de venta
+  const currentPrice = variant.price;
+  const originalPrice = variant.promotional_price;
+  const hasDiscount = originalPrice != null && currentPrice != null && originalPrice > currentPrice;
+  const discountPct = hasDiscount
+    ? Math.round((1 - currentPrice! / originalPrice!) * 100)
+    : null;
+
+  const stockUnlimited = variant.stock >= 999;
+  const stockLow = !stockUnlimited && variant.stock <= 3 && variant.stock > 0;
+
   const cardHref = card?.slug ? `/catalog/${card.slug}` : `/singles/${variant.product_id}`;
-
-  // Direct-to-checkout URL: ?add-to-cart={variantId} skips the product page
-  const storeDomain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
-  const buyHref = storeDomain
-    ? `https://${storeDomain}/?add-to-cart=${variant.id}`
-    : product?.handle
-      ? `https://www.tiendanube.com/${product.handle}`
-      : null;
+  const buyUrl = buildBuyUrl(variant.id, product?.handle ?? null);
 
   return (
-    <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden transition-transform hover:-translate-y-1 hover:border-surface-600">
-      {/* Image / placeholder */}
-      <div className="relative aspect-63/88 bg-surface-800 flex flex-col items-center justify-center p-3 text-center overflow-hidden">
+    <div className="group flex flex-col bg-surface-900 border border-surface-800 rounded-2xl overflow-hidden hover:border-surface-600 hover:shadow-lg hover:shadow-black/30 transition-all duration-200">
+
+      {/* Image */}
+      <div className="relative bg-surface-800 overflow-hidden" style={{ aspectRatio: "63/88" }}>
         {variant.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={variant.image_url}
-            alt={card?.name ?? "Carta"}
-            className="absolute inset-0 w-full h-full object-cover"
+            alt={displayName}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <Icon className="h-8 w-8 text-surface-600 mb-2" />
-        )}
-
-        {/* Code badge */}
-        {variant.card_code && (
-          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[10px] font-mono text-surface-300 z-10">
-            {variant.card_code}
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-linear-to-br from-surface-800 to-surface-900">
+            <Icon className="h-10 w-10 text-surface-600" />
+            <span className="text-xs text-surface-600 font-mono">{variant.card_code}</span>
           </div>
         )}
 
-        {/* Stock badge */}
-        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-surface-900/80 text-[10px] text-surface-400 z-10">
-          ×{variant.stock}
-        </div>
+        {/* Descuento badge */}
+        {hasDiscount && discountPct != null && (
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold shadow">
+            -{discountPct}%
+          </div>
+        )}
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-surface-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-20">
-          <Link href={cardHref}>
-            <Button size="sm" variant="secondary" className="text-xs">
-              Ver carta
-            </Button>
-          </Link>
-          {buyHref && (
-            <a href={buyHref} target="_blank" rel="noopener noreferrer">
-              <Button size="sm" className="text-xs">
-                <ShoppingBag className="h-3 w-3" />
-                Comprar
-              </Button>
-            </a>
-          )}
-        </div>
+        {/* Stock bajo */}
+        {stockLow && (
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/90 text-white text-[10px] font-semibold">
+            ¡Últimos {variant.stock}!
+          </div>
+        )}
       </div>
 
       {/* Info */}
-      <div className="p-3">
-        <p className="text-sm font-medium text-surface-200 truncate">
-          {card?.name ?? product?.name ?? `Single #${variant.id}`}
-        </p>
+      <div className="flex flex-col flex-1 p-4 gap-3">
 
-        {/* Finish */}
-        {variant.finish && variant.finish !== "Estándar" && (
-          <p className="text-xs text-surface-400 truncate mt-0.5">{variant.finish}</p>
-        )}
-
-        {/* Condition */}
-        <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-          {variant.condition && (
-            <Badge variant={CONDITION_BADGE[variant.condition] ?? "default"} className="text-[10px] px-1.5 py-0.5">
-              {variant.condition}
-            </Badge>
-          )}
-          {card?.category && (
-            <Badge variant="default" className="text-[10px] px-1.5 py-0.5">
-              {card.category}
-            </Badge>
-          )}
+        {/* Nombre + tags */}
+        <div className="space-y-1.5">
+          <Link href={cardHref} className="block hover:text-primary-300 transition-colors">
+            <h3 className="font-semibold text-surface-100 leading-tight line-clamp-2 text-sm">
+              {displayName}
+            </h3>
+          </Link>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {card?.category && (
+              <span className={cn("inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border", catColor)}>
+                <Icon className="h-2.5 w-2.5" />
+                {card.category}
+              </span>
+            )}
+            {variant.finish && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-surface-400 px-2 py-0.5 rounded-full border border-surface-700 bg-surface-800">
+                <Tag className="h-2.5 w-2.5" />
+                {variant.finish}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Price */}
-        <div className="mt-2 flex items-baseline gap-1.5">
-          <span className="text-base font-bold text-accent-400">
-            {displayPrice != null
-              ? `$${displayPrice.toLocaleString("es-AR")}`
+        {/* Precio */}
+        <div className="flex items-baseline gap-2">
+          <span className="text-xl font-extrabold text-white">
+            {currentPrice != null
+              ? `$${currentPrice.toLocaleString("es-AR")}`
               : "Consultar"}
           </span>
-          {hasDiscount && variant.price != null && (
-            <span className="text-xs text-surface-500 line-through">
-              ${variant.price.toLocaleString("es-AR")}
+          {hasDiscount && originalPrice != null && (
+            <span className="text-sm text-surface-500 line-through">
+              ${originalPrice.toLocaleString("es-AR")}
             </span>
           )}
         </div>
+
+        <div className="border-t border-surface-800" />
+
+        {/* Stock + condición */}
+        <div className="flex items-center justify-between text-xs text-surface-500">
+          <span>
+            {stockUnlimited
+              ? "✓ Disponible"
+              : stockLow
+                ? `⚠ Solo ${variant.stock} en stock`
+                : `${variant.stock} en stock`}
+          </span>
+          {variant.condition && (
+            <span className="text-surface-400">{variant.condition}</span>
+          )}
+        </div>
+
+        {/* CTA */}
+        <a
+          href={buyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200",
+            "bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
+          )}
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Comprar ahora
+        </a>
       </div>
     </div>
   );

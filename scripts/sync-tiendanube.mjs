@@ -60,13 +60,22 @@ async function fetchAllProducts() {
 // ── Extractores (mismo logic que tiendanube.ts) ──────────────
 
 function normalizeCardCode(raw) {
+  // No normalizar ceros — tomar el código exactamente como está en TN
+  return raw.toUpperCase();
+}
+
+/**
+ * Normaliza el tag para hacer match con la tabla cards (KA000001 → KA001).
+ * Solo se usa para la FK. El tag original se guarda en tn_tag.
+ */
+function toCardsFKCode(raw) {
   const prefix = raw.slice(0, 2).toUpperCase();
   const num = parseInt(raw.slice(2), 10);
   return `${prefix}${String(num).padStart(3, "0")}`;
 }
 
 function extractCardCode(product) {
-  const cardCodeRegex = /\b(K[TCREPA][0-9]{3,6})\b/i;
+  const cardCodeRegex = /\b(K[TCREPA][0-9]{3,9})\b/i;
 
   // 1. Tags (más confiable)
   if (product.tags) {
@@ -108,7 +117,9 @@ function extractCondition(variant) {
 // ── Upsert ───────────────────────────────────────────────────
 
 async function upsertProduct(product) {
-  const cardCode = extractCardCode(product);
+  const tnTag = extractCardCode(product);  // tag exacto de TN, ej: KA000001
+  // card_code para FK debe matchear cards(code), que usa padStart(3): KA001
+  const cardCode = tnTag ? toCardsFKCode(tnTag) : null;
   const primaryImage = product.images?.[0]?.src ?? null;
 
   // 1. Upsert product
