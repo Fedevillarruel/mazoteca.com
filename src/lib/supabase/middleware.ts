@@ -48,7 +48,9 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/collection") ||
     request.nextUrl.pathname.startsWith("/decks/new") ||
     request.nextUrl.pathname.startsWith("/decks/edit") ||
+    request.nextUrl.pathname.startsWith("/singles") ||
     request.nextUrl.pathname.startsWith("/singles/new") ||
+    request.nextUrl.pathname.startsWith("/orders") ||
     request.nextUrl.pathname.startsWith("/trades") ||
     request.nextUrl.pathname.startsWith("/friends") ||
     request.nextUrl.pathname.startsWith("/settings") ||

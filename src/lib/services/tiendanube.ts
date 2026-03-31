@@ -141,40 +141,38 @@ export async function fetchVariants(productId: number): Promise<TNVariant[]> {
  *  4. First variant SKU looks like a card code
  */
 /**
- * Normalizes a raw TN code match like "KA000001" → "KA001"
- * (2 prefix letters + number without leading zeros, minimum 3 digits)
+ * Extract card code from a TN product — no normalization, taken exactly as stored in TN tags.
+ * Strategy (in order):
+ *  1. Product tags (most reliable — manually set in TN, e.g. "KA000001")
+ *  2. Product name contains a code
+ *  3. Handle/slug contains a code
+ *  4. First variant SKU
  */
-function normalizeCardCode(raw: string): string {
-  const prefix = raw.slice(0, 2).toUpperCase();
-  const num = parseInt(raw.slice(2), 10);
-  return `${prefix}${String(num).padStart(3, "0")}`;
-}
-
 export function extractCardCode(product: TNProduct): string | null {
-  // Accepts codes like KA001, KA0001, KA000001 (2 letters + 3 to 6 digits)
-  const cardCodeRegex = /\b(K[TCREPA][0-9]{3,6})\b/i;
+  // Matches 2 prefix letters + 3 to 9 digits (no normalization of zeros)
+  const cardCodeRegex = /\b(K[TCREPA][0-9]{3,9})\b/i;
 
-  // 1. Tags (most reliable — set manually in TN)
+  // 1. Tags — taken exactly as stored in TN
   if (product.tags) {
     const m = product.tags.match(cardCodeRegex);
-    if (m) return normalizeCardCode(m[1]);
+    if (m) return m[1].toUpperCase();
   }
 
   // 2. Name
   const name = product.name?.es ?? "";
   const mName = name.match(cardCodeRegex);
-  if (mName) return normalizeCardCode(mName[1]);
+  if (mName) return mName[1].toUpperCase();
 
   // 3. Handle
   const handle = product.handle?.es ?? "";
   const mHandle = handle.match(cardCodeRegex);
-  if (mHandle) return normalizeCardCode(mHandle[1]);
+  if (mHandle) return mHandle[1].toUpperCase();
 
   // 4. First variant SKU
   for (const v of product.variants ?? []) {
     if (v.sku) {
       const mSku = v.sku.match(cardCodeRegex);
-      if (mSku) return normalizeCardCode(mSku[1]);
+      if (mSku) return mSku[1].toUpperCase();
     }
   }
 
@@ -218,25 +216,27 @@ export async function fetchStoreInfo(): Promise<TNStore> {
 // ── Checkout URL helpers ─────────────────────────────────────
 
 /**
- * Returns a URL that adds a variant to the cart AND goes directly to checkout.
+ * Returns a direct-to-checkout URL for a specific variant.
  *
- * Tiendanube supports the "add-to-cart" query param on the store root:
- *   https://{domain}/?add-to-cart={variantId}
+ * Tiendanube checkout v3:
+ *   POST /checkout/v3/start  (with form data) — not linkable directly
  *
- * This skips the product page and lands the user on the cart/checkout step.
- * If TIENDANUBE_STORE_DOMAIN is not set, falls back to the product handle URL.
+ * Best deep-link option: ?add-to-cart={variantId} on store root,
+ * then redirect to cart. But TN also supports:
+ *   /cart/add?id={variantId}&quantity=1  → adds to cart and goes to cart page
+ *
+ * We use /cart/add which is the most reliable cross-store deep link.
  */
 export function getCheckoutUrl(variantId: number | string, fallbackHandle?: string | null): string {
   const domain = process.env.TIENDANUBE_STORE_DOMAIN ?? process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
 
   if (domain) {
     const base = domain.startsWith("http") ? domain : `https://${domain}`;
-    return `${base}/?add-to-cart=${variantId}`;
+    return `${base}/cart/add?id=${variantId}&quantity=1&redirect_to=checkout`;
   }
 
-  // Fallback: product page URL
   if (fallbackHandle) {
-    return `https://www.tiendanube.com/${fallbackHandle}`;
+    return `https://www.tiendanube.com/productos/${fallbackHandle}`;
   }
 
   return "#";

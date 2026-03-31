@@ -69,6 +69,7 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData: any[];
   totalCount: number;
+  userEmail: string | null;
 }
 
 const CATEGORY_ICONS: Record<string, typeof Crown> = {
@@ -101,16 +102,21 @@ const CATEGORIES = [
 
 const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
-function buildBuyUrl(variantId: number | string, handle: string | null): string {
+function buildBuyUrl(variantId: number | string, handle: string | null, userEmail: string | null): string {
   if (TN_DOMAIN) {
     const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-    return `${base}/checkout/v3/start?items[0][variant_id]=${variantId}&items[0][quantity]=1`;
+    let url = `${base}/checkout/v3/start?items[0][variant_id]=${variantId}&items[0][quantity]=1`;
+    // Pre-fill checkout email with app user's email
+    if (userEmail) {
+      url += `&contact_email=${encodeURIComponent(userEmail)}`;
+    }
+    return url;
   }
   if (handle) return `https://www.tiendanube.com/productos/${handle}`;
   return "#";
 }
 
-export function SinglesView({ initialData, totalCount }: Props) {
+export function SinglesView({ initialData, totalCount, userEmail }: Props) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
   const [sortBy, setSortBy] = useState<"price_asc" | "price_desc" | "name_asc">("price_asc");
@@ -248,7 +254,7 @@ export function SinglesView({ initialData, totalCount }: Props) {
       {filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((variant) => (
-            <SingleCard key={variant.id} variant={variant} />
+            <SingleCard key={variant.id} variant={variant} userEmail={userEmail} />
           ))}
         </div>
       )}
@@ -258,7 +264,7 @@ export function SinglesView({ initialData, totalCount }: Props) {
 
 // ── Single listing card ───────────────────────────────────────
 
-function SingleCard({ variant }: { variant: SingleVariant }) {
+function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail: string | null }) {
   const card = variant.cards;
   const product = variant.tiendanube_products;
   const Icon = CATEGORY_ICONS[card?.category ?? ""] ?? Shield;
@@ -279,7 +285,7 @@ function SingleCard({ variant }: { variant: SingleVariant }) {
   const stockLow = !stockUnlimited && variant.stock <= 3 && variant.stock > 0;
 
   const cardHref = card?.slug ? `/catalog/${card.slug}` : `/singles/${variant.product_id}`;
-  const buyUrl = buildBuyUrl(variant.id, product?.handle ?? null);
+  const buyUrl = buildBuyUrl(variant.id, product?.handle ?? null, userEmail);
 
   return (
     <div className="group flex flex-col bg-surface-900 border border-surface-800 rounded-2xl overflow-hidden hover:border-surface-600 hover:shadow-lg hover:shadow-black/30 transition-all duration-200">
