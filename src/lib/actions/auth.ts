@@ -109,7 +109,7 @@ export async function signIn(formData: FormData): Promise<AuthActionResult> {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  return { success: true };
 }
 
 export async function signOut(): Promise<void> {

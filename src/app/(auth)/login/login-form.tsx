@@ -26,10 +26,7 @@ export function LoginForm() {
         router.push("/");
         router.refresh();
       }
-    } catch (err) {
-      // Next.js redirect() lanza una excepción interna — no mostrar como error
-      if (err instanceof Error && err.message === "NEXT_REDIRECT") throw err;
-      if (typeof err === "object" && err !== null && "digest" in err) throw err;
+    } catch {
       setError("Ocurrió un error inesperado");
     } finally {
       setIsLoading(false);
