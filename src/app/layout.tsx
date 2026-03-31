@@ -85,7 +85,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-surface-950 text-surface-100">
         <Providers>
-          <ConditionalShell user={headerUser}>
+          <ConditionalShell initialUser={headerUser}>
             {children}
           </ConditionalShell>
         </Providers>
