@@ -140,7 +140,8 @@ export async function fetchVariants(productId: number): Promise<TNVariant[]> {
  *  4. First variant SKU looks like a card code
  */
 export function extractCardCode(product: TNProduct): string | null {
-  const cardCodeRegex = /\b(K[TCREPA][0-9]{3})\b/i;
+  // Accepts codes like KA001, KA0001, KA000001 (3 to 6 digits)
+  const cardCodeRegex = /\b(K[TCREPA][0-9]{3,6})\b/i;
 
   // 1. Tags
   if (product.tags) {
