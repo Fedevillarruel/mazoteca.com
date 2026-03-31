@@ -315,6 +315,62 @@ export async function getProfileByUsername(username: string) {
   return data;
 }
 
+export async function getPublicDecksByUsername(username: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("decks")
+    .select("id, name, deck_type, is_valid, is_public, likes_count, deck_cards(card_id), created_at")
+    .eq("is_public", true)
+    .eq("profile:profiles!inner(username)", username)
+    .order("likes_count", { ascending: false })
+    .limit(6);
+
+  // Fallback: query por profile_id si el join no funciona
+  if (error) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .single();
+    if (!profile) return [];
+    const { data: decks } = await supabase
+      .from("decks")
+      .select("id, name, deck_type, is_valid, is_public, likes_count, deck_cards(card_id), created_at")
+      .eq("profile_id", profile.id)
+      .eq("is_public", true)
+      .order("likes_count", { ascending: false })
+      .limit(6);
+    return decks || [];
+  }
+
+  return data || [];
+}
+
+export async function getWishlistByUsername(username: string) {
+  const supabase = await createClient();
+
+  // Buscar profile_id
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .single();
+
+  if (!profile) return [];
+
+  const { data, error } = await supabase
+    .from("wishlists")
+    .select("id, priority, notes, created_at, card:cards(id, name, slug, code, image_url, category, level)")
+    .eq("profile_id", profile.id)
+    .order("priority", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) return [];
+  return data || [];
+}
+
 // =============================================================================
 // Notifications
 // =============================================================================

@@ -422,15 +422,18 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
           {/* Add to album */}
           <button
             onClick={handleAddToAlbum}
-            title="Agregar al álbum"
+            title="Agregar al álbum digital"
             className={cn(
-              "flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border",
+              "flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border shrink-0",
               addedAlbum
                 ? "bg-violet-600 border-violet-500 text-white"
-                : "bg-surface-800 border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-primary-300 hover:border-primary-500"
+                : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
             )}
           >
-            {addedAlbum ? <Check className="h-3 w-3" /> : <BookMarked className="h-3 w-3" />}
+            {addedAlbum
+              ? <><Check className="h-3 w-3" /><span>Ok</span></>
+              : <><BookMarked className="h-3 w-3" /><span>Álbum</span></>
+            }
           </button>
         </div>
       </div>
@@ -546,15 +549,18 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
           {/* Add to album */}
           <button
             onClick={handleAddToAlbum}
-            title="Agregar al álbum"
+            title="Agregar al álbum digital"
             className={cn(
-              "flex items-center justify-center py-1.5 px-2 rounded-lg text-xs font-semibold transition-all duration-200 border",
+              "flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all duration-200 border shrink-0",
               addedAlbum
                 ? "bg-violet-600 border-violet-500 text-white"
-                : "bg-surface-800 border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-primary-300 hover:border-primary-500"
+                : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
             )}
           >
-            {addedAlbum ? <Check className="h-3.5 w-3.5" /> : <BookMarked className="h-3.5 w-3.5" />}
+            {addedAlbum
+              ? <><Check className="h-3.5 w-3.5" /><span>¡Listo!</span></>
+              : <><BookMarked className="h-3.5 w-3.5" /><span>Álbum</span></>
+            }
           </button>
         </div>
       </div>
