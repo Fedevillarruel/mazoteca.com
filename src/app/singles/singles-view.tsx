@@ -18,8 +18,12 @@ import {
   Tag,
   ChevronDown,
   Zap,
+  Minus,
+  Plus,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TNGameTree } from "@/lib/services/tiendanube";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RawVariant = Record<string, any>;
@@ -70,9 +74,11 @@ interface Props {
   initialData: any[];
   totalCount: number;
   userEmail: string | null;
+  gameCategories: TNGameTree[];
 }
 
-const CATEGORY_ICONS: Record<string, typeof Crown> = {
+// Íconos y colores por subcategoría conocida (se amplían sin romper nada)
+const SUBCATEGORY_ICONS: Record<string, typeof Crown> = {
   Tropas: Shield,
   Coronados: Crown,
   Realeza: Star,
@@ -81,7 +87,7 @@ const CATEGORY_ICONS: Record<string, typeof Crown> = {
   Arroje: Crosshair,
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
+const SUBCATEGORY_COLORS: Record<string, string> = {
   Tropas: "text-blue-400 bg-blue-400/10 border-blue-400/20",
   Coronados: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
   Realeza: "text-purple-400 bg-purple-400/10 border-purple-400/20",
@@ -90,38 +96,55 @@ const CATEGORY_COLORS: Record<string, string> = {
   Arroje: "text-orange-400 bg-orange-400/10 border-orange-400/20",
 };
 
-const CATEGORIES = [
-  "Todas",
-  "Tropas",
-  "Coronados",
-  "Realeza",
-  "Estrategia",
-  "Estrategia Primigenia",
-  "Arroje",
-];
-
 const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
-function buildBuyUrl(variantId: number | string, handle: string | null, userEmail: string | null): string {
+function buildBuyUrl(
+  variantId: number | string,
+  quantity: number,
+  handle: string | null,
+  userEmail: string | null
+): string {
   if (TN_DOMAIN) {
     const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-    // Usar /comprar/?add_to_cart={id}&quantity=1 para ir directo al carrito con el producto
-    let url = `${base}/comprar/?add_to_cart=${variantId}&quantity=1`;
-    if (userEmail) {
-      url += `&contact_email=${encodeURIComponent(userEmail)}`;
-    }
+    let url = `${base}/comprar/?add_to_cart=${variantId}&quantity=${quantity}`;
+    if (userEmail) url += `&contact_email=${encodeURIComponent(userEmail)}`;
     return url;
   }
   if (handle) return `https://www.tiendanube.com/productos/${handle}`;
   return "#";
 }
 
-export function SinglesView({ initialData, totalCount, userEmail }: Props) {
+// Deriva el juego de una variante comparando su cards.category
+// con las subcategorías de cada juego en TN
+function deriveGame(variant: SingleVariant, gameCategories: TNGameTree[]): string | null {
+  if (!variant.cards?.category) return null;
+  const cat = variant.cards.category;
+  for (const game of gameCategories) {
+    if (game.subcategories.some((s) => s.name === cat)) return game.name;
+  }
+  return null;
+}
+
+export function SinglesView({ initialData, totalCount, userEmail, gameCategories }: Props) {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("Todas");
+  const [selectedGame, setSelectedGame] = useState<string>("Todos");
+  const [selectedSub, setSelectedSub] = useState<string>("Todas");
   const [sortBy, setSortBy] = useState<"price_asc" | "price_desc" | "name_asc">("price_asc");
 
   const normalized: SingleVariant[] = useMemo(() => initialData.map(normalize), [initialData]);
+
+  // Subcategorías disponibles para el juego seleccionado
+  const availableSubs = useMemo(() => {
+    if (selectedGame === "Todos") {
+      return gameCategories.flatMap((g) => g.subcategories);
+    }
+    return gameCategories.find((g) => g.name === selectedGame)?.subcategories ?? [];
+  }, [gameCategories, selectedGame]);
+
+  const handleGameChange = (game: string) => {
+    setSelectedGame(game);
+    setSelectedSub("Todas");
+  };
 
   const filtered = useMemo(() => {
     let items = [...normalized];
@@ -137,8 +160,12 @@ export function SinglesView({ initialData, totalCount, userEmail }: Props) {
       );
     }
 
-    if (category !== "Todas") {
-      items = items.filter((v) => v.cards?.category === category);
+    if (selectedGame !== "Todos") {
+      items = items.filter((v) => deriveGame(v, gameCategories) === selectedGame);
+    }
+
+    if (selectedSub !== "Todas") {
+      items = items.filter((v) => v.cards?.category === selectedSub);
     }
 
     items.sort((a, b) => {
@@ -148,9 +175,10 @@ export function SinglesView({ initialData, totalCount, userEmail }: Props) {
     });
 
     return items;
-  }, [normalized, search, category, sortBy]);
+  }, [normalized, search, selectedGame, selectedSub, sortBy, gameCategories]);
 
   const hasSingles = normalized.length > 0;
+  const hasMultipleGames = gameCategories.length > 1;
 
   return (
     <div className="space-y-5">
@@ -186,27 +214,88 @@ export function SinglesView({ initialData, totalCount, userEmail }: Props) {
         </div>
       </div>
 
-      {/* ── Category chips ── */}
-      <div className="flex gap-2 flex-wrap">
-        {CATEGORIES.map((cat) => {
-          const Icon = CATEGORY_ICONS[cat];
-          const isActive = category === cat;
-          return (
+      {/* ── Filtros dinámicos ── */}
+      <div className="space-y-2.5">
+
+        {/* Filtro Juego — solo si hay más de uno */}
+        {hasMultipleGames && (
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-[11px] text-surface-500 uppercase tracking-wider font-medium w-10 shrink-0">Juego</span>
             <button
-              key={cat}
-              onClick={() => setCategory(cat)}
+              onClick={() => handleGameChange("Todos")}
               className={cn(
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
-                isActive
+                selectedGame === "Todos"
                   ? "bg-primary-600 border-primary-500 text-white shadow-sm shadow-primary-500/30"
                   : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200 hover:border-surface-500"
               )}
             >
-              {Icon && <Icon className="h-3 w-3" />}
-              {cat}
+              <Layers className="h-3 w-3" />
+              Todos
             </button>
-          );
-        })}
+            {gameCategories.map((game) => (
+              <button
+                key={game.id}
+                onClick={() => handleGameChange(game.name)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                  selectedGame === game.name
+                    ? "bg-primary-600 border-primary-500 text-white shadow-sm shadow-primary-500/30"
+                    : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200 hover:border-surface-500"
+                )}
+              >
+                {game.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Filtro Subcategoría */}
+        {availableSubs.length > 0 && (
+          <div className="flex gap-2 flex-wrap items-center">
+            {hasMultipleGames && (
+              <span className="text-[11px] text-surface-500 uppercase tracking-wider font-medium w-10 shrink-0">Tipo</span>
+            )}
+            <button
+              onClick={() => setSelectedSub("Todas")}
+              className={cn(
+                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                selectedSub === "Todas"
+                  ? "bg-primary-600 border-primary-500 text-white shadow-sm shadow-primary-500/30"
+                  : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200 hover:border-surface-500"
+              )}
+            >
+              Todas
+            </button>
+            {availableSubs.map((sub) => {
+              const Icon = SUBCATEGORY_ICONS[sub.name];
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => setSelectedSub(sub.name)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                    selectedSub === sub.name
+                      ? "bg-primary-600 border-primary-500 text-white shadow-sm shadow-primary-500/30"
+                      : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200 hover:border-surface-500"
+                  )}
+                >
+                  {Icon && <Icon className="h-3 w-3" />}
+                  {sub.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Fallback: si TN API falló, derivar categorías de los datos */}
+        {gameCategories.length === 0 && hasSingles && (
+          <DerivedCategoryFilter
+            variants={normalized}
+            selectedSub={selectedSub}
+            onSelect={setSelectedSub}
+          />
+        )}
       </div>
 
       {/* ── Counter ── */}
@@ -244,7 +333,9 @@ export function SinglesView({ initialData, totalCount, userEmail }: Props) {
         <div className="text-center py-12">
           <Search className="h-8 w-8 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-300 font-medium">Sin resultados para esa búsqueda</p>
-          <Button variant="ghost" size="sm" className="mt-3" onClick={() => { setSearch(""); setCategory("Todas"); }}>
+          <Button variant="ghost" size="sm" className="mt-3" onClick={() => {
+            setSearch(""); setSelectedGame("Todos"); setSelectedSub("Todas");
+          }}>
             Limpiar filtros
           </Button>
         </div>
@@ -262,30 +353,78 @@ export function SinglesView({ initialData, totalCount, userEmail }: Props) {
   );
 }
 
+// ── Fallback filter derivado de los datos cuando la API TN falla ─────────────
+
+function DerivedCategoryFilter({
+  variants,
+  selectedSub,
+  onSelect,
+}: {
+  variants: SingleVariant[];
+  selectedSub: string;
+  onSelect: (s: string) => void;
+}) {
+  const cats = useMemo(() => {
+    const seen = new Set<string>();
+    for (const v of variants) if (v.cards?.category) seen.add(v.cards.category);
+    return Array.from(seen).sort();
+  }, [variants]);
+
+  if (cats.length === 0) return null;
+
+  return (
+    <div className="flex gap-2 flex-wrap">
+      <button
+        onClick={() => onSelect("Todas")}
+        className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+          selectedSub === "Todas"
+            ? "bg-primary-600 border-primary-500 text-white"
+            : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200"
+        )}
+      >
+        Todas
+      </button>
+      {cats.map((cat) => {
+        const Icon = SUBCATEGORY_ICONS[cat];
+        return (
+          <button key={cat} onClick={() => onSelect(cat)}
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+              selectedSub === cat
+                ? "bg-primary-600 border-primary-500 text-white"
+                : "bg-surface-800/60 border-surface-700 text-surface-400 hover:text-surface-200"
+            )}
+          >
+            {Icon && <Icon className="h-3 w-3" />}
+            {cat}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Single listing card ───────────────────────────────────────
 
 function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail: string | null }) {
   const card = variant.cards;
   const product = variant.tiendanube_products;
-  const Icon = CATEGORY_ICONS[card?.category ?? ""] ?? Shield;
-  const catColor = CATEGORY_COLORS[card?.category ?? ""] ?? "text-surface-400 bg-surface-700/30 border-surface-600/20";
-
+  const Icon = SUBCATEGORY_ICONS[card?.category ?? ""] ?? Shield;
+  const catColor = SUBCATEGORY_COLORS[card?.category ?? ""] ?? "text-surface-400 bg-surface-700/30 border-surface-600/20";
   const displayName = card?.name ?? product?.name ?? `Single #${variant.id}`;
 
-  // promotional_price = precio tachado (compare_at_price de TN cuando hay descuento)
-  // price = precio actual de venta
   const currentPrice = variant.price;
   const originalPrice = variant.promotional_price;
   const hasDiscount = originalPrice != null && currentPrice != null && originalPrice > currentPrice;
-  const discountPct = hasDiscount
-    ? Math.round((1 - currentPrice! / originalPrice!) * 100)
-    : null;
+  const discountPct = hasDiscount ? Math.round((1 - currentPrice! / originalPrice!) * 100) : null;
 
   const stockUnlimited = variant.stock >= 999;
+  const maxQty = stockUnlimited ? 10 : variant.stock;
   const stockLow = !stockUnlimited && variant.stock <= 3 && variant.stock > 0;
 
+  const [qty, setQty] = useState(1);
   const cardHref = card?.slug ? `/catalog/${card.slug}` : `/singles/${variant.product_id}`;
-  const buyUrl = buildBuyUrl(variant.id, product?.handle ?? null, userEmail);
 
   return (
     <div className="group flex flex-col bg-surface-900 border border-surface-800 rounded-2xl overflow-hidden hover:border-surface-600 hover:shadow-lg hover:shadow-black/30 transition-all duration-200">
@@ -294,9 +433,7 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
       <div className="relative bg-surface-800 overflow-hidden" style={{ aspectRatio: "63/88" }}>
         {variant.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={variant.image_url}
-            alt={displayName}
+          <img src={variant.image_url} alt={displayName}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -305,15 +442,11 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
             <span className="text-xs text-surface-600 font-mono">{variant.card_code}</span>
           </div>
         )}
-
-        {/* Descuento badge */}
         {hasDiscount && discountPct != null && (
           <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-bold shadow">
             -{discountPct}%
           </div>
         )}
-
-        {/* Stock bajo */}
         {stockLow && (
           <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/90 text-white text-[10px] font-semibold">
             ¡Últimos {variant.stock}!
@@ -327,9 +460,7 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
         {/* Nombre + tags */}
         <div className="space-y-1.5">
           <Link href={cardHref} className="block hover:text-primary-300 transition-colors">
-            <h3 className="font-semibold text-surface-100 leading-tight line-clamp-2 text-sm">
-              {displayName}
-            </h3>
+            <h3 className="font-semibold text-surface-100 leading-tight line-clamp-2 text-sm">{displayName}</h3>
           </Link>
           <div className="flex items-center gap-1.5 flex-wrap">
             {card?.category && (
@@ -347,16 +478,14 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
           </div>
         </div>
 
-        {/* Precio */}
+        {/* Precio (refleja la cantidad) */}
         <div className="flex items-baseline gap-2">
           <span className="text-xl font-extrabold text-white">
-            {currentPrice != null
-              ? `$${currentPrice.toLocaleString("es-AR")}`
-              : "Consultar"}
+            {currentPrice != null ? `$${(currentPrice * qty).toLocaleString("es-AR")}` : "Consultar"}
           </span>
           {hasDiscount && originalPrice != null && (
             <span className="text-sm text-surface-500 line-through">
-              ${originalPrice.toLocaleString("es-AR")}
+              ${(originalPrice * qty).toLocaleString("es-AR")}
             </span>
           )}
         </div>
@@ -366,22 +495,39 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
         {/* Stock + condición */}
         <div className="flex items-center justify-between text-xs text-surface-500">
           <span>
-            {stockUnlimited
-              ? "✓ Disponible"
-              : stockLow
-                ? `⚠ Solo ${variant.stock} en stock`
-                : `${variant.stock} en stock`}
+            {stockUnlimited ? "✓ Disponible" : stockLow ? `⚠ Solo ${variant.stock} en stock` : `${variant.stock} en stock`}
           </span>
-          {variant.condition && (
-            <span className="text-surface-400">{variant.condition}</span>
-          )}
+          {variant.condition && <span className="text-surface-400">{variant.condition}</span>}
         </div>
+
+        {/* Selector de cantidad — solo si hay stock > 1 y el usuario está logueado */}
+        {userEmail !== null && maxQty > 1 && (
+          <div className="flex items-center justify-between bg-surface-800 rounded-lg px-3 py-2">
+            <span className="text-xs text-surface-400">Cantidad</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
+                className="h-6 w-6 rounded-md bg-surface-700 hover:bg-surface-600 disabled:opacity-40 flex items-center justify-center transition-colors"
+              >
+                <Minus className="h-3 w-3 text-surface-300" />
+              </button>
+              <span className="text-sm font-semibold text-surface-100 w-5 text-center">{qty}</span>
+              <button
+                onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+                disabled={qty >= maxQty}
+                className="h-6 w-6 rounded-md bg-surface-700 hover:bg-surface-600 disabled:opacity-40 flex items-center justify-center transition-colors"
+              >
+                <Plus className="h-3 w-3 text-surface-300" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* CTA */}
         {userEmail === null ? (
-          // Sin sesión → redirigir al login con redirect de vuelta
           <a
-            href={`/login?redirect=/singles`}
+            href="/login?redirect=/singles"
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
           >
             <ShoppingCart className="h-4 w-4" />
@@ -389,16 +535,13 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
           </a>
         ) : (
           <a
-            href={buyUrl}
+            href={buildBuyUrl(variant.id, qty, product?.handle ?? null, userEmail)}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              "w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200",
-              "bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
-            )}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
           >
             <ShoppingCart className="h-4 w-4" />
-            Comprar ahora
+            {qty > 1 ? `Comprar ${qty}` : "Comprar ahora"}
           </a>
         )}
       </div>

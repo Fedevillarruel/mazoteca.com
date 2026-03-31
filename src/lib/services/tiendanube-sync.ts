@@ -138,6 +138,15 @@ async function upsertProduct(product: TNProduct) {
   const tnTag = extractCardCode(product);       // tag exacto de TN: "KA000001"
   const cardCode = toCardsFKCode(tnTag);        // normalizado para FK: "KA001"
 
+  // Extraer juego y subcategoría de las categorías TN del producto
+  // Categorías raíz (parent = 0 o null) = Juego (ej: "Kingdom TCG")
+  // Categorías hijo = Subcategoría (ej: "Arroje")
+  const cats = product.categories ?? [];
+  const rootCat = cats.find((c) => !c.parent || c.parent === 0);
+  const subCat  = cats.find((c) => c.parent && c.parent !== 0);
+  const tnGame        = rootCat?.name?.es ?? null;
+  const tnSubcategory = subCat?.name?.es ?? null;
+
   // 1. Upsert product row — guardamos todo tal cual viene de TN
   await supabase.from("tiendanube_products").upsert(
     {
@@ -180,22 +189,25 @@ async function upsertProduct(product: TNProduct) {
     const price = tnPromo ?? tnPrice;
     const promotional_price = tnPromo && tnPrice && tnPromo < tnPrice ? tnPrice : null;
 
-    await supabase.from("tiendanube_variants").upsert(
-      {
-        id: variant.id,
-        product_id: product.id,
-        card_code: cardCode,
-        sku: variant.sku ?? null,
-        finish: extractFinish(variant),
-        condition: extractCondition(variant),
-        price,
-        promotional_price,
-        stock,
-        image_url: variantImage,
-        synced_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const variantRow: Record<string, any> = {
+      id: variant.id,
+      product_id: product.id,
+      card_code: cardCode,
+      sku: variant.sku ?? null,
+      finish: extractFinish(variant),
+      condition: extractCondition(variant),
+      price,
+      promotional_price,
+      stock,
+      image_url: variantImage,
+      synced_at: new Date().toISOString(),
+    };
+    // Solo incluir si las columnas existen (migración 20260401 aplicada)
+    if (tnGame !== undefined) variantRow.tn_game = tnGame;
+    if (tnSubcategory !== undefined) variantRow.tn_subcategory = tnSubcategory;
+
+    await supabase.from("tiendanube_variants").upsert(variantRow, { onConflict: "id" });
   }
 
   // 3. Eliminar variantes que ya no existen en TN

@@ -53,6 +53,7 @@ export interface TNProduct {
   tags: string;
   updated_at: string;
   created_at: string;
+  categories?: TNCategory[]; // categorías asignadas al producto en TN
 }
 
 export interface TNProductsPage {
@@ -211,6 +212,49 @@ export interface TNStore {
 /** Fetch store info (to get the store domain) */
 export async function fetchStoreInfo(): Promise<TNStore> {
   return tnFetch<TNStore>(`/store`);
+}
+
+// ── Categories ───────────────────────────────────────────────
+
+export interface TNCategory {
+  id: number;
+  name: { es: string };
+  handle: { es: string };
+  parent: number | null; // 0 = root
+  subcategories: number[];
+}
+
+/**
+ * Hierarchical game/subcategory tree, derived from TN categories.
+ * Root categories (parent = 0) = Juegos (ej: "Kingdom TCG")
+ * Children = Subcategorías (ej: "Arroje", "Tropas", etc.)
+ */
+export interface TNGameTree {
+  id: number;
+  name: string;
+  handle: string;
+  subcategories: { id: number; name: string; handle: string }[];
+}
+
+/** Fetch all TN store categories and return them as a game/subcategory tree */
+export async function fetchGameCategories(): Promise<TNGameTree[]> {
+  const all = await tnFetch<TNCategory[]>(`/categories?per_page=200`);
+
+  // Build a map for quick lookup
+  const byId = new Map(all.map((c) => [c.id, c]));
+
+  // Root categories = parent is 0 or null
+  const roots = all.filter((c) => !c.parent || c.parent === 0);
+
+  return roots.map((root) => ({
+    id: root.id,
+    name: root.name.es,
+    handle: root.handle.es,
+    subcategories: (root.subcategories ?? [])
+      .map((subId) => byId.get(subId))
+      .filter((c): c is TNCategory => !!c)
+      .map((c) => ({ id: c.id, name: c.name.es, handle: c.handle.es })),
+  }));
 }
 
 // ── Checkout URL helpers ─────────────────────────────────────

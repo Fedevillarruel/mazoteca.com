@@ -6,7 +6,7 @@ export const siteConfig = {
   name: "Mazoteca",
   shortName: "MZ",
   description:
-    "Catálogo, singles, deck builder y comunidad para Kingdom TCG. Armá mazos, intercambiá cartas y competí.",
+    "Plataforma de cartas coleccionables: catálogo, singles, deck builder y comunidad. Armá mazos, intercambiá cartas y competí en múltiples TCGs.",
   url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ogImage: "/og-image.jpg",
   links: {

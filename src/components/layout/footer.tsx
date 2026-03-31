@@ -57,8 +57,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-surface-400 mb-4 max-w-xs">
-              Catálogo, singles y comunidad para Kingdom TCG.
-              Colecciones, mazos, intercambios y competencia.
+              Tu plataforma de TCG: catálogo, singles, mazos e intercambios.
+              Hoy Kingdom TCG, mañana más juegos.
             </p>
             {/* Social links */}
             <div className="flex gap-3">
@@ -113,10 +113,10 @@ export function Footer() {
         <div className="border-t border-surface-800 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-surface-500">
             © {new Date().getFullYear()} {siteConfig.name}. Todos los derechos
-            reservados. Kingdom TCG es propiedad de sus respectivos autores.
+            reservados. Los juegos de cartas son propiedad de sus respectivos autores.
           </p>
           <p className="text-xs text-surface-600">
-            mazoteca.com no está afiliado oficialmente con Kingdom TCG.
+            mazoteca.com no está afiliado oficialmente con ningún editor de TCG.
           </p>
         </div>
       </div>
