@@ -50,6 +50,21 @@ export function AuthProvider({ initialUser, children }: Props) {
       return data ?? null;
     }
 
+    // Si el servidor no pudo resolver el usuario (proxy aún no activo en Vercel),
+    // verificamos la sesión del lado cliente como fallback
+    async function initSession() {
+      if (initialUser) return; // ya tenemos datos del servidor, no hace falta
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setUser(profile);
+      }
+      setLoading(false);
+    }
+
+    initSession();
+
     // Escuchar cambios de sesión en tiempo real (login, logout, token refresh)
     const {
       data: { subscription },
@@ -65,7 +80,7 @@ export function AuthProvider({ initialUser, children }: Props) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initialUser]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
