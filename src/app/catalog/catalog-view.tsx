@@ -253,7 +253,7 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
 
       {/* ---- Card Grid ---- */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {visible.map((card) => (
             <CatalogCard key={card.code} card={card} />
           ))}
@@ -392,15 +392,15 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
           )}
         </div>
 
-        {/* Buttons row */}
-        <div className="mt-auto flex gap-1.5">
+        {/* Buttons — columna para que entren en mobile */}
+        <div className="mt-auto flex flex-col gap-1">
           {/* Add to cart */}
           <button
             onClick={handleAddToCart}
             disabled={outOfStock}
             title="Agregar al carrito"
             className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
+              "w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
               outOfStock
                 ? "bg-surface-800 text-surface-500 cursor-not-allowed"
                 : added || inCart
@@ -424,14 +424,14 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
             onClick={handleAddToAlbum}
             title="Agregar al álbum digital"
             className={cn(
-              "flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border shrink-0",
+              "w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border",
               addedAlbum
                 ? "bg-violet-600 border-violet-500 text-white"
                 : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
             )}
           >
             {addedAlbum
-              ? <><Check className="h-3 w-3" /><span>Ok</span></>
+              ? <><Check className="h-3 w-3" /><span>¡Listo!</span></>
               : <><BookMarked className="h-3 w-3" /><span>Álbum</span></>
             }
           </button>

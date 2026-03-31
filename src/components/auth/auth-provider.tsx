@@ -37,6 +37,12 @@ export function AuthProvider({ initialUser, children }: Props) {
   const [user, setUser] = useState<AuthUser | null>(initialUser);
   const [loading, setLoading] = useState(false);
 
+  // Sincronizar estado cuando el servidor re-hidrata con un nuevo initialUser
+  // (ocurre después de login/logout con router.refresh())
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
   useEffect(() => {
     const supabase = createClient();
 
