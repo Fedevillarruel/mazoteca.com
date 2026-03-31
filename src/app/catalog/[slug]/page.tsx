@@ -179,9 +179,14 @@ export default async function CardDetailPage({
                     const tnProduct = Array.isArray(v.tiendanube_products)
                       ? (v.tiendanube_products[0] as { handle?: string } | undefined)
                       : (v.tiendanube_products as { handle?: string } | null);
-                    const buyUrl = tnProduct?.handle
-                      ? `https://www.tiendanube.com/${tnProduct.handle}`
-                      : null;
+
+                    // Direct-to-checkout URL: ?add-to-cart={variantId} skips product page
+                    const storeDomain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
+                    const buyUrl = storeDomain
+                      ? `https://${storeDomain}/?add-to-cart=${v.id}`
+                      : tnProduct?.handle
+                        ? `https://www.tiendanube.com/${tnProduct.handle}`
+                        : null;
 
                     return (
                       <div

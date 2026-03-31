@@ -278,9 +278,14 @@ function SingleCard({ variant }: { variant: SingleVariant }) {
 
   // Link to catalog detail or TN product
   const cardHref = card?.slug ? `/catalog/${card.slug}` : `/singles/${variant.product_id}`;
-  const buyHref = product?.handle
-    ? `https://www.tiendanube.com/${product.handle}`
-    : null;
+
+  // Direct-to-checkout URL: ?add-to-cart={variantId} skips the product page
+  const storeDomain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
+  const buyHref = storeDomain
+    ? `https://${storeDomain}/?add-to-cart=${variant.id}`
+    : product?.handle
+      ? `https://www.tiendanube.com/${product.handle}`
+      : null;
 
   return (
     <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden transition-transform hover:-translate-y-1 hover:border-surface-600">

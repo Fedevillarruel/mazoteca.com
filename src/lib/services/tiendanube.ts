@@ -6,6 +6,7 @@
  * Secret:     stored in TIENDANUBE_CLIENT_SECRET env var
  * Store ID:   stored in TIENDANUBE_STORE_ID env var
  * Token:      stored in TIENDANUBE_ACCESS_TOKEN env var
+ * Domain:     stored in TIENDANUBE_STORE_DOMAIN env var (e.g. mitienda.mitiendanube.com)
  */
 
 const TN_STORE_ID = process.env.TIENDANUBE_STORE_ID!;
@@ -207,4 +208,45 @@ export function extractCondition(variant: TNVariant): string {
   };
 
   return map[raw] ?? "Near Mint";
+}
+
+// ── Store info ───────────────────────────────────────────────
+
+export interface TNStore {
+  id: number;
+  name: string;
+  original_domain: string; // e.g. "mitienda.mitiendanube.com"
+  domains: { url: string; main: boolean }[];
+}
+
+/** Fetch store info (to get the store domain) */
+export async function fetchStoreInfo(): Promise<TNStore> {
+  return tnFetch<TNStore>(`/store`);
+}
+
+// ── Checkout URL helpers ─────────────────────────────────────
+
+/**
+ * Returns a URL that adds a variant to the cart AND goes directly to checkout.
+ *
+ * Tiendanube supports the "add-to-cart" query param on the store root:
+ *   https://{domain}/?add-to-cart={variantId}
+ *
+ * This skips the product page and lands the user on the cart/checkout step.
+ * If TIENDANUBE_STORE_DOMAIN is not set, falls back to the product handle URL.
+ */
+export function getCheckoutUrl(variantId: number | string, fallbackHandle?: string | null): string {
+  const domain = process.env.TIENDANUBE_STORE_DOMAIN ?? process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
+
+  if (domain) {
+    const base = domain.startsWith("http") ? domain : `https://${domain}`;
+    return `${base}/?add-to-cart=${variantId}`;
+  }
+
+  // Fallback: product page URL
+  if (fallbackHandle) {
+    return `https://www.tiendanube.com/${fallbackHandle}`;
+  }
+
+  return "#";
 }
