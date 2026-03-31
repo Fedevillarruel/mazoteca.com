@@ -77,7 +77,7 @@ const categoryIcon: Record<KTCGCategory, typeof Crown> = {
 
 // ---- Main Component ----
 
-export function CatalogView() {
+export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<string> }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [level, setLevel] = useState("");
@@ -319,13 +319,13 @@ export function CatalogView() {
       {viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {visible.map((card) => (
-            <CatalogCard key={card.code} card={card} />
+            <CatalogCard key={card.code} card={card} inStore={codesInStore.has(card.code)} />
           ))}
         </div>
       ) : (
         <div className="space-y-7">
           {visible.map((card) => (
-            <CatalogListItem key={card.code} card={card} />
+            <CatalogListItem key={card.code} card={card} inStore={codesInStore.has(card.code)} />
           ))}
         </div>
       )}
@@ -361,7 +361,7 @@ export function CatalogView() {
 
 // ---- Grid Card Component ----
 
-function CatalogCard({ card }: { card: KTCGCard }) {
+function CatalogCard({ card, inStore = false }: { card: KTCGCard; inStore?: boolean }) {
   const Icon = categoryIcon[card.category] ?? Shield;
 
   return (
@@ -403,6 +403,13 @@ function CatalogCard({ card }: { card: KTCGCard }) {
           <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[10px] font-mono text-surface-300">
             {card.code}
           </div>
+
+          {/* Singles badge */}
+          {inStore && (
+            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-primary-500/20 border border-primary-500/40 text-[10px] font-medium text-primary-300">
+              Singles
+            </div>
+          )}
         </div>
 
         {/* Card Info */}
@@ -432,7 +439,7 @@ function CatalogCard({ card }: { card: KTCGCard }) {
 
 // ---- List Item Component ----
 
-function CatalogListItem({ card }: { card: KTCGCard }) {
+function CatalogListItem({ card, inStore = false }: { card: KTCGCard; inStore?: boolean }) {
   const Icon = categoryIcon[card.category] ?? Shield;
 
   return (
@@ -460,6 +467,9 @@ function CatalogListItem({ card }: { card: KTCGCard }) {
                 <span className="text-xs text-surface-500">
                   Ed. {card.edition}
                 </span>
+              )}
+              {inStore && (
+                <Badge variant="primary">Singles</Badge>
               )}
             </div>
             {card.flavor_text && (

@@ -16,6 +16,7 @@ import {
   Crown,
   ExternalLink,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { getCardBySlug } from "@/data/cards";
 import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync";
 
@@ -173,6 +174,7 @@ export default async function CardDetailPage({
               ) : (
                 <div className="space-y-3">
                   {tnVariants.map((v) => {
+                    const inStock = (v.stock ?? 0) > 0;
                     const displayPrice = v.promotional_price ?? v.price;
                     const hasDiscount = v.promotional_price != null && v.price != null && v.promotional_price < v.price;
                     // tiendanube_products can be array (Supabase join) or object; normalise to object
@@ -182,16 +184,21 @@ export default async function CardDetailPage({
 
                     // Direct-to-checkout URL: ?add-to-cart={variantId} skips product page
                     const storeDomain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
-                    const buyUrl = storeDomain
+                    const buyUrl = inStock && storeDomain
                       ? `https://${storeDomain}/?add-to-cart=${v.id}`
-                      : tnProduct?.handle
+                      : inStock && tnProduct?.handle
                         ? `https://www.tiendanube.com/${tnProduct.handle}`
                         : null;
 
                     return (
                       <div
                         key={v.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-surface-800/50 border border-surface-700/30"
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-lg border",
+                          inStock
+                            ? "bg-surface-800/50 border-surface-700/30"
+                            : "bg-surface-900/30 border-surface-800/30 opacity-60"
+                        )}
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -208,7 +215,9 @@ export default async function CardDetailPage({
                             )}
                           </div>
                           <p className="text-xs text-surface-400 mt-0.5">
-                            {v.stock} {v.stock === 1 ? "disponible" : "disponibles"}
+                            {inStock
+                              ? `${v.stock} ${v.stock === 1 ? "disponible" : "disponibles"}`
+                              : "Sin stock"}
                           </p>
                         </div>
                         <div className="flex items-center gap-3 ml-4">
@@ -232,8 +241,8 @@ export default async function CardDetailPage({
                               </Button>
                             </a>
                           ) : (
-                            <Button size="sm" disabled>
-                              Comprar
+                            <Button size="sm" variant="secondary" disabled>
+                              Sin stock
                             </Button>
                           )}
                         </div>

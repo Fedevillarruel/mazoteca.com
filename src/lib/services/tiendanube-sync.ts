@@ -184,6 +184,10 @@ async function upsertProduct(product: TNProduct) {
 
 // ── Query helpers (used by pages) ───────────────────────────
 
+/**
+ * Returns all variants for a card code that exist in the TN store,
+ * regardless of stock. Use `variant.stock > 0` to check availability.
+ */
 export async function getVariantsByCardCode(cardCode: string) {
   const supabase = createAdminClient();
 
@@ -211,10 +215,28 @@ export async function getVariantsByCardCode(cardCode: string) {
     `
     )
     .eq("card_code", cardCode)
-    .gt("stock", 0)
     .order("price", { ascending: true });
 
   return data ?? [];
+}
+
+/**
+ * Returns the set of card codes that have at least one product in the TN store.
+ * Used by the catalog to show "disponible en singles" badges.
+ */
+export async function getCardCodesInStore(): Promise<Set<string>> {
+  const supabase = createAdminClient();
+
+  const { data } = await supabase
+    .from("tiendanube_products")
+    .select("card_code")
+    .not("card_code", "is", null);
+
+  const codes = new Set<string>();
+  for (const row of data ?? []) {
+    if (row.card_code) codes.add(row.card_code);
+  }
+  return codes;
 }
 
 export async function getAllPublishedSingles(opts?: {
