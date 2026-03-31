@@ -12,11 +12,12 @@ import {
   ShoppingBag,
   RefreshCw,
   Layers,
-  Sparkles,
   BookOpen,
   Crown,
+  ExternalLink,
 } from "lucide-react";
 import { getCardBySlug } from "@/data/cards";
+import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync";
 
 export async function generateMetadata({
   params,
@@ -32,12 +33,6 @@ export async function generateMetadata({
   };
 }
 
-const placeholderVariants = [
-  { id: "v1", finish: "Normal", condition: "Near Mint", price: 450, stock: 12 },
-  { id: "v2", finish: "Foil", condition: "Near Mint", price: 1200, stock: 3 },
-  { id: "v3", finish: "Full Art", condition: "Lightly Played", price: 2800, stock: 1 },
-];
-
 const categoryLabels: Record<string, string> = {
   tropa: "Tropa",
   coronado: "Coronado",
@@ -45,6 +40,14 @@ const categoryLabels: Record<string, string> = {
   estrategia: "Estrategia",
   estrategia_primigenia: "Estrategia Primigenia",
   arroje: "Arroje",
+};
+
+const CONDITION_BADGE: Record<string, "success" | "info" | "warning" | "error" | "default"> = {
+  "Near Mint": "success",
+  "Lightly Played": "info",
+  "Moderately Played": "warning",
+  "Heavily Played": "error",
+  Damaged: "error",
 };
 
 export default async function CardDetailPage({
@@ -59,16 +62,9 @@ export default async function CardDetailPage({
 
   const displayName = card.name;
   const typeLabel = categoryLabels[card.card_type] ?? card.card_type;
-  // Show finishes as variant options if the card has them (coronados); otherwise use placeholder
-  const variants = card.finishes
-    ? card.finishes.slice(0, 3).map((finish, i) => ({
-        id: `v${i}`,
-        finish,
-        condition: "Near Mint",
-        price: (i + 1) * 450,
-        stock: Math.max(1, 12 - i * 4),
-      }))
-    : placeholderVariants;
+
+  // Load real Tiendanube variants for this card
+  const tnVariants = await getVariantsByCardCode(card.code);
 
   return (
     <PageLayout>
@@ -94,11 +90,6 @@ export default async function CardDetailPage({
           <div className="absolute top-3 left-3 px-2 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[11px] font-mono text-surface-300">
             {card.code}
           </div>
-          {card.cost != null && (
-            <div className="absolute bottom-3 right-3 h-8 w-8 rounded-full bg-surface-900/90 border border-accent-500/50 flex items-center justify-center text-sm font-bold text-accent-300">
-              {card.cost}
-            </div>
-          )}
         </div>
 
         {/* Card Info */}
@@ -109,7 +100,7 @@ export default async function CardDetailPage({
                 <Badge variant="default">{card.category}</Badge>
                 {card.level != null && <Badge variant="info">Nivel {card.level}</Badge>}
                 {card.card_type === "coronado" && <Badge variant="accent">Coronado</Badge>}
-                <Badge variant="default" className="font-mono">{card.edition && `Ed. ${card.edition}`}</Badge>
+                {card.edition && <Badge variant="default" className="font-mono">Ed. {card.edition}</Badge>}
               </div>
               <h1 className="text-3xl font-bold text-surface-50">{displayName}</h1>
               <p className="text-sm text-surface-400 mt-1">
@@ -124,12 +115,6 @@ export default async function CardDetailPage({
 
           {/* Stats */}
           <div className="flex gap-3 mb-6 flex-wrap">
-            {card.cost != null && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-800/80 border border-surface-700/50">
-                <Sparkles className="h-4 w-4 text-accent-400" />
-                <span className="text-sm font-medium text-surface-200">Costo: {card.cost}</span>
-              </div>
-            )}
             {card.level != null && (
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-800/80 border border-surface-700/50">
                 <Layers className="h-4 w-4 text-primary-400" />
@@ -172,7 +157,7 @@ export default async function CardDetailPage({
             </Card>
           )}
 
-          {/* Singles Variants */}
+          {/* Singles Variants — real Tiendanube data */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -181,27 +166,77 @@ export default async function CardDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {variants.map((v) => (
-                  <div
-                    key={v.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-surface-800/50 border border-surface-700/30"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-surface-100">{v.finish}</p>
-                      <p className="text-xs text-surface-400">
-                        {v.condition} · {v.stock} disponibles
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-sm font-bold text-accent-400">
-                        ${v.price.toLocaleString("es-AR")}
-                      </p>
-                      <Button size="sm">Comprar</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {tnVariants.length === 0 ? (
+                <p className="text-sm text-surface-400 text-center py-4">
+                  Esta carta no está disponible en singles por el momento.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {tnVariants.map((v) => {
+                    const displayPrice = v.promotional_price ?? v.price;
+                    const hasDiscount = v.promotional_price != null && v.price != null && v.promotional_price < v.price;
+                    // tiendanube_products can be array (Supabase join) or object; normalise to object
+                    const tnProduct = Array.isArray(v.tiendanube_products)
+                      ? (v.tiendanube_products[0] as { handle?: string } | undefined)
+                      : (v.tiendanube_products as { handle?: string } | null);
+                    const buyUrl = tnProduct?.handle
+                      ? `https://www.tiendanube.com/${tnProduct.handle}`
+                      : null;
+
+                    return (
+                      <div
+                        key={v.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-surface-800/50 border border-surface-700/30"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-medium text-surface-100">
+                              {v.finish ?? "Estándar"}
+                            </p>
+                            {v.condition && (
+                              <Badge
+                                variant={CONDITION_BADGE[v.condition] ?? "default"}
+                                className="text-[10px]"
+                              >
+                                {v.condition}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-surface-400 mt-0.5">
+                            {v.stock} {v.stock === 1 ? "disponible" : "disponibles"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 ml-4">
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-accent-400">
+                              {displayPrice != null
+                                ? `$${displayPrice.toLocaleString("es-AR")}`
+                                : "Consultar"}
+                            </p>
+                            {hasDiscount && v.price != null && (
+                              <p className="text-xs text-surface-500 line-through">
+                                ${v.price.toLocaleString("es-AR")}
+                              </p>
+                            )}
+                          </div>
+                          {buyUrl ? (
+                            <a href={buyUrl} target="_blank" rel="noopener noreferrer">
+                              <Button size="sm">
+                                <ExternalLink className="h-3 w-3" />
+                                Comprar
+                              </Button>
+                            </a>
+                          ) : (
+                            <Button size="sm" disabled>
+                              Comprar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 

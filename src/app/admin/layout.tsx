@@ -8,12 +8,14 @@ import {
   Flag,
   Settings,
   ChevronLeft,
+  ShoppingBag,
 } from "lucide-react";
 
 const adminNav = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Usuarios", href: "/admin/users", icon: Users },
   { label: "Cartas", href: "/admin/cards", icon: BookOpen },
+  { label: "Singles TN", href: "/admin/singles", icon: ShoppingBag },
   { label: "Reportes", href: "/admin/reports", icon: Flag },
   { label: "Configuración", href: "/admin/settings", icon: Settings },
 ];

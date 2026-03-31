@@ -403,10 +403,6 @@ function CatalogCard({ card }: { card: KTCGCard }) {
           <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[10px] font-mono text-surface-300">
             {card.code}
           </div>
-          {/* Cost badge */}
-          <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[12px] font-medium text-accent-300">
-            {card.cost}
-          </div>
         </div>
 
         {/* Card Info */}
@@ -446,11 +442,6 @@ function CatalogListItem({ card }: { card: KTCGCard }) {
           {/* Thumbnail */}
           <div className="h-24 w-16 bg-surface-800 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
             <Icon className="h-7 w-7 text-surface-600" />
-            {card.cost != null && (
-              <div className="absolute bottom-1 right-1 h-5 w-5 rounded-full bg-surface-900/90 border border-accent-500/50 flex items-center justify-center text-[10px] font-bold text-accent-300">
-                {card.cost}
-              </div>
-            )}
           </div>
           {/* Info */}
           <div className="flex-1 min-w-0">
