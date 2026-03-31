@@ -250,12 +250,10 @@ export function SinglesView({ initialData, totalCount, userEmail, gameCategories
           </div>
         )}
 
-        {/* Filtro Subcategoría */}
+        {/* Filtro Subcategoría — siempre visible si hay subs */}
         {availableSubs.length > 0 && (
           <div className="flex gap-2 flex-wrap items-center">
-            {hasMultipleGames && (
-              <span className="text-[11px] text-surface-500 uppercase tracking-wider font-medium w-10 shrink-0">Tipo</span>
-            )}
+            <span className="text-[11px] text-surface-500 uppercase tracking-wider font-medium shrink-0">Tipo</span>
             <button
               onClick={() => setSelectedSub("Todas")}
               className={cn(

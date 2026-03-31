@@ -6,7 +6,7 @@ import { getCatalogSingles } from "@/lib/services/tiendanube-sync";
 export const metadata: Metadata = {
   title: "Catálogo de Cartas",
   description:
-    "Catálogo completo de las 209 cartas de Kingdom TCG. Tropas, Coronados, Realeza, Estrategia, Primigenia y Arroje.",
+    "Catálogo completo de cartas TCG. Explorá todas las cartas existentes, filtrá por tipo y agregá a tu mazo, álbum o wishlist.",
 };
 
 export const revalidate = 60;
@@ -17,7 +17,7 @@ export default async function CatalogPage() {
   return (
     <PageLayout
       title="Catálogo de Cartas"
-      description="Cartas disponibles para compra en nuestra tienda oficial"
+      description="Todas las cartas existentes — agregá a tu mazo, álbum o wishlist"
     >
       <CatalogView singlesMap={singlesMap} />
     </PageLayout>
