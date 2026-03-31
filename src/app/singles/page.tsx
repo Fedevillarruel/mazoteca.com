@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Cartas sueltas de juegos de cartas coleccionables disponibles para compra. Stock real y precios desde nuestra tienda oficial.",
 };
 
-export const revalidate = 300; // refrescar cada 5 minutos
+export const dynamic = "force-dynamic"; // siempre server-render, nunca caché estático
 
 export default async function SinglesPage() {
   const [{ data: initialSingles, count }, currentUser, gameCategories] = await Promise.all([

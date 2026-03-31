@@ -69,16 +69,15 @@ export default function HomePage() {
             {/* Left — Copy */}
             <div>
               <p className="text-sm font-medium tracking-widest text-primary-400 uppercase mb-4">
-                Kingdom TCG
+                Tu plataforma de TCG
               </p>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-surface-50 leading-tight mb-5">
                 {cardStats.total} cartas.{" "}
                 <span className="text-primary-400">Un solo lugar.</span>
               </h1>
               <p className="text-surface-300 text-lg leading-relaxed mb-8 max-w-lg">
-                Explorá el catálogo completo de Kingdom TCG, armá tus mazos
-                de 33 tropas + 1 coronado, intercambiá singles y conectá con
-                la comunidad.
+                Explorá el catálogo completo, armá tus mazos,
+                intercambiá singles y conectá con la comunidad de jugadores.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link href="/catalog">
@@ -148,7 +147,7 @@ export default function HomePage() {
             Tipos de carta
           </h2>
           <p className="text-surface-400 mb-8 max-w-lg">
-            Kingdom TCG tiene 6 categorías de cartas. Conocelas y empezá a armar tu estrategia.
+            Conocé las categorías de cartas disponibles y empezá a armar tu estrategia.
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

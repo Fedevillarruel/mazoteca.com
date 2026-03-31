@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Catálogo y comunidad de Kingdom TCG`,
+    default: `${siteConfig.name} — Catálogo y comunidad de TCG`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
