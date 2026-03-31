@@ -168,16 +168,17 @@ async function upsertProduct(product: TNProduct) {
       ? (variant.stock ?? 0)
       : 999;
 
-    // Precio: en TN, price = precio de venta actual
-    //         compare_at_price = precio original tachado (cuando hay descuento)
-    //         promotional_price = precio especial (menos común)
-    const price = variant.price ? Number(variant.price) : null;
-    const compareAtPrice = variant.compare_at_price
-      ? Number(variant.compare_at_price)
-      : null;
-    // Solo guardar precio tachado si es distinto al precio actual
-    const promotional_price =
-      compareAtPrice && compareAtPrice > price! ? compareAtPrice : null;
+    // Lógica de precios TN:
+    //   Si hay promotional_price → ese es el precio de VENTA (más barato)
+    //                              y price es el precio TACHADO (original)
+    //   Si no hay promotional_price → price es el precio de venta, sin tachado
+    const tnPrice = variant.price ? Number(variant.price) : null;
+    const tnPromo = variant.promotional_price ? Number(variant.promotional_price) : null;
+
+    // price = precio de venta que se muestra grande
+    // promotional_price = precio tachado (original antes del descuento)
+    const price = tnPromo ?? tnPrice;
+    const promotional_price = tnPromo && tnPrice && tnPromo < tnPrice ? tnPrice : null;
 
     await supabase.from("tiendanube_variants").upsert(
       {
