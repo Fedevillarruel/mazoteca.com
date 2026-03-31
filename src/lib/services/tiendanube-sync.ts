@@ -265,6 +265,89 @@ export async function getCardCodesInStore(): Promise<Set<string>> {
   return codes;
 }
 
+export interface CatalogSingleEntry {
+  card_code: string;
+  min_price: number | null;
+  max_price: number | null;
+  promotional_price: number | null; // precio tachado (original) si hay descuento
+  total_stock: number;
+  image_url: string | null;
+  all_images: string[];            // todas las imágenes del producto para carrusel
+  handle: string | null;
+  variant_ids: number[];           // para checkout
+}
+
+/**
+ * Returns data for all cards currently in the TN store (published=true),
+ * regardless of stock. Used by catalog to show only purchasable cards.
+ */
+export async function getCatalogSingles(): Promise<Map<string, CatalogSingleEntry>> {
+  const supabase = createAdminClient();
+
+  // Get all variants for published products
+  const { data: variants } = await supabase
+    .from("tiendanube_variants")
+    .select(`
+      id,
+      card_code,
+      price,
+      promotional_price,
+      stock,
+      image_url,
+      tiendanube_products!inner (
+        handle,
+        images,
+        published
+      )
+    `)
+    .eq("tiendanube_products.published", true)
+    .not("card_code", "is", null);
+
+  const map = new Map<string, CatalogSingleEntry>();
+
+  for (const v of variants ?? []) {
+    const code = v.card_code as string;
+    // Supabase returns joined rows as array
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tnProduct = Array.isArray(v.tiendanube_products) ? v.tiendanube_products[0] : v.tiendanube_products as any;
+    const handle = tnProduct?.handle ?? null;
+    const rawImages: { src: string }[] = tnProduct?.images ?? [];
+    const allImages = rawImages.map((img) => img.src).filter(Boolean);
+
+    const price = v.price ? Number(v.price) : null;
+    const promo = v.promotional_price ? Number(v.promotional_price) : null;
+
+    if (!map.has(code)) {
+      map.set(code, {
+        card_code: code,
+        min_price: price,
+        max_price: price,
+        promotional_price: promo,
+        total_stock: v.stock ?? 0,
+        image_url: v.image_url ?? allImages[0] ?? null,
+        all_images: allImages,
+        handle,
+        variant_ids: [v.id],
+      });
+    } else {
+      const entry = map.get(code)!;
+      if (price !== null) {
+        entry.min_price = Math.min(entry.min_price ?? price, price);
+        entry.max_price = Math.max(entry.max_price ?? price, price);
+      }
+      if (promo !== null && (entry.promotional_price === null || promo > entry.promotional_price)) {
+        entry.promotional_price = promo;
+      }
+      entry.total_stock += v.stock ?? 0;
+      if (!entry.image_url && v.image_url) entry.image_url = v.image_url;
+      if (entry.all_images.length === 0) entry.all_images = allImages;
+      entry.variant_ids.push(v.id);
+    }
+  }
+
+  return map;
+}
+
 export async function getAllPublishedSingles(opts?: {
   limit?: number;
   offset?: number;

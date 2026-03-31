@@ -105,7 +105,7 @@ const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 function buildBuyUrl(variantId: number | string, handle: string | null, userEmail: string | null): string {
   if (TN_DOMAIN) {
     const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-    let url = `${base}/checkout/v3/start?items[0][variant_id]=${variantId}&items[0][quantity]=1`;
+    let url = `${base}/cart/add?id=${variantId}&quantity=1&redirect_to=checkout`;
     // Pre-fill checkout email with app user's email
     if (userEmail) {
       url += `&contact_email=${encodeURIComponent(userEmail)}`;

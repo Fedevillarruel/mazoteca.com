@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
   Grid3X3,
@@ -19,8 +18,6 @@ import {
   Scroll,
   Sparkles,
   Crosshair,
-  Heart,
-  Plus,
   ShoppingCart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,9 +28,42 @@ import {
   type KTCGCard,
   type KTCGCategory,
 } from "@/data/cards";
+import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
 
-// ---- Filter Options ----
+// ── TN domain (for buy links) ────────────────────────────────
+const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
+function buildCartUrl(variantId: number): string {
+  if (!TN_DOMAIN) return "#";
+  const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
+  return `${base}/cart/add?id=${variantId}&quantity=1&redirect_to=checkout`;
+}
+
+interface CardWithSingle extends KTCGCard {
+  single: CatalogSingleEntry;
+}
+
+// ── Sort options ─────────────────────────────────────────────
+const sortOptions = [
+  { label: "Código (asc)", value: "code_asc" },
+  { label: "Código (desc)", value: "code_desc" },
+  { label: "Nombre (A-Z)", value: "name_asc" },
+  { label: "Precio (menor)", value: "price_asc" },
+  { label: "Precio (mayor)", value: "price_desc" },
+  { label: "Stock (mayor)", value: "stock_desc" },
+];
+
+// ── Category icons ────────────────────────────────────────────
+const categoryIcon: Record<KTCGCategory, typeof Crown> = {
+  Tropas: Shield,
+  Coronados: Crown,
+  Realeza: Star,
+  Estrategia: Scroll,
+  "Estrategia Primigenia": Sparkles,
+  Arroje: Crosshair,
+};
+
+// ── Filter option lists ───────────────────────────────────────
 const categoryOptions = [
   { label: "Todas las categorías", value: "" },
   ...cardCategories.map((c) => ({ label: c, value: c })),
@@ -49,35 +79,19 @@ const levelOptions = [
 
 const factionOptions = [
   { label: "Todas las facciones", value: "" },
-  ...factions.map((f) => {
-    if (f === "Gringud") return { label: "Gringud (incluye Kaihat, Daihat, Gukhal)", value: f.toLowerCase() };
-    return { label: f, value: f.toLowerCase() };
-  }),
-];
-
-const sortOptions = [
-  { label: "Código (asc)", value: "code_asc" },
-  { label: "Código (desc)", value: "code_desc" },
-  { label: "Nombre (A-Z)", value: "name_asc" },
-  { label: "Nombre (Z-A)", value: "name_desc" },
-  { label: "Nivel (menor)", value: "level_asc" },
-  { label: "Nivel (mayor)", value: "level_desc" },
+  ...factions.map((f) => ({ label: f, value: f.toLowerCase() })),
 ];
 
 const PAGE_SIZE = 48;
 
-const categoryIcon: Record<KTCGCategory, typeof Crown> = {
-  Tropas: Shield,
-  Coronados: Crown,
-  Realeza: Star,
-  Estrategia: Scroll,
-  "Estrategia Primigenia": Sparkles,
-  Arroje: Crosshair,
-};
+// ── Price helpers ─────────────────────────────────────────────
+function formatARS(n: number) {
+  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+}
 
 // ---- Main Component ----
 
-export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<string> }) {
+export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSingleEntry> }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [level, setLevel] = useState("");
@@ -96,11 +110,17 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
     setSearch("");
   }, []);
 
+  // Only cards present in singlesMap (uploaded to TiendaNube)
+  const catalogCards = useMemo<CardWithSingle[]>(() => {
+    return allCards
+      .filter((c) => singlesMap.has(c.code))
+      .map((c) => ({ ...c, single: singlesMap.get(c.code)! }));
+  }, [singlesMap]);
+
   // Filter + sort + paginate
   const filtered = useMemo(() => {
-    let cards = [...allCards];
+    let cards = [...catalogCards];
 
-    // Search
     if (search) {
       const q = search.toLowerCase();
       cards = cards.filter(
@@ -110,19 +130,11 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
           c.slug.includes(q)
       );
     }
-
-    // Category
-    if (category) {
-      cards = cards.filter((c) => c.category === category);
-    }
-
-    // Level
+    if (category) cards = cards.filter((c) => c.category === category);
     if (level) {
       const lv = Number(level);
       cards = cards.filter((c) => c.level === lv);
     }
-
-    // Faction
     if (faction) {
       const fl = faction.toLowerCase();
       cards = cards.filter(
@@ -132,28 +144,20 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
       );
     }
 
-    // Sort
     cards.sort((a, b) => {
       switch (sort) {
-        case "code_asc":
-          return a.code.localeCompare(b.code);
-        case "code_desc":
-          return b.code.localeCompare(a.code);
-        case "name_asc":
-          return a.name.localeCompare(b.name);
-        case "name_desc":
-          return b.name.localeCompare(a.name);
-        case "level_asc":
-          return (a.level ?? 0) - (b.level ?? 0);
-        case "level_desc":
-          return (b.level ?? 0) - (a.level ?? 0);
-        default:
-          return 0;
+        case "code_asc": return a.code.localeCompare(b.code);
+        case "code_desc": return b.code.localeCompare(a.code);
+        case "name_asc": return a.name.localeCompare(b.name);
+        case "price_asc": return (a.single.min_price ?? 0) - (b.single.min_price ?? 0);
+        case "price_desc": return (b.single.min_price ?? 0) - (a.single.min_price ?? 0);
+        case "stock_desc": return b.single.total_stock - a.single.total_stock;
+        default: return 0;
       }
     });
 
     return cards;
-  }, [search, category, level, faction, sort]);
+  }, [catalogCards, search, category, level, faction, sort]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -173,10 +177,7 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
             leftIcon={<Search className="h-4 w-4" />}
             rightIcon={
               search ? (
-                <button
-                  onClick={() => setSearch("")}
-                  className="text-surface-400 hover:text-surface-200"
-                >
+                <button onClick={() => setSearch("")} className="text-surface-400 hover:text-surface-200">
                   <X className="h-4 w-4" />
                 </button>
               ) : undefined
@@ -184,11 +185,7 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
           />
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={() => setShowFilters(!showFilters)}
-            className="relative"
-          >
+          <Button variant="secondary" onClick={() => setShowFilters(!showFilters)} className="relative">
             <Filter className="h-4 w-4" />
             Filtros
             {activeFilterCount > 0 && (
@@ -200,24 +197,14 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
           <div className="flex bg-surface-900 border border-surface-700 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode("grid")}
-              className={cn(
-                "p-2.5 transition-colors",
-                viewMode === "grid"
-                  ? "bg-surface-700 text-surface-100"
-                  : "text-surface-400 hover:text-surface-200"
-              )}
+              className={cn("p-2.5 transition-colors", viewMode === "grid" ? "bg-surface-700 text-surface-100" : "text-surface-400 hover:text-surface-200")}
               aria-label="Vista grilla"
             >
               <Grid3X3 className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={cn(
-                "p-2.5 transition-colors",
-                viewMode === "list"
-                  ? "bg-surface-700 text-surface-100"
-                  : "text-surface-400 hover:text-surface-200"
-              )}
+              className={cn("p-2.5 transition-colors", viewMode === "list" ? "bg-surface-700 text-surface-100" : "text-surface-400 hover:text-surface-200")}
               aria-label="Vista lista"
             >
               <List className="h-4 w-4" />
@@ -230,71 +217,28 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
       {showFilters && (
         <div className="bg-surface-900 border border-surface-800 rounded-xl p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Select
-              label="Categoría"
-              options={categoryOptions}
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            />
-            <Select
-              label="Nivel"
-              options={levelOptions}
-              value={level}
-              onChange={(e) => {
-                setLevel(e.target.value);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            />
-            <Select
-              label="Facción"
-              options={factionOptions}
-              value={faction}
-              onChange={(e) => {
-                setFaction(e.target.value);
-                setVisibleCount(PAGE_SIZE);
-              }}
-            />
-            <Select
-              label="Ordenar por"
-              options={sortOptions}
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-            />
+            <Select label="Categoría" options={categoryOptions} value={category} onChange={(e) => { setCategory(e.target.value); setVisibleCount(PAGE_SIZE); }} />
+            <Select label="Nivel" options={levelOptions} value={level} onChange={(e) => { setLevel(e.target.value); setVisibleCount(PAGE_SIZE); }} />
+            <Select label="Facción" options={factionOptions} value={faction} onChange={(e) => { setFaction(e.target.value); setVisibleCount(PAGE_SIZE); }} />
+            <Select label="Ordenar por" options={sortOptions} value={sort} onChange={(e) => setSort(e.target.value)} />
           </div>
           {activeFilterCount > 0 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-surface-800">
               <div className="flex flex-wrap gap-2">
                 {category && (
-                  <Badge variant="primary">
-                    {category}
-                    <button onClick={() => setCategory("")} className="ml-1">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
+                  <Badge variant="primary">{category}<button onClick={() => setCategory("")} className="ml-1"><X className="h-3 w-3" /></button></Badge>
                 )}
                 {level && (
-                  <Badge variant="primary">
-                    Nivel {level}
-                    <button onClick={() => setLevel("")} className="ml-1">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
+                  <Badge variant="primary">Nivel {level}<button onClick={() => setLevel("")} className="ml-1"><X className="h-3 w-3" /></button></Badge>
                 )}
                 {faction && (
                   <Badge variant="primary">
                     {factionOptions.find((o) => o.value === faction)?.label}
-                    <button onClick={() => setFaction("")} className="ml-1">
-                      <X className="h-3 w-3" />
-                    </button>
+                    <button onClick={() => setFaction("")} className="ml-1"><X className="h-3 w-3" /></button>
                   </Badge>
                 )}
               </div>
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Limpiar filtros</Button>
             </div>
           )}
         </div>
@@ -303,15 +247,8 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
       {/* ---- Results count ---- */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-surface-400">
-          Mostrando{" "}
-          <span className="text-surface-200 font-medium">
-            {visible.length}
-          </span>{" "}
-          de{" "}
-          <span className="text-surface-200 font-medium">
-            {filtered.length}
-          </span>{" "}
-          cartas
+          Mostrando <span className="text-surface-200 font-medium">{visible.length}</span>{" "}
+          de <span className="text-surface-200 font-medium">{filtered.length}</span> cartas en venta
         </p>
       </div>
 
@@ -319,13 +256,13 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
       {viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {visible.map((card) => (
-            <CatalogCard key={card.code} card={card} inStore={codesInStore.has(card.code)} />
+            <CatalogCard key={card.code} card={card} />
           ))}
         </div>
       ) : (
-        <div className="space-y-7">
+        <div className="space-y-3">
           {visible.map((card) => (
-            <CatalogListItem key={card.code} card={card} inStore={codesInStore.has(card.code)} />
+            <CatalogListItem key={card.code} card={card} />
           ))}
         </div>
       )}
@@ -335,23 +272,16 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
         <div className="text-center py-16">
           <Search className="h-10 w-10 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-300 font-medium">No se encontraron cartas</p>
-          <p className="text-sm text-surface-500 mt-1">
-            Probá cambiando los filtros o el texto de búsqueda
-          </p>
-          <Button variant="secondary" size="sm" className="mt-4" onClick={clearFilters}>
-            Limpiar filtros
-          </Button>
+          <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros o el texto de búsqueda</p>
+          <Button variant="secondary" size="sm" className="mt-4" onClick={clearFilters}>Limpiar filtros</Button>
         </div>
       )}
 
       {/* ---- Load More ---- */}
       {hasMore && (
         <div className="flex justify-center pt-4">
-          <Button
-            variant="secondary"
-            onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-          >
-            Cargar más cartas ({filtered.length - visibleCount} restantes)
+          <Button variant="secondary" onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}>
+            Cargar más ({filtered.length - visibleCount} restantes)
           </Button>
         </div>
       )}
@@ -361,147 +291,171 @@ export function CatalogView({ codesInStore = new Set() }: { codesInStore?: Set<s
 
 // ---- Grid Card Component ----
 
-function CatalogCard({ card, inStore = false }: { card: KTCGCard; inStore?: boolean }) {
+function CatalogCard({ card }: { card: CardWithSingle }) {
   const Icon = categoryIcon[card.category] ?? Shield;
+  const { single } = card;
+  const hasDiscount = single.promotional_price != null && single.min_price != null && single.promotional_price < single.min_price;
+  const displayPrice = single.promotional_price ?? single.min_price;
+  const originalPrice = hasDiscount ? single.min_price : null;
+  const outOfStock = single.total_stock === 0;
+  const lowStock = !outOfStock && single.total_stock <= 3;
+  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
 
   return (
-    <Link href={`/catalog/${card.slug}`}>
-      <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden transition-transform hover:-translate-y-1">
-  {/* Card Image Placeholder */}
-  <div className="relative aspect-2.5/3.5 bg-surface-800 flex flex-col items-center justify-center p-3 text-center">
-          <Icon className="h-8 w-8 text-surface-600 mb-2" />
-          <span className="text-xs font-medium text-surface-300 leading-tight line-clamp-2">
-            {card.name}
-          </span>
-
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-surface-950/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <button
-              className="p-2 bg-surface-800 rounded-lg hover:bg-surface-700 text-surface-200 transition-colors"
-              title="Agregar a wishlist"
-              onClick={(e) => e.preventDefault()}
-            >
-              <Heart className="h-4 w-4" />
-            </button>
-            <button
-              className="p-2 bg-surface-800 rounded-lg hover:bg-surface-700 text-surface-200 transition-colors"
-              title="Agregar a mazo"
-              onClick={(e) => e.preventDefault()}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-            <button
-              className="p-2 bg-surface-800 rounded-lg hover:bg-surface-700 text-surface-200 transition-colors"
-              title="Ver en singles"
-              onClick={(e) => e.preventDefault()}
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </button>
+    <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5">
+      {/* Image */}
+      <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
+        {single.image_url ? (
+          <Image
+            src={single.image_url}
+            alt={card.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
+            <Icon className="h-8 w-8 text-surface-600 mb-2" />
+            <span className="text-xs font-medium text-surface-400 leading-tight line-clamp-2">{card.name}</span>
           </div>
+        )}
 
-          {/* Code badge */}
-          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[10px] font-mono text-surface-300">
-            {card.code}
-          </div>
-
-          {/* Singles badge */}
-          {inStore && (
-            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-primary-500/20 border border-primary-500/40 text-[10px] font-medium text-primary-300">
-              Singles
-            </div>
-          )}
+        {/* Code badge */}
+        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-950/80 border border-surface-700/60 text-[10px] font-mono text-surface-300">
+          {card.code}
         </div>
 
-        {/* Card Info */}
-  <div className="p-3">
-          <p className="text-sm font-medium text-surface-200 truncate">
-            {card.name}
-          </p>
-          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-            <Badge variant="default">{card.category}</Badge>
-            {card.level != null && (
-              <Badge variant="info">Nv. {card.level}</Badge>
-            )}
-            {card.card_type === "coronado" && (
-              <Badge variant="accent">Coronado</Badge>
-            )}
+        {/* Discount badge */}
+        {hasDiscount && (
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-bold">
+            -{Math.round((1 - single.promotional_price! / single.min_price!) * 100)}%
           </div>
-          {card.edition && (
-            <p className="text-[10px] text-surface-500 mt-1.5">
-              Ed. {card.edition}
-            </p>
-          )}
-        </div>
+        )}
+
+        {/* Out of stock overlay */}
+        {outOfStock && (
+          <div className="absolute inset-0 bg-surface-950/70 flex items-center justify-center">
+            <span className="text-xs font-semibold text-surface-300 uppercase tracking-widest bg-surface-900/80 px-2 py-1 rounded">Sin stock</span>
+          </div>
+        )}
       </div>
-    </Link>
+
+      {/* Info */}
+      <div className="p-3 flex flex-col gap-1.5 flex-1">
+        <p className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2">{card.name}</p>
+
+        {/* Price */}
+        {displayPrice != null && (
+          <div className="flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-sm font-bold text-primary-400">{formatARS(displayPrice)}</span>
+            {originalPrice != null && (
+              <span className="text-[11px] text-surface-500 line-through">{formatARS(originalPrice)}</span>
+            )}
+          </div>
+        )}
+
+        {/* Stock */}
+        <div className="flex items-center gap-1">
+          {outOfStock ? (
+            <span className="text-[10px] text-surface-500">Sin stock</span>
+          ) : lowStock ? (
+            <span className="text-[10px] text-amber-400 font-medium">¡Solo {single.total_stock}!</span>
+          ) : (
+            <span className="text-[10px] text-surface-500">{single.total_stock} disponibles</span>
+          )}
+        </div>
+
+        {/* Buy button */}
+        <a
+          href={buyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "mt-auto flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-colors",
+            outOfStock
+              ? "bg-surface-800 text-surface-500 cursor-not-allowed pointer-events-none"
+              : "bg-primary-600 hover:bg-primary-500 text-white"
+          )}
+          onClick={(e) => outOfStock && e.preventDefault()}
+        >
+          <ShoppingCart className="h-3 w-3" />
+          {outOfStock ? "Sin stock" : "Comprar"}
+        </a>
+      </div>
+    </div>
   );
 }
 
 // ---- List Item Component ----
 
-function CatalogListItem({ card, inStore = false }: { card: KTCGCard; inStore?: boolean }) {
+function CatalogListItem({ card }: { card: CardWithSingle }) {
   const Icon = categoryIcon[card.category] ?? Shield;
+  const { single } = card;
+  const hasDiscount = single.promotional_price != null && single.min_price != null && single.promotional_price < single.min_price;
+  const displayPrice = single.promotional_price ?? single.min_price;
+  const originalPrice = hasDiscount ? single.min_price : null;
+  const outOfStock = single.total_stock === 0;
+  const lowStock = !outOfStock && single.total_stock <= 3;
+  const buyUrl = single.variant_ids[0] ? buildCartUrl(single.variant_ids[0]) : "#";
 
   return (
-    <Link href={`/catalog/${card.slug}`}>
-      <Card variant="interactive">
-        <CardContent className="p-5 sm:p-6 flex items-center gap-6">
-          {/* Thumbnail */}
-          <div className="h-24 w-16 bg-surface-800 rounded-lg flex items-center justify-center shrink-0 relative overflow-hidden">
-            <Icon className="h-7 w-7 text-surface-600" />
-          </div>
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-surface-100 truncate">
-              {card.name}
-            </p>
-            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <Badge variant="default">{card.category}</Badge>
-              {card.level != null && (
-                <Badge variant="info">Nv. {card.level}</Badge>
-              )}
-              <span className="text-xs text-surface-400 font-mono">
-                {card.code}
-              </span>
-              {card.edition && (
-                <span className="text-xs text-surface-500">
-                  Ed. {card.edition}
-                </span>
-              )}
-              {inStore && (
-                <Badge variant="primary">Singles</Badge>
-              )}
-            </div>
-            {card.flavor_text && (
-              <p className="text-xs text-surface-500 italic mt-2 line-clamp-1">
-                {card.flavor_text}
-              </p>
+    <div className="flex items-center gap-4 bg-surface-900 border border-surface-800 rounded-xl p-4 hover:border-surface-700 transition-colors">
+      {/* Thumbnail */}
+      <div className="h-20 w-14 bg-surface-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative">
+        {single.image_url ? (
+          <Image src={single.image_url} alt={card.name} fill className="object-cover" sizes="56px" />
+        ) : (
+          <Icon className="h-6 w-6 text-surface-600" />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-surface-100 truncate">{card.name}</p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <Badge variant="default">{card.category}</Badge>
+          {card.level != null && <Badge variant="info">Nv. {card.level}</Badge>}
+          <span className="text-xs text-surface-400 font-mono">{card.code}</span>
+          {card.edition && <span className="text-xs text-surface-500">Ed. {card.edition}</span>}
+        </div>
+        {/* Stock */}
+        <p className="text-xs mt-1.5">
+          {outOfStock ? (
+            <span className="text-surface-500">Sin stock</span>
+          ) : lowStock ? (
+            <span className="text-amber-400 font-medium">¡Solo {single.total_stock} disponibles!</span>
+          ) : (
+            <span className="text-surface-400">{single.total_stock} disponibles</span>
+          )}
+        </p>
+      </div>
+
+      {/* Price + buy */}
+      <div className="shrink-0 text-right flex flex-col items-end gap-2">
+        {displayPrice != null && (
+          <div className="flex flex-col items-end">
+            <span className="text-base font-bold text-primary-400">{formatARS(displayPrice)}</span>
+            {originalPrice != null && (
+              <span className="text-xs text-surface-500 line-through">{formatARS(originalPrice)}</span>
             )}
           </div>
-          {/* Crowned info */}
-          {card.crowned && (
-            <div className="hidden sm:block text-xs text-surface-400 text-right shrink-0">
-              <p className="text-surface-500">Coronado</p>
-              <p className="text-surface-300">{card.crowned}</p>
-            </div>
+        )}
+        <a
+          href={buyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-colors",
+            outOfStock
+              ? "bg-surface-800 text-surface-500 cursor-not-allowed pointer-events-none"
+              : "bg-primary-600 hover:bg-primary-500 text-white"
           )}
-          {/* Actions */}
-          <div className="flex gap-1 shrink-0">
-            <button
-              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors"
-              onClick={(e) => e.preventDefault()}
-            >
-              <Heart className="h-4 w-4" />
-            </button>
-            <button
-              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800 rounded-lg transition-colors"
-              onClick={(e) => e.preventDefault()}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+          onClick={(e) => outOfStock && e.preventDefault()}
+        >
+          <ShoppingCart className="h-3.5 w-3.5" />
+          {outOfStock ? "Sin stock" : "Comprar"}
+        </a>
+      </div>
+    </div>
   );
 }

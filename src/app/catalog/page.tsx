@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageLayout } from "@/components/layout/page-layout";
 import { CatalogView } from "./catalog-view";
-import { getCardCodesInStore } from "@/lib/services/tiendanube-sync";
+import { getCatalogSingles } from "@/lib/services/tiendanube-sync";
 
 export const metadata: Metadata = {
   title: "Catálogo de Cartas",
@@ -9,15 +9,17 @@ export const metadata: Metadata = {
     "Catálogo completo de las 209 cartas de Kingdom TCG. Tropas, Coronados, Realeza, Estrategia, Primigenia y Arroje.",
 };
 
+export const revalidate = 60;
+
 export default async function CatalogPage() {
-  const codesInStore = await getCardCodesInStore().catch(() => new Set<string>());
+  const singlesMap = await getCatalogSingles().catch(() => new Map());
 
   return (
     <PageLayout
       title="Catálogo de Cartas"
-      description="Las 209 cartas de Kingdom TCG — filtrá por categoría, nivel y facción"
+      description="Cartas disponibles para compra en nuestra tienda oficial"
     >
-      <CatalogView codesInStore={codesInStore} />
+      <CatalogView singlesMap={singlesMap} />
     </PageLayout>
   );
 }
