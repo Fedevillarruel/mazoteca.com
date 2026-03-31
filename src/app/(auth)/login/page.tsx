@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
 import { AdBanner } from "@/components/ads/ad-banner";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Iniciar Sesión",
@@ -9,10 +10,13 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+    <div className="flex-1 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
-        {/* Header */}
+        {/* Logo / Header */}
         <div className="text-center mb-8">
+          <Link href="/" className="inline-block mb-6">
+            <span className="text-2xl font-bold text-primary-400">Mazoteca</span>
+          </Link>
           <h1 className="text-3xl font-bold text-surface-50 mb-2">
             Bienvenido de vuelta
           </h1>

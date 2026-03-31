@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RegisterForm } from "./register-form";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Registrarse",
@@ -8,10 +9,13 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+    <div className="flex-1 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
-        {/* Header */}
+        {/* Logo / Header */}
         <div className="text-center mb-8">
+          <Link href="/" className="inline-block mb-6">
+            <span className="text-2xl font-bold text-primary-400">Mazoteca</span>
+          </Link>
           <h1 className="text-3xl font-bold text-surface-50 mb-2">
             Creá tu cuenta
           </h1>

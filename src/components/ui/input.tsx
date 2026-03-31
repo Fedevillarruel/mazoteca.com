@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Eye, EyeOff } from "lucide-react";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -16,6 +17,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
+    const isPassword = type === "password";
+    const [showPassword, setShowPassword] = React.useState(false);
+    const resolvedType = isPassword ? (showPassword ? "text" : "password") : type;
 
     return (
       <div className="w-full">
@@ -34,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
           <input
-            type={type}
+            type={resolvedType}
             id={inputId}
             className={cn(
               "flex h-10 w-full rounded-lg border bg-surface-900 px-3 py-2 text-sm text-surface-100 placeholder:text-surface-500 transition-colors",
@@ -42,7 +46,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "disabled:cursor-not-allowed disabled:opacity-50",
               error && "border-error focus:border-error focus:ring-error",
               leftIcon && "pl-10",
-              rightIcon && "pr-10",
+              (rightIcon || isPassword) && "pr-10",
               className
             )}
             ref={ref}
@@ -56,11 +60,25 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             }
             {...props}
           />
-          {rightIcon && (
+          {isPassword ? (
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-200 transition-colors"
+              aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          ) : rightIcon ? (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400">
               {rightIcon}
             </div>
-          )}
+          ) : null}
         </div>
         {error && (
           <p
