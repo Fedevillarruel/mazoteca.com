@@ -17,7 +17,7 @@ const BASE_URL = `https://api.tiendanube.com/v1/${TN_STORE_ID}`;
 
 const TN_HEADERS = {
   Authentication: `bearer ${TN_ACCESS_TOKEN}`,
-  "User-Agent": `Mazoteca (mazoteca@gmail.com) AppId/${TN_APP_ID}`,
+  "User-Agent": `Mazoteca (integraciones@fedini.app) AppId/${TN_APP_ID}`,
   "Content-Type": "application/json",
 };
 
