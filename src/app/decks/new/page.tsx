@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +20,7 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
+import { allCards } from "@/data/cards";
 
 const DECK_TYPES = [
   { id: "combatants", label: "Combatientes", max: 33, hasCrowned: true, description: "33 cartas + 1 coronado" },
@@ -28,15 +28,6 @@ const DECK_TYPES = [
 ] as const;
 
 type DeckType = (typeof DECK_TYPES)[number]["id"];
-
-const placeholderPool = Array.from({ length: 20 }, (_, i) => ({
-  id: `pool-${i}`,
-  name: `Carta ${i + 1}`,
-  number: String(i + 1).padStart(3, "0"),
-  rarity: (["common", "rare", "epic", "legendary", "mythic"] as const)[i % 5],
-  type: i % 3 === 0 ? "combatant" : i % 3 === 1 ? "strategy" : "crowned",
-  cost: (i % 6) + 1,
-}));
 
 interface DeckEntry {
   cardId: string;
@@ -79,7 +70,7 @@ export default function DeckBuilderPage() {
     if (crownedId === cardId) setCrownedId(null);
   };
 
-  const getCardById = (id: string) => placeholderPool.find((c) => c.id === id);
+  const getCardById = (id: string) => allCards.find((c) => c.code === id);
 
   return (
     <PageLayout>
@@ -193,16 +184,20 @@ export default function DeckBuilderPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {placeholderPool
+                {allCards
                   .filter((c) =>
-                    search ? c.name.toLowerCase().includes(search.toLowerCase()) : true
+                    search
+                      ? c.name.toLowerCase().includes(search.toLowerCase()) ||
+                        c.code.toLowerCase().includes(search.toLowerCase()) ||
+                        c.category.toLowerCase().includes(search.toLowerCase())
+                      : true
                   )
                   .map((card) => {
-                    const inDeck = deckCards.find((e) => e.cardId === card.id);
+                    const inDeck = deckCards.find((e) => e.cardId === card.code);
                     return (
                       <button
-                        key={card.id}
-                        onClick={() => addCard(card.id)}
+                        key={card.code}
+                        onClick={() => addCard(card.code)}
                         disabled={totalCards >= maxCards && !inDeck}
                         className={`relative p-3 rounded-lg border text-left transition-all ${
                           inDeck
@@ -210,33 +205,17 @@ export default function DeckBuilderPage() {
                             : "border-surface-700 bg-surface-800/50 hover:border-surface-600"
                         } disabled:opacity-30`}
                       >
-                        <div className="h-16 w-full rounded bg-surface-700 mb-2 relative overflow-hidden">
-                          <Image
-                            src="/placeholder-card.webp"
-                            alt={card.name}
-                            fill
-                            className="object-cover"
-                          />
+                        <div className="h-16 w-full rounded bg-surface-700 mb-2 relative overflow-hidden flex items-center justify-center">
+                          <span className="text-[10px] font-mono text-surface-400">{card.code}</span>
                         </div>
                         <p className="text-xs font-medium text-surface-100 truncate">{card.name}</p>
                         <div className="flex items-center justify-between mt-1">
-                          <Badge
-                            variant={
-                              card.rarity === "mythic"
-                                ? "mythic"
-                                : card.rarity === "legendary"
-                                  ? "legendary"
-                                  : card.rarity === "epic"
-                                    ? "epic"
-                                    : card.rarity === "rare"
-                                      ? "rare"
-                                      : "common"
-                            }
-                            className="text-[9px]"
-                          >
-                            {card.rarity}
+                          <Badge variant="default" className="text-[9px]">
+                            {card.category}
                           </Badge>
-                          <span className="text-[10px] text-surface-400">Costo: {card.cost}</span>
+                          {card.level != null && (
+                            <span className="text-[10px] text-surface-400">Nv. {card.level}</span>
+                          )}
                         </div>
                         {inDeck && (
                           <div className="absolute top-1 right-1 h-5 w-5 rounded-full bg-primary-600 flex items-center justify-center">
@@ -351,20 +330,20 @@ export default function DeckBuilderPage() {
                         <span className="flex-1 text-sm text-surface-200 truncate">
                           {card.name}
                         </span>
-                        {deckConfig.hasCrowned && crownedId !== card.id && (
+                        {deckConfig.hasCrowned && crownedId !== card.code && (
                           <button
-                            onClick={() => setCrownedId(card.id)}
+                            onClick={() => setCrownedId(card.code)}
                             className="text-accent-500/50 hover:text-accent-400 opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Coronar"
                           >
                             <Crown className="h-3.5 w-3.5" />
                           </button>
                         )}
-                        {crownedId === card.id && (
+                        {crownedId === card.code && (
                           <Crown className="h-3.5 w-3.5 text-accent-400" />
                         )}
                         <button
-                          onClick={() => removeCard(card.id)}
+                          onClick={() => removeCard(card.code)}
                           className="text-surface-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="h-3.5 w-3.5" />

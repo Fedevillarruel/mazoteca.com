@@ -98,22 +98,6 @@ const SUBCATEGORY_COLORS: Record<string, string> = {
 
 const TN_DOMAIN = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
 
-function buildBuyUrl(
-  variantId: number | string,
-  quantity: number,
-  handle: string | null,
-  userEmail: string | null
-): string {
-  if (TN_DOMAIN) {
-    const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
-    let url = `${base}/comprar/?add_to_cart=${variantId}&quantity=${quantity}`;
-    if (userEmail) url += `&contact_email=${encodeURIComponent(userEmail)}`;
-    return url;
-  }
-  if (handle) return `https://www.tiendanube.com/productos/${handle}`;
-  return "#";
-}
-
 // Deriva el juego de una variante comparando su cards.category
 // con las subcategorías de cada juego en TN
 function deriveGame(variant: SingleVariant, gameCategories: TNGameTree[]): string | null {
@@ -532,15 +516,28 @@ function SingleCard({ variant, userEmail }: { variant: SingleVariant; userEmail:
             Iniciá sesión para comprar
           </a>
         ) : (
-          <a
-            href={buildBuyUrl(variant.id, qty, product?.handle ?? null, userEmail)}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={async () => {
+              if (!TN_DOMAIN) return;
+              const base = TN_DOMAIN.startsWith("http") ? TN_DOMAIN : `https://${TN_DOMAIN}`;
+              try {
+                await fetch(`${base}/carrito/agregar`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                  body: `add_to_cart=${variant.id}&quantity=${qty}`,
+                  mode: "no-cors",
+                  credentials: "include",
+                });
+              } catch {
+                // no-cors siempre rechaza la promise — ignoramos
+              }
+              window.open(`${base}/carrito`, "_blank");
+            }}
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 bg-primary-600 hover:bg-primary-500 text-white shadow-sm shadow-primary-600/30 hover:shadow-primary-500/40 active:scale-95"
           >
             <ShoppingCart className="h-4 w-4" />
             {qty > 1 ? `Comprar ${qty}` : "Comprar ahora"}
-          </a>
+          </button>
         )}
       </div>
     </div>

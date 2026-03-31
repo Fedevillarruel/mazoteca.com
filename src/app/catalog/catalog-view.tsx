@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -304,46 +305,48 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
 
   return (
     <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5">
-      {/* Image */}
-      <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
-        {single.image_url ? (
-          <Image
-            src={single.image_url}
-            alt={card.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
-            <Icon className="h-8 w-8 text-surface-600 mb-2" />
-            <span className="text-xs font-medium text-surface-400 leading-tight line-clamp-2">{card.name}</span>
-          </div>
-        )}
+      {/* Image — clickable → detail page */}
+      <Link href={`/catalog/${card.slug}`} className="block">
+        <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
+          {single.image_url ? (
+            <Image
+              src={single.image_url}
+              alt={card.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
+              <Icon className="h-8 w-8 text-surface-600 mb-2" />
+              <span className="text-xs font-medium text-surface-400 leading-tight line-clamp-2">{card.name}</span>
+            </div>
+          )}
 
-        {/* Code badge */}
-        <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-950/80 border border-surface-700/60 text-[10px] font-mono text-surface-300">
-          {card.code}
+          {/* Code badge */}
+          <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-950/80 border border-surface-700/60 text-[10px] font-mono text-surface-300">
+            {card.code}
+          </div>
+
+          {/* Discount badge */}
+          {hasDiscount && (
+            <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-bold">
+              -{Math.round((1 - single.promotional_price! / single.min_price!) * 100)}%
+            </div>
+          )}
+
+          {/* Out of stock overlay */}
+          {outOfStock && (
+            <div className="absolute inset-0 bg-surface-950/70 flex items-center justify-center">
+              <span className="text-xs font-semibold text-surface-300 uppercase tracking-widest bg-surface-900/80 px-2 py-1 rounded">Sin stock</span>
+            </div>
+          )}
         </div>
-
-        {/* Discount badge */}
-        {hasDiscount && (
-          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-bold">
-            -{Math.round((1 - single.promotional_price! / single.min_price!) * 100)}%
-          </div>
-        )}
-
-        {/* Out of stock overlay */}
-        {outOfStock && (
-          <div className="absolute inset-0 bg-surface-950/70 flex items-center justify-center">
-            <span className="text-xs font-semibold text-surface-300 uppercase tracking-widest bg-surface-900/80 px-2 py-1 rounded">Sin stock</span>
-          </div>
-        )}
-      </div>
+      </Link>
 
       {/* Info */}
       <div className="p-3 flex flex-col gap-1.5 flex-1">
-        <p className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2">{card.name}</p>
+        <Link href={`/catalog/${card.slug}`} className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2 hover:text-primary-300 transition-colors">{card.name}</Link>
 
         {/* Price */}
         {displayPrice != null && (
@@ -401,18 +404,18 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
 
   return (
     <div className="flex items-center gap-4 bg-surface-900 border border-surface-800 rounded-xl p-4 hover:border-surface-700 transition-colors">
-      {/* Thumbnail */}
-      <div className="h-20 w-14 bg-surface-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative">
+      {/* Thumbnail — clickable */}
+      <Link href={`/catalog/${card.slug}`} className="h-20 w-14 bg-surface-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative">
         {single.image_url ? (
           <Image src={single.image_url} alt={card.name} fill className="object-cover" sizes="56px" />
         ) : (
           <Icon className="h-6 w-6 text-surface-600" />
         )}
-      </div>
+      </Link>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-surface-100 truncate">{card.name}</p>
+        <Link href={`/catalog/${card.slug}`} className="text-sm font-semibold text-surface-100 truncate block hover:text-primary-300 transition-colors">{card.name}</Link>
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <Badge variant="default">{card.category}</Badge>
           {card.level != null && <Badge variant="info">Nv. {card.level}</Badge>}
