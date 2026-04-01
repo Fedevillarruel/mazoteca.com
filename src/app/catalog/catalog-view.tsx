@@ -81,10 +81,10 @@ const factionOptions = [
 
 const PAGE_SIZE = 48;
 
-// ── Price helpers ─────────────────────────────────────────────
-function formatARS(n: number) {
-  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
-}
+// ── Price helpers — temporalmente ocultos con precio/stock ───
+// function formatARS(n: number) {
+//   return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+// }
 
 // ---- Main Component ----
 
@@ -292,10 +292,11 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const Icon = categoryIcon[card.category] ?? Shield;
   const { single } = card;
   const hasDiscount = single.promotional_price != null && single.min_price != null && single.promotional_price < single.min_price;
-  const displayPrice = single.promotional_price ?? single.min_price;
-  const originalPrice = hasDiscount ? single.min_price : null;
+  // displayPrice, originalPrice, lowStock — temporalmente ocultos con precio/stock
+  // const displayPrice = single.promotional_price ?? single.min_price;
+  // const originalPrice = hasDiscount ? single.min_price : null;
   const outOfStock = single.total_stock === 0;
-  const lowStock = !outOfStock && single.total_stock <= 3;
+  // const lowStock = !outOfStock && single.total_stock <= 3;
 
   // Cart temporalmente oculto
   // const { addItem, items } = useCartStore();
@@ -361,26 +362,20 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
       <div className="p-3 flex flex-col gap-1.5 flex-1">
         <Link href={`/catalog/${card.slug}`} className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2 hover:text-primary-300 transition-colors">{card.name}</Link>
 
-        {/* Price */}
-        {displayPrice != null && (
+        {/* Precio — temporalmente oculto */}
+        {/* {displayPrice != null && (
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-sm font-bold text-primary-400">{formatARS(displayPrice)}</span>
             {originalPrice != null && (
               <span className="text-[11px] text-surface-500 line-through">{formatARS(originalPrice)}</span>
             )}
           </div>
-        )}
+        )} */}
 
-        {/* Stock */}
-        <div className="flex items-center gap-1">
-          {outOfStock ? (
-            <span className="text-[10px] text-surface-500">Sin stock</span>
-          ) : lowStock ? (
-            <span className="text-[10px] text-amber-400 font-medium">¡Solo {single.total_stock}!</span>
-          ) : (
-            <span className="text-[10px] text-surface-500">{single.total_stock} disponibles</span>
-          )}
-        </div>
+        {/* Stock — temporalmente oculto */}
+        {/* <div className="flex items-center gap-1">
+          ...
+        </div> */}
 
         {/* Buttons — columna para que entren en mobile */}
         <div className="mt-auto flex flex-col gap-1">
@@ -413,11 +408,12 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
 function CatalogListItem({ card }: { card: CardWithSingle }) {
   const Icon = categoryIcon[card.category] ?? Shield;
   const { single } = card;
-  const hasDiscount = single.promotional_price != null && single.min_price != null && single.promotional_price < single.min_price;
-  const displayPrice = single.promotional_price ?? single.min_price;
-  const originalPrice = hasDiscount ? single.min_price : null;
-  const outOfStock = single.total_stock === 0;
-  const lowStock = !outOfStock && single.total_stock <= 3;
+  // hasDiscount, displayPrice, originalPrice, outOfStock, lowStock — temporalmente ocultos
+  // const hasDiscount = ...
+  // const displayPrice = ...
+  // const originalPrice = ...
+  // const outOfStock = single.total_stock === 0;
+  // const lowStock = ...
 
   // Cart temporalmente oculto
   // const { addItem, items } = useCartStore();
@@ -458,28 +454,21 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
           <span className="text-xs text-surface-400 font-mono">{card.code}</span>
           {card.edition && <span className="text-xs text-surface-500">Ed. {card.edition}</span>}
         </div>
-        {/* Stock */}
-        <p className="text-xs mt-1.5">
-          {outOfStock ? (
-            <span className="text-surface-500">Sin stock</span>
-          ) : lowStock ? (
-            <span className="text-amber-400 font-medium">¡Solo {single.total_stock} disponibles!</span>
-          ) : (
-            <span className="text-surface-400">{single.total_stock} disponibles</span>
-          )}
-        </p>
+        {/* Stock — temporalmente oculto */}
+        {/* <p className="text-xs mt-1.5">
+          {outOfStock ? ... : lowStock ? ... : ...}
+        </p> */}
       </div>
 
       {/* Price + buttons */}
       <div className="shrink-0 text-right flex flex-col items-end gap-2">
-        {displayPrice != null && (
+        {/* Precio — temporalmente oculto */}
+        {/* {displayPrice != null && (
           <div className="flex flex-col items-end">
-            <span className="text-base font-bold text-primary-400">{formatARS(displayPrice)}</span>
-            {originalPrice != null && (
-              <span className="text-xs text-surface-500 line-through">{formatARS(originalPrice)}</span>
-            )}
+            <span ...>{formatARS(displayPrice)}</span>
+            ...
           </div>
-        )}
+        )} */}
         <div className="flex items-center gap-1.5">
           {/* Add to cart — temporalmente oculto */}
           {/* <button onClick={handleAddToCart} ... /> */}

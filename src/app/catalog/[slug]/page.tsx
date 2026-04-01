@@ -9,16 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ArrowLeft,
   Heart,
-  ShoppingBag,
   RefreshCw,
   Layers,
   BookOpen,
   Crown,
-  ExternalLink,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { getCardBySlug } from "@/data/cards";
-import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync";
+// import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync"; // temporalmente oculto
 
 export async function generateMetadata({
   params,
@@ -43,13 +40,8 @@ const categoryLabels: Record<string, string> = {
   arroje: "Arroje",
 };
 
-const CONDITION_BADGE: Record<string, "success" | "info" | "warning" | "error" | "default"> = {
-  "Near Mint": "success",
-  "Lightly Played": "info",
-  "Moderately Played": "warning",
-  "Heavily Played": "error",
-  Damaged: "error",
-};
+// CONDITION_BADGE — temporalmente oculto con la sección de singles
+// const CONDITION_BADGE: Record<string, "success" | "info" | "warning" | "error" | "default"> = { ... };
 
 export default async function CardDetailPage({
   params,
@@ -64,8 +56,8 @@ export default async function CardDetailPage({
   const displayName = card.name;
   const typeLabel = categoryLabels[card.card_type] ?? card.card_type;
 
-  // Load real Tiendanube variants for this card
-  const tnVariants = await getVariantsByCardCode(card.code);
+  // Variantes de Tiendanube — temporalmente oculto con la sección de singles
+  // const tnVariants = await getVariantsByCardCode(card.code);
 
   return (
     <PageLayout>
@@ -158,101 +150,18 @@ export default async function CardDetailPage({
             </Card>
           )}
 
-          {/* Singles Variants — real Tiendanube data */}
-          <Card>
+          {/* Singles Variants — temporalmente oculto */}
+          {/* <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5 text-primary-400" />
+              <CardTitle>
+                <ShoppingBag ... />
                 Disponible en Singles
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {tnVariants.length === 0 ? (
-                <p className="text-sm text-surface-400 text-center py-4">
-                  Esta carta no está disponible en singles por el momento.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {tnVariants.map((v) => {
-                    const inStock = (v.stock ?? 0) > 0;
-                    const displayPrice = v.promotional_price ?? v.price;
-                    const hasDiscount = v.promotional_price != null && v.price != null && v.promotional_price < v.price;
-                    // tiendanube_products can be array (Supabase join) or object; normalise to object
-                    const tnProduct = Array.isArray(v.tiendanube_products)
-                      ? (v.tiendanube_products[0] as { handle?: string } | undefined)
-                      : (v.tiendanube_products as { handle?: string } | null);
-
-                    // Direct-to-checkout URL: ?add-to-cart={variantId} skips product page
-                    const storeDomain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN;
-                    const buyUrl = inStock && storeDomain
-                      ? `https://${storeDomain}/?add-to-cart=${v.id}`
-                      : inStock && tnProduct?.handle
-                        ? `https://www.tiendanube.com/${tnProduct.handle}`
-                        : null;
-
-                    return (
-                      <div
-                        key={v.id}
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-lg border",
-                          inStock
-                            ? "bg-surface-800/50 border-surface-700/30"
-                            : "bg-surface-900/30 border-surface-800/30 opacity-60"
-                        )}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="text-sm font-medium text-surface-100">
-                              {v.finish ?? "Estándar"}
-                            </p>
-                            {v.condition && (
-                              <Badge
-                                variant={CONDITION_BADGE[v.condition] ?? "default"}
-                                className="text-[10px]"
-                              >
-                                {v.condition}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-surface-400 mt-0.5">
-                            {inStock
-                              ? `${v.stock} ${v.stock === 1 ? "disponible" : "disponibles"}`
-                              : "Sin stock"}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3 ml-4">
-                          <div className="text-right">
-                            <p className="text-sm font-bold text-accent-400">
-                              {displayPrice != null
-                                ? `$${displayPrice.toLocaleString("es-AR")}`
-                                : "Consultar"}
-                            </p>
-                            {hasDiscount && v.price != null && (
-                              <p className="text-xs text-surface-500 line-through">
-                                ${v.price.toLocaleString("es-AR")}
-                              </p>
-                            )}
-                          </div>
-                          {buyUrl ? (
-                            <a href={buyUrl} target="_blank" rel="noopener noreferrer">
-                              <Button size="sm">
-                                <ExternalLink className="h-3 w-3" />
-                                Comprar
-                              </Button>
-                            </a>
-                          ) : (
-                            <Button size="sm" variant="secondary" disabled>
-                              Sin stock
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              ... tnVariants ...
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Actions */}
           <div className="flex gap-3 mt-6">
