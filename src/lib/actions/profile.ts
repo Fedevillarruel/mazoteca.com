@@ -282,11 +282,11 @@ export async function submitReport(formData: FormData) {
 }
 
 /**
- * Agrega 1 carta al álbum digital del usuario (digital_inventory).
- * Recibe el `code` de la carta (ej: "KT001") y busca el UUID internamente.
- * Si ya existe, incrementa la cantidad en 1.
+ * Agrega una carta al álbum digital del usuario (user_album).
+ * Usa un toggle: si ya está, la quita; si no está, la agrega.
+ * Retorna { added: true } o { removed: true }.
  */
-export async function addToAlbum(cardCode: string): Promise<{ success?: boolean; error?: string; needsAuth?: boolean }> {
+export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; removed?: boolean; error?: string; needsAuth?: boolean }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -294,36 +294,38 @@ export async function addToAlbum(cardCode: string): Promise<{ success?: boolean;
 
   if (!user) return { needsAuth: true };
 
-  // Buscar el UUID de la carta por su code
-  const { data: card } = await supabase
-    .from("cards")
-    .select("id")
-    .eq("code", cardCode)
-    .single();
-
-  if (!card) return { error: "Carta no encontrada." };
-
+  // Verificar si ya existe
   const { data: existing } = await supabase
-    .from("digital_inventory")
-    .select("id, quantity")
+    .from("user_album")
+    .select("id")
     .eq("profile_id", user.id)
-    .eq("card_id", card.id)
-    .is("variant_id", null)
-    .single();
+    .eq("card_code", cardCode)
+    .maybeSingle();
 
   if (existing) {
+    // Quitar del álbum
     const { error } = await supabase
-      .from("digital_inventory")
-      .update({ quantity: existing.quantity + 1 })
+      .from("user_album")
+      .delete()
       .eq("id", existing.id);
-    if (error) return { error: "Error al actualizar la carta." };
+    if (error) return { error: "Error al quitar la carta." };
+    revalidatePath("/album");
+    return { removed: true };
   } else {
+    // Agregar al álbum
     const { error } = await supabase
-      .from("digital_inventory")
-      .insert({ profile_id: user.id, card_id: card.id, quantity: 1 });
+      .from("user_album")
+      .insert({ profile_id: user.id, card_code: cardCode });
     if (error) return { error: "Error al agregar la carta." };
+    revalidatePath("/album");
+    return { added: true };
   }
+}
 
-  revalidatePath("/album");
+/** @deprecated Use toggleAlbum instead */
+export async function addToAlbum(cardCode: string): Promise<{ success?: boolean; error?: string; needsAuth?: boolean }> {
+  const result = await toggleAlbum(cardCode);
+  if (result.needsAuth) return { needsAuth: true };
+  if (result.error) return { error: result.error };
   return { success: true };
 }

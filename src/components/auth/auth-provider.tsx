@@ -19,9 +19,10 @@ interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextValue>({ user: null, loading: true, refreshUser: async () => {} });
 
 export function useAuth() {
   return useContext(AuthContext);
@@ -110,8 +111,20 @@ export function AuthProvider({ initialUser, children }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function refreshUser() {
+    const supabase = createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url, is_premium")
+      .eq("id", authUser.id)
+      .single();
+    if (profile) setUser(profile as AuthUser);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

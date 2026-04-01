@@ -44,19 +44,26 @@ type SaveStatus = "idle" | "saving" | "success" | "error";
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<Section>("profile");
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
-  const initialAvatarId =
-    user?.avatar_url
-      ? (AVATARS.find((a) => a.src === user.avatar_url)?.id ?? null)
-      : null;
-  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(initialAvatarId);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
+  // Sync avatar once user loads — only runs when user changes from null to a value
+  const prevUserRef = useState<string | null>(null);
+  if (user && prevUserRef[0] !== user.id) {
+    prevUserRef[1](user.id);
+    const match = user.avatar_url
+      ? AVATARS.find((a) => a.src === user.avatar_url)?.id ?? null
+      : null;
+    if (selectedAvatar === null) setSelectedAvatar(match);
+  }
+
   async function handleSaveProfile() {
     if (!user) return;
+    if (saveStatus === "saving") return; // prevent double-click loop
     setSaveStatus("saving");
     const supabase = createClient();
     const avatarSrc = AVATARS.find((a) => a.id === selectedAvatar)?.src ?? user.avatar_url;
@@ -66,10 +73,11 @@ export default function SettingsPage() {
       .eq("id", user.id);
     if (error) {
       setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
     } else {
+      await refreshUser();
       setSaveStatus("success");
       setTimeout(() => setSaveStatus("idle"), 2500);
-      window.location.reload();
     }
   }
 

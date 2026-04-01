@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { addToAlbum } from "@/lib/actions/profile";
+import { toggleAlbum } from "@/lib/actions/profile";
 import {
   Search,
   Grid3X3,
@@ -303,7 +303,8 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const variantId = single.variant_ids[0];
   const inCart = variantId != null && items.some((i) => i.variantId === variantId);
   const [added, setAdded] = useState(false);
-  const [addedAlbum, setAddedAlbum] = useState(false);
+  const [inAlbum, setInAlbum] = useState(false);
+  const [albumPending, setAlbumPending] = useState(false);
 
   function handleAddToCart() {
     if (!variantId || outOfStock) return;
@@ -321,9 +322,13 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   }
 
   async function handleAddToAlbum() {
-    const res = await addToAlbum(card.code);
+    if (albumPending) return;
+    setAlbumPending(true);
+    setInAlbum((prev) => !prev);
+    const res = await toggleAlbum(card.code);
     if (res.needsAuth) { window.location.href = "/login"; return; }
-    if (res.success) { setAddedAlbum(true); setTimeout(() => setAddedAlbum(false), 2000); }
+    if (res.error) { setInAlbum((prev) => !prev); }
+    setAlbumPending(false);
   }
 
   return (
@@ -422,18 +427,17 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
           {/* Add to album */}
           <button
             onClick={handleAddToAlbum}
-            title="Agregar al álbum digital"
+            disabled={albumPending}
+            title={inAlbum ? "Quitar del álbum digital" : "Agregar al álbum digital"}
             className={cn(
               "w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border",
-              addedAlbum
+              inAlbum
                 ? "bg-violet-600 border-violet-500 text-white"
                 : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
             )}
           >
-            {addedAlbum
-              ? <><Check className="h-3 w-3" /><span>¡Listo!</span></>
-              : <><BookMarked className="h-3 w-3" /><span>Álbum</span></>
-            }
+            <BookMarked className="h-3 w-3" />
+            <span>{inAlbum ? "En álbum" : "Álbum"}</span>
           </button>
         </div>
       </div>
@@ -456,7 +460,8 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   const variantId = single.variant_ids[0];
   const inCart = variantId != null && items.some((i) => i.variantId === variantId);
   const [added, setAdded] = useState(false);
-  const [addedAlbum, setAddedAlbum] = useState(false);
+  const [inAlbum, setInAlbum] = useState(false);
+  const [albumPending, setAlbumPending] = useState(false);
 
   function handleAddToCart() {
     if (!variantId || outOfStock) return;
@@ -474,9 +479,13 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   }
 
   async function handleAddToAlbum() {
-    const res = await addToAlbum(card.code);
+    if (albumPending) return;
+    setAlbumPending(true);
+    setInAlbum((prev) => !prev);
+    const res = await toggleAlbum(card.code);
     if (res.needsAuth) { window.location.href = "/login"; return; }
-    if (res.success) { setAddedAlbum(true); setTimeout(() => setAddedAlbum(false), 2000); }
+    if (res.error) { setInAlbum((prev) => !prev); }
+    setAlbumPending(false);
   }
 
   return (
@@ -549,18 +558,17 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
           {/* Add to album */}
           <button
             onClick={handleAddToAlbum}
-            title="Agregar al álbum digital"
+            disabled={albumPending}
+            title={inAlbum ? "Quitar del álbum digital" : "Agregar al álbum digital"}
             className={cn(
               "flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all duration-200 border shrink-0",
-              addedAlbum
+              inAlbum
                 ? "bg-violet-600 border-violet-500 text-white"
                 : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
             )}
           >
-            {addedAlbum
-              ? <><Check className="h-3.5 w-3.5" /><span>¡Listo!</span></>
-              : <><BookMarked className="h-3.5 w-3.5" /><span>Álbum</span></>
-            }
+            <BookMarked className="h-3.5 w-3.5" />
+            <span>{inAlbum ? "En álbum" : "Álbum"}</span>
           </button>
         </div>
       </div>

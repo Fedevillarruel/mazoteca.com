@@ -3,11 +3,14 @@ import { AlbumGate } from "./album-gate";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { AlbumView } from "./album-view";
 import { createClient } from "@/lib/supabase/server";
+import { getCatalogSingles } from "@/lib/services/tiendanube-sync";
 
 export const metadata: Metadata = {
-  title: "Álbum",
-  description: "Tu álbum personal de Kingdom TCG. Registrá tu colección física y digital.",
+  title: "Álbum Digital",
+  description: "Tu álbum digital de Kingdom TCG. Registrá las cartas que tenés.",
 };
+
+export const revalidate = 30;
 
 export default async function AlbumPage() {
   const userSession = await getCurrentUser();
@@ -16,43 +19,25 @@ export default async function AlbumPage() {
     return <AlbumGate />;
   }
 
-  const supabase = await createClient();
-  const userId = userSession.profile.id;
-
-  // Fetch physical and digital inventory
-  const [{ data: physicalRaw }, { data: digitalRaw }, { data: wishlistRaw }] = await Promise.all([
-    supabase
-      .from("physical_inventory")
-      .select("card_id, quantity")
-      .eq("profile_id", userId),
-    supabase
-      .from("digital_inventory")
-      .select("card_id, quantity")
-      .eq("profile_id", userId),
-    supabase
-      .from("wishlists")
-      .select("card_id")
-      .eq("profile_id", userId),
+  const [supabase, singlesMap] = await Promise.all([
+    createClient(),
+    getCatalogSingles().catch(() => new Map()),
   ]);
 
-  // Build maps: card_id → quantity
-  const physicalMap: Record<string, number> = {};
-  for (const row of physicalRaw ?? []) {
-    physicalMap[row.card_id] = (physicalMap[row.card_id] ?? 0) + row.quantity;
-  }
+  const userId = userSession.profile.id;
 
-  const digitalMap: Record<string, number> = {};
-  for (const row of digitalRaw ?? []) {
-    digitalMap[row.card_id] = (digitalMap[row.card_id] ?? 0) + row.quantity;
-  }
+  // Fetch user's album (card codes the user marked as owned)
+  const { data: albumRows } = await supabase
+    .from("user_album")
+    .select("card_code")
+    .eq("profile_id", userId);
 
-  const wishlistSet = new Set((wishlistRaw ?? []).map((r) => r.card_id));
+  const albumSet = new Set((albumRows ?? []).map((r) => r.card_code));
 
   return (
     <AlbumView
-      physicalMap={physicalMap}
-      digitalMap={digitalMap}
-      wishlistSet={[...wishlistSet]}
+      albumSet={[...albumSet]}
+      singlesMap={Object.fromEntries(singlesMap)}
     />
   );
 }

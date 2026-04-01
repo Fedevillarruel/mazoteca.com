@@ -1,36 +1,32 @@
 "use client";
 
-import { useState, useRef, forwardRef } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import HTMLFlipBook from "react-pageflip";
+import Image from "next/image";
 import { allCards, type KTCGCard, type KTCGCategory } from "@/data/cards";
 import { PageLayout } from "@/components/layout/page-layout";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  Package,
-  Monitor,
-  Heart,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
   Crown,
   Shield,
   Star,
   Scroll,
   Sparkles,
   Crosshair,
+  BookMarked,
+  Search,
+  X,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toggleAlbum } from "@/lib/actions/profile";
+import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
 
 // ---- Types ----
-type AlbumType = "fisica" | "digital";
-
-interface AlbumViewProps {
-  physicalMap: Record<string, number>; // card_id (UUID) → qty  [from DB]
-  digitalMap: Record<string, number>;  // card_id (UUID) → qty  [from DB]
-  wishlistSet: string[];               // card_id (UUID)[]
+export interface AlbumViewProps {
+  albumSet: string[];
+  singlesMap: Record<string, CatalogSingleEntry>;
 }
 
 // ---- Category icon map ----
@@ -43,286 +39,240 @@ const categoryIcon: Record<KTCGCategory, typeof Crown> = {
   Arroje: Crosshair,
 };
 
-// ---- Page component (forwarded ref required by react-pageflip) ----
-const AlbumPage = forwardRef<
-  HTMLDivElement,
-  {
-    cards: (KTCGCard | null)[];
-    pageNumber: number;
-    qty: (code: string) => number;
-    onWishlist: (code: string) => boolean;
-  }
->(({ cards, pageNumber, qty, onWishlist }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className="album-page bg-surface-900 border border-surface-800 select-none overflow-hidden"
-      style={{ width: "100%", height: "100%" }}
-    >
-      <div className="h-full flex flex-col p-3 gap-2">
-        <div className="grid grid-cols-3 gap-2 flex-1">
-          {cards.map((card, idx) => {
-            if (!card) {
-              return (
-                <div
-                  key={`empty-${idx}`}
-                  className="border-2 border-dashed border-surface-700/50 rounded-lg flex items-center justify-center aspect-2.5/3.5"
-                >
-                  <Plus className="h-4 w-4 text-surface-700" />
-                </div>
-              );
-            }
-            const Icon = categoryIcon[card.category];
-            const count = qty(card.code);
-            const wishlisted = onWishlist(card.code);
+function formatARS(n: number) {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
 
-            return (
-              <div
-                key={card.code}
-                className={cn(
-                  "relative rounded-lg border aspect-2.5/3.5 flex flex-col items-center justify-center overflow-hidden cursor-pointer transition-all",
-                  count > 0
-                    ? "border-primary-500/40 bg-primary-500/5"
-                    : wishlisted
-                    ? "border-pink-500/40 bg-pink-500/5"
-                    : "border-surface-700/30 bg-surface-800/50 opacity-40"
-                )}
-                title={card.name}
-              >
-                <Icon className={cn("h-5 w-5 mb-1", count > 0 ? "text-primary-400" : "text-surface-600")} />
-                <span className="text-[8px] text-center px-1 text-surface-400 leading-tight line-clamp-2">
-                  {card.name}
-                </span>
-                <span className="text-[7px] font-mono text-surface-600 mt-0.5">{card.code}</span>
+export function AlbumView({ albumSet, singlesMap }: AlbumViewProps) {
+  const [owned, setOwned] = useState<Set<string>>(new Set(albumSet));
+  const [search, setSearch] = useState("");
+  const [filterOwned, setFilterOwned] = useState<"all" | "owned" | "missing">("all");
+  const [, startTransition] = useTransition();
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
 
-                {count > 1 && (
-                  <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-primary-500 text-[9px] font-bold text-white flex items-center justify-center">
-                    {count}
-                  </div>
-                )}
-                {wishlisted && count === 0 && (
-                  <div className="absolute top-1 right-1">
-                    <Heart className="h-3 w-3 text-pink-400 fill-pink-400" />
-                  </div>
-                )}
-                {count > 0 && (
-                  <div className="absolute top-1 left-1 h-3 w-3 rounded-full bg-primary-500 flex items-center justify-center">
-                    <span className="text-[7px] text-white font-bold">✓</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-center text-[9px] text-surface-600 mt-1">Pág. {pageNumber}</p>
-      </div>
-    </div>
-  );
-});
-AlbumPage.displayName = "AlbumPage";
+  // Only cards present in singlesMap (same universe as catalog)
+  const catalogCards: KTCGCard[] = allCards.filter((c) => singlesMap[c.code]);
 
-// ---- Cover Page ----
-const CoverPage = forwardRef<HTMLDivElement, { title: string; subtitle: string }>(
-  ({ title, subtitle }, ref) => (
-    <div
-      ref={ref}
-      className="bg-surface-950 border border-surface-700 flex flex-col items-center justify-center select-none"
-      style={{ width: "100%", height: "100%" }}
-    >
-      <Crown className="h-12 w-12 text-accent-400 mb-4" />
-      <h2 className="text-xl font-bold text-surface-50 text-center px-4">{title}</h2>
-      <p className="text-sm text-surface-400 mt-2 text-center px-4">{subtitle}</p>
-      <p className="text-xs text-surface-600 mt-6">Kingdom TCG™ — Mazoteca.com</p>
-    </div>
-  )
-);
-CoverPage.displayName = "CoverPage";
+  const filtered = catalogCards.filter((c) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!c.name.toLowerCase().includes(q) && !c.code.toLowerCase().includes(q)) return false;
+    }
+    if (filterOwned === "owned") return owned.has(c.code);
+    if (filterOwned === "missing") return !owned.has(c.code);
+    return true;
+  });
 
-// ---- Main AlbumView ----
-export function AlbumView({ physicalMap, digitalMap, wishlistSet }: AlbumViewProps) {
-  const [albumType, setAlbumType] = useState<AlbumType>("fisica");
+  const ownedCount = catalogCards.filter((c) => owned.has(c.code)).length;
+  const totalCards = catalogCards.length;
+  const percentage = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
 
-  const wishlistIds = new Set(wishlistSet);
-
-  // NOTE: physicalMap/digitalMap keys are Supabase card UUIDs.
-  // allCards uses short codes like "KT001". Until the DB cards table is seeded
-  // with matching UUIDs we show real counts only when available, otherwise 0.
-  // The map lookup by code acts as a graceful fallback.
-  const activeMap = albumType === "fisica" ? physicalMap : digitalMap;
-
-  // Build a code→qty map from the active DB map
-  // (If keys happen to match codes directly, it works. Otherwise counts = 0 gracefully.)
-  const codeQty = (code: string): number => activeMap[code] ?? 0;
-  const codeWishlist = (code: string): boolean => wishlistIds.has(code);
-
-  const ownedCount = allCards.filter((c) => codeQty(c.code) > 0).length;
-  const wishlistCount = allCards.filter((c) => codeWishlist(c.code) && codeQty(c.code) === 0).length;
-  const totalCards = allCards.length;
-
-  const bookRef = useRef<{ pageFlip: () => { flipNext: () => void; flipPrev: () => void } } | null>(null);
-
-  const CARDS_PER_PAGE = 9;
-  const cardList = [...allCards];
-  while (cardList.length % CARDS_PER_PAGE !== 0) cardList.push(null as unknown as KTCGCard);
-  const chunks: (KTCGCard | null)[][] = [];
-  for (let i = 0; i < cardList.length; i += CARDS_PER_PAGE) {
-    chunks.push(cardList.slice(i, i + CARDS_PER_PAGE) as (KTCGCard | null)[]);
+  function handleToggle(code: string) {
+    if (pendingCode === code) return;
+    setPendingCode(code);
+    setOwned((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+    startTransition(async () => {
+      const res = await toggleAlbum(code);
+      if (res.needsAuth) {
+        window.location.href = "/login";
+        return;
+      }
+      if (res.error) {
+        // Revert on error
+        setOwned((prev) => {
+          const next = new Set(prev);
+          if (next.has(code)) next.delete(code);
+          else next.add(code);
+          return next;
+        });
+      }
+      setPendingCode(null);
+    });
   }
 
   return (
-    <PageLayout title="Álbum" description="Tu colección personal de Kingdom TCG">
-      {/* Tabs */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => setAlbumType("fisica")}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-            albumType === "fisica"
-              ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-              : "text-surface-400 hover:text-surface-200 hover:bg-surface-800"
-          )}
-        >
-          <Package className="h-4 w-4" />
-          Álbum Físico
-        </button>
-        <button
-          onClick={() => setAlbumType("digital")}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-            albumType === "digital"
-              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
-              : "text-surface-400 hover:text-surface-200 hover:bg-surface-800"
-          )}
-        >
-          <Monitor className="h-4 w-4" />
-          Álbum Digital
-        </button>
-      </div>
-
+    <PageLayout title="Álbum Digital" description="Las cartas del catálogo que tenés en tu colección">
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xl font-bold text-primary-400">{ownedCount}</p>
+            <p className="text-2xl font-bold text-primary-400">{ownedCount}</p>
             <p className="text-xs text-surface-400">Cartas en álbum</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xl font-bold text-surface-300">{totalCards}</p>
-            <p className="text-xs text-surface-400">Total en el juego</p>
+            <p className="text-2xl font-bold text-surface-300">{totalCards}</p>
+            <p className="text-xs text-surface-400">En el catálogo</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-xl font-bold text-pink-400">{wishlistCount}</p>
-            <p className="text-xs text-surface-400">En wishlist</p>
+            <p className="text-2xl font-bold text-accent-400">{percentage}%</p>
+            <p className="text-xs text-surface-400">Completado</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Progress bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between text-xs text-surface-400 mb-1.5">
+          <span>Progreso del álbum</span>
+          <span>{ownedCount} / {totalCards}</span>
+        </div>
+        <div className="h-2 bg-surface-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-linear-to-r from-primary-600 to-accent-500 rounded-full transition-all duration-500"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex-1">
+          <Input
+            placeholder="Buscar por nombre o código..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Search className="h-4 w-4" />}
+            rightIcon={
+              search ? (
+                <button onClick={() => setSearch("")} className="text-surface-400 hover:text-surface-200">
+                  <X className="h-4 w-4" />
+                </button>
+              ) : undefined
+            }
+          />
+        </div>
+        <div className="flex gap-2">
+          {(["all", "owned", "missing"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilterOwned(f)}
+              className={cn(
+                "px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                filterOwned === f
+                  ? "bg-primary-600 text-white"
+                  : "bg-surface-800 text-surface-400 hover:text-surface-200 border border-surface-700"
+              )}
+            >
+              {f === "all" ? "Todas" : f === "owned" ? "Tengo" : "Me falta"}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Legend */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <Badge variant="default" className="gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-primary-400" />
-          Tenés esta carta
-        </Badge>
-        <Badge variant="default" className="gap-1.5">
-          <Heart className="h-3 w-3 text-pink-400 fill-pink-400" />
-          En tu wishlist
-        </Badge>
-        <Badge variant="default" className="gap-1.5">
-          <div className="h-2 w-2 rounded-full bg-surface-600" />
-          No tenés
-        </Badge>
-        {ownedCount === 0 && (
-          <span className="text-xs text-surface-500 ml-2">
-            · Agregá cartas desde{" "}
-            <Link href="/catalog" className="text-primary-400 underline">el catálogo</Link>{" "}
-            o desde los{" "}
-            <Link href="/decks" className="text-primary-400 underline">mazos oficiales</Link>
-          </span>
-        )}
+      <div className="flex items-center gap-3 mb-5 flex-wrap text-xs text-surface-500">
+        <span className="flex items-center gap-1.5">
+          <div className="h-3 w-3 rounded border-2 border-primary-500 bg-primary-500/20" />
+          La tenés
+        </span>
+        <span className="flex items-center gap-1.5">
+          <div className="h-3 w-3 rounded border-2 border-surface-700" />
+          No la tenés
+        </span>
+        <span className="text-surface-600">· Tocá una carta para marcarla/desmarcarla</span>
       </div>
 
-      {/* Album type label */}
-      <div className="flex items-center gap-2 mb-4">
-        {albumType === "fisica" ? (
-          <><Package className="h-4 w-4 text-amber-400" /><span className="text-sm font-medium text-amber-400">Colección Física</span></>
-        ) : (
-          <><Monitor className="h-4 w-4 text-blue-400" /><span className="text-sm font-medium text-blue-400">Colección Digital</span></>
-        )}
-      </div>
-
-      {/* FlipBook */}
-      <div className="flex flex-col items-center gap-6">
-        <div className="w-full overflow-hidden" style={{ maxWidth: 700 }}>
-          <HTMLFlipBook
-            ref={bookRef}
-            width={340}
-            height={480}
-            size="fixed"
-            minWidth={240}
-            maxWidth={500}
-            minHeight={320}
-            maxHeight={700}
-            maxShadowOpacity={0.5}
-            showCover={true}
-            mobileScrollSupport={true}
-            className="mx-auto"
-            style={{}}
-            startPage={0}
-            drawShadow={true}
-            flippingTime={600}
-            usePortrait={false}
-            startZIndex={0}
-            autoSize={true}
-            clickEventForward={true}
-            useMouseEvents={true}
-            swipeDistance={30}
-            showPageCorners={true}
-            disableFlipByClick={false}
-          >
-            <CoverPage
-              title={`Álbum ${albumType === "fisica" ? "Físico" : "Digital"}`}
-              subtitle={`${ownedCount} / ${totalCards} cartas · Mazoteca.com`}
-            />
-            {chunks.map((chunk, idx) => (
-              <AlbumPage
-                key={idx}
-                cards={chunk}
-                pageNumber={idx + 1}
-                qty={codeQty}
-                onWishlist={codeWishlist}
-              />
-            ))}
-            <CoverPage
-              title="Kingdom TCG™"
-              subtitle="Mazoteca.com — Tu colección, tu comunidad."
-            />
-          </HTMLFlipBook>
+      {/* Card grid */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <BookMarked className="h-10 w-10 text-surface-600 mx-auto mb-3" />
+          <p className="text-surface-300 font-medium">No hay cartas que mostrar</p>
+          <p className="text-sm text-surface-500 mt-1">
+            {filterOwned === "owned" ? (
+              <>Aún no marcaste ninguna carta. Agregá desde el{" "}
+                <Link href="/catalog" className="text-primary-400 underline">catálogo</Link>.</>
+            ) : (
+              "Probá cambiando los filtros."
+            )}
+          </p>
         </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
+          {filtered.map((card) => {
+            const single = singlesMap[card.code];
+            const isOwned = owned.has(card.code);
+            const isLoading = pendingCode === card.code;
+            const Icon = categoryIcon[card.category];
+            const displayPrice = single?.promotional_price ?? single?.min_price;
 
-        <div className="flex items-center gap-4">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => bookRef.current?.pageFlip().flipPrev()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-          <span className="text-xs text-surface-500">{chunks.length} páginas · {totalCards} cartas</span>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => bookRef.current?.pageFlip().flipNext()}
-          >
-            Siguiente
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+            return (
+              <button
+                key={card.code}
+                onClick={() => handleToggle(card.code)}
+                disabled={isLoading}
+                title={isOwned ? `Quitar ${card.name} del álbum` : `Marcar ${card.name} como obtenida`}
+                className={cn(
+                  "group relative rounded-xl overflow-hidden border-2 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+                  isOwned
+                    ? "border-primary-500 bg-primary-500/5 shadow-md shadow-primary-500/10"
+                    : "border-surface-700/50 bg-surface-900 opacity-60 hover:opacity-90 hover:border-surface-600",
+                  isLoading && "opacity-50 cursor-wait"
+                )}
+              >
+                {/* Card image or icon */}
+                <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
+                  {single?.image_url ? (
+                    <Image
+                      src={single.image_url}
+                      alt={card.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 15vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
+                      <Icon className="h-6 w-6 text-surface-600 mb-1" />
+                      <span className="text-[9px] text-surface-500 leading-tight line-clamp-2">{card.name}</span>
+                    </div>
+                  )}
+
+                  {/* Code badge */}
+                  <div className="absolute top-1.5 left-1.5 px-1 py-0.5 rounded bg-surface-950/80 border border-surface-700/60 text-[8px] font-mono text-surface-300">
+                    {card.code}
+                  </div>
+
+                  {/* Owned checkmark */}
+                  {isOwned && (
+                    <div className="absolute inset-0 bg-primary-600/10 flex items-start justify-end p-1.5">
+                      <span className="bg-primary-500 text-white rounded-full p-0.5 shadow">
+                        <Check className="h-2.5 w-2.5" />
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-1.5">
+                  <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2 mb-0.5">
+                    {card.name}
+                  </p>
+                  {displayPrice != null && (
+                    <p className="text-[9px] text-primary-400 font-medium">{formatARS(displayPrice)}</p>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      )}
+
+      <p className="text-xs text-surface-600 text-center mt-8">
+        El álbum muestra las cartas disponibles en el catálogo.
+        Se actualiza automáticamente cuando se agregan cartas a la tienda.
+      </p>
     </PageLayout>
   );
 }

@@ -193,7 +193,9 @@ interface CartState {
 }
 
 function buildCheckoutUrl(items: CartItem[]): string {
-  const domain = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
+  const raw = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
+  // Strip accidental surrounding quotes (e.g. "domain.com" → domain.com)
+  const domain = raw.replace(/^["']|["']$/g, "");
   if (!domain || items.length === 0) return "#";
   const base = domain.startsWith("http")
     ? domain
