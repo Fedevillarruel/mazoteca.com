@@ -26,17 +26,21 @@ export default async function AlbumPage() {
 
   const userId = userSession.profile.id;
 
-  // Fetch user's album (card codes the user marked as owned)
+  // Fetch user's album (card codes + quantities)
   const { data: albumRows } = await supabase
     .from("user_album")
-    .select("card_code")
+    .select("card_code, quantity")
     .eq("profile_id", userId);
 
-  const albumSet = new Set((albumRows ?? []).map((r) => r.card_code));
+  // albumMap: code → quantity
+  const albumMap: Record<string, number> = {};
+  for (const row of albumRows ?? []) {
+    albumMap[row.card_code] = row.quantity ?? 1;
+  }
 
   return (
     <AlbumView
-      albumSet={[...albumSet]}
+      albumMap={albumMap}
       singlesMap={Object.fromEntries(singlesMap)}
     />
   );

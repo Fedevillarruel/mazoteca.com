@@ -286,7 +286,7 @@ export async function submitReport(formData: FormData) {
  * Usa un toggle: si ya está, la quita; si no está, la agrega.
  * Retorna { added: true } o { removed: true }.
  */
-export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; removed?: boolean; error?: string; needsAuth?: boolean }> {
+export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; removed?: boolean; quantity?: number; error?: string; needsAuth?: boolean }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -297,7 +297,7 @@ export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; 
   // Verificar si ya existe
   const { data: existing } = await supabase
     .from("user_album")
-    .select("id")
+    .select("id, quantity")
     .eq("profile_id", user.id)
     .eq("card_code", cardCode)
     .maybeSingle();
@@ -312,14 +312,95 @@ export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; 
     revalidatePath("/album");
     return { removed: true };
   } else {
-    // Agregar al álbum
+    // Agregar al álbum con quantity=1
     const { error } = await supabase
       .from("user_album")
-      .insert({ profile_id: user.id, card_code: cardCode });
+      .insert({ profile_id: user.id, card_code: cardCode, quantity: 1 });
     if (error) return { error: "Error al agregar la carta." };
     revalidatePath("/album");
-    return { added: true };
+    return { added: true, quantity: 1 };
   }
+}
+
+/**
+ * Actualiza la cantidad de copias de una carta en el álbum.
+ * quantity=0 elimina la carta del álbum.
+ */
+export async function setAlbumQuantity(cardCode: string, quantity: number): Promise<{ success?: boolean; removed?: boolean; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { needsAuth: true };
+  if (quantity < 0) return { error: "Cantidad inválida." };
+
+  if (quantity === 0) {
+    const { error } = await supabase
+      .from("user_album")
+      .delete()
+      .eq("profile_id", user.id)
+      .eq("card_code", cardCode);
+    if (error) return { error: "Error al quitar la carta." };
+    revalidatePath("/album");
+    return { removed: true };
+  }
+
+  // Upsert
+  const { error } = await supabase
+    .from("user_album")
+    .upsert(
+      { profile_id: user.id, card_code: cardCode, quantity },
+      { onConflict: "profile_id,card_code" }
+    );
+  if (error) return { error: "Error al actualizar la cantidad." };
+  revalidatePath("/album");
+  return { success: true };
+}
+
+/**
+ * Crea una publicación de venta o intercambio de una carta.
+ */
+export async function createCardListing(params: {
+  cardCode: string;
+  listingType: "sale" | "trade" | "both";
+  price?: number;
+  condition?: string;
+  quantity?: number;
+  note?: string;
+}): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { needsAuth: true };
+  if (params.listingType !== "trade" && !params.price) {
+    return { error: "El precio es requerido para publicaciones de venta." };
+  }
+
+  const { data, error } = await supabase
+    .from("card_listings")
+    .insert({
+      seller_id: user.id,
+      card_code: params.cardCode,
+      listing_type: params.listingType,
+      price: params.price ?? null,
+      condition: params.condition ?? "near_mint",
+      quantity: params.quantity ?? 1,
+      note: params.note ?? null,
+      status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("[createCardListing]", error);
+    return { error: "Error al publicar la carta." };
+  }
+
+  revalidatePath("/trades");
+  return { id: data.id };
 }
 
 /** @deprecated Use toggleAlbum instead */
