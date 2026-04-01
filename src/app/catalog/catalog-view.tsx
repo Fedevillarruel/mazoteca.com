@@ -20,8 +20,6 @@ import {
   Scroll,
   Sparkles,
   Crosshair,
-  ShoppingCart,
-  Check,
   BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,7 +31,7 @@ import {
   type KTCGCategory,
 } from "@/data/cards";
 import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
-import { useCartStore } from "@/lib/stores";
+// import { useCartStore } from "@/lib/stores"; // temporalmente oculto
 
 // ── TN domain (for buy links) ────────────────────────────────
 // (usado solo para imagen de fallback de tienda si es necesario)
@@ -299,27 +297,14 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
 
-  const { addItem, items } = useCartStore();
-  const variantId = single.variant_ids[0];
-  const inCart = variantId != null && items.some((i) => i.variantId === variantId);
-  const [added, setAdded] = useState(false);
+  // Cart temporalmente oculto
+  // const { addItem, items } = useCartStore();
+  // const variantId = single.variant_ids[0];
+  // const inCart = variantId != null && items.some((i) => i.variantId === variantId);
+  // const [added, setAdded] = useState(false);
+
   const [inAlbum, setInAlbum] = useState(false);
   const [albumPending, setAlbumPending] = useState(false);
-
-  function handleAddToCart() {
-    if (!variantId || outOfStock) return;
-    addItem({
-      variantId,
-      productId: variantId,
-      name: card.name,
-      subtitle: card.category + (card.level != null ? ` · Nv.${card.level}` : ""),
-      imageUrl: single.image_url ?? undefined,
-      price: displayPrice ?? 0,
-      maxStock: Math.min(single.total_stock, 10),
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
-  }
 
   async function handleAddToAlbum() {
     if (albumPending) return;
@@ -399,30 +384,8 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
 
         {/* Buttons — columna para que entren en mobile */}
         <div className="mt-auto flex flex-col gap-1">
-          {/* Add to cart */}
-          <button
-            onClick={handleAddToCart}
-            disabled={outOfStock}
-            title="Agregar al carrito"
-            className={cn(
-              "w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200",
-              outOfStock
-                ? "bg-surface-800 text-surface-500 cursor-not-allowed"
-                : added || inCart
-                ? "bg-green-600 hover:bg-green-500 text-white"
-                : "bg-primary-600 hover:bg-primary-500 text-white"
-            )}
-          >
-            {added ? (
-              <><Check className="h-3 w-3" />¡Listo!</>
-            ) : inCart ? (
-              <><Check className="h-3 w-3" />En carrito</>
-            ) : outOfStock ? (
-              "Sin stock"
-            ) : (
-              <><ShoppingCart className="h-3 w-3" />Comprar</>
-            )}
-          </button>
+          {/* Add to cart — temporalmente oculto */}
+          {/* <button onClick={handleAddToCart} ... /> */}
 
           {/* Add to album */}
           <button
@@ -456,27 +419,14 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
   const outOfStock = single.total_stock === 0;
   const lowStock = !outOfStock && single.total_stock <= 3;
 
-  const { addItem, items } = useCartStore();
-  const variantId = single.variant_ids[0];
-  const inCart = variantId != null && items.some((i) => i.variantId === variantId);
-  const [added, setAdded] = useState(false);
+  // Cart temporalmente oculto
+  // const { addItem, items } = useCartStore();
+  // const variantId = single.variant_ids[0];
+  // const inCart = variantId != null && items.some(...);
+  // const [added, setAdded] = useState(false);
+
   const [inAlbum, setInAlbum] = useState(false);
   const [albumPending, setAlbumPending] = useState(false);
-
-  function handleAddToCart() {
-    if (!variantId || outOfStock) return;
-    addItem({
-      variantId,
-      productId: variantId,
-      name: card.name,
-      subtitle: card.category + (card.level != null ? ` · Nv.${card.level}` : ""),
-      imageUrl: single.image_url ?? undefined,
-      price: displayPrice ?? 0,
-      maxStock: Math.min(single.total_stock, 10),
-    });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
-  }
 
   async function handleAddToAlbum() {
     if (albumPending) return;
@@ -531,29 +481,8 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
           </div>
         )}
         <div className="flex items-center gap-1.5">
-          {/* Add to cart */}
-          <button
-            onClick={handleAddToCart}
-            disabled={outOfStock}
-            className={cn(
-              "flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all duration-200",
-              outOfStock
-                ? "bg-surface-800 text-surface-500 cursor-not-allowed"
-                : added || inCart
-                ? "bg-green-600 hover:bg-green-500 text-white"
-                : "bg-primary-600 hover:bg-primary-500 text-white"
-            )}
-          >
-            {added ? (
-              <><Check className="h-3.5 w-3.5" />¡Listo!</>
-            ) : inCart ? (
-              <><Check className="h-3.5 w-3.5" />En carrito</>
-            ) : outOfStock ? (
-              "Sin stock"
-            ) : (
-              <><ShoppingCart className="h-3.5 w-3.5" />Comprar</>
-            )}
-          </button>
+          {/* Add to cart — temporalmente oculto */}
+          {/* <button onClick={handleAddToCart} ... /> */}
 
           {/* Add to album */}
           <button

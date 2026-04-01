@@ -10,7 +10,6 @@ import {
   X,
   BookOpen,
   Swords,
-  Store,
   MessageSquare,
   User,
   LogIn,
@@ -23,19 +22,18 @@ import {
   ChevronDown,
   RefreshCw,
   ShoppingBag,
-  ShoppingCart,
   Smile,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useCartStore } from "@/lib/stores";
-import { CartDrawer } from "@/components/ui/cart-drawer";
+// import { useCartStore } from "@/lib/stores"; // temporalmente oculto
+// import { CartDrawer } from "@/components/ui/cart-drawer"; // temporalmente oculto
 
 const mainNav = [
   { href: "/catalog", label: "Catálogo", icon: BookOpen },
   { href: "/decks", label: "Mazos", icon: Swords },
-  { href: "/singles", label: "Singles", icon: Store },
+  // { href: "/singles", label: "Singles", icon: Store },   // temporalmente oculto
   { href: "/album", label: "Álbum", icon: BookMarked },
 ];
 
@@ -260,8 +258,7 @@ export function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { totalItems, openCart } = useCartStore();
-  const cartCount = totalItems();
+  // Cart temporalmente oculto — const { totalItems, openCart } = useCartStore();
 
   return (
     <>
@@ -318,19 +315,8 @@ export function Header({ user }: HeaderProps) {
               <Search className="h-4.5 w-4.5" />
             </button>
 
-            {/* Cart button */}
-            <button
-              onClick={openCart}
-              className="relative p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all"
-              aria-label="Carrito de compras"
-            >
-              <ShoppingCart className="h-4.5 w-4.5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-4.5 h-4.5 px-1 rounded-full bg-primary-500 text-white text-[9px] font-bold flex items-center justify-center leading-none shadow-lg shadow-primary-500/40">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
-              )}
-            </button>
+            {/* Cart button — temporalmente oculto */}
+            {/* <button onClick={openCart} ...> </button> */}
 
             {user ? (
               <>
@@ -481,7 +467,7 @@ export function Header({ user }: HeaderProps) {
         </div>
       )}
     </header>
-      <CartDrawer />
+      {/* <CartDrawer /> temporalmente oculto */}
     </>
   );
 }
