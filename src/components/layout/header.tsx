@@ -26,7 +26,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
 // import { useCartStore } from "@/lib/stores"; // temporalmente oculto
 // import { CartDrawer } from "@/components/ui/cart-drawer"; // temporalmente oculto
 
@@ -138,10 +137,8 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
 
   async function handleSignOut() {
     setOpen(false);
-    const supabase = createClient();
-    // Limpiar sesión en el cliente y luego redirigir a la route server-side
-    // que limpia las cookies del servidor (necesario para SSR con Supabase)
-    await supabase.auth.signOut();
+    // La route /auth/signout hace signOut() server-side y limpia las cookies.
+    // No hace falta llamar al cliente antes — si falla el cliente no importa.
     window.location.href = "/auth/signout";
   }
 
@@ -456,7 +453,7 @@ export function Header({ user }: HeaderProps) {
                   </Link>
                 )}
                 <button
-                  onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/auth/signout"; }}
+                  onClick={() => { setMobileMenuOpen(false); window.location.href = "/auth/signout"; }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
                 >
                   <LogOut className="h-5 w-5" />Cerrar sesión
