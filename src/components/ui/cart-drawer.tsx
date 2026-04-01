@@ -189,14 +189,18 @@ export function CartDrawer() {
             </p>
 
             {/* Botón checkout */}
-            <a
-              href={url}
-              onClick={closeCart}
+            <button
+              onClick={() => {
+                if (!url || url === "#") return;
+                closeCart();
+                // Pequeño delay para que el drawer cierre antes de navegar
+                setTimeout(() => { window.location.href = url; }, 50);
+              }}
               className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-lg shadow-primary-600/30"
             >
               <ExternalLink className="h-4 w-4" />
               Ir al checkout
-            </a>
+            </button>
 
             {/* Vaciar carrito */}
             <button

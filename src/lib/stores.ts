@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Profile } from "@/types";
 
 // =============================================================================
@@ -224,50 +225,57 @@ function buildCheckoutUrl(items: CartItem[]): string {
 }
 
 export const useCartStore = create<CartState>()(
-  (set, get) => ({
-    items: [],
-    isOpen: false,
+  persist(
+    (set, get) => ({
+      items: [],
+      isOpen: false,
 
-    addItem: (item) =>
-      set((state) => {
-        const existing = state.items.find((i) => i.variantId === item.variantId);
-        const qty = item.quantity ?? 1;
-        if (existing) {
-          const newQty = Math.min(existing.quantity + qty, existing.maxStock);
+      addItem: (item) =>
+        set((state) => {
+          const existing = state.items.find((i) => i.variantId === item.variantId);
+          const qty = item.quantity ?? 1;
+          if (existing) {
+            const newQty = Math.min(existing.quantity + qty, existing.maxStock);
+            return {
+              items: state.items.map((i) =>
+                i.variantId === item.variantId ? { ...i, quantity: newQty } : i
+              ),
+              isOpen: true,
+            };
+          }
           return {
-            items: state.items.map((i) =>
-              i.variantId === item.variantId ? { ...i, quantity: newQty } : i
-            ),
+            items: [...state.items, { ...item, quantity: Math.min(qty, item.maxStock) }],
             isOpen: true,
           };
-        }
-        return {
-          items: [...state.items, { ...item, quantity: Math.min(qty, item.maxStock) }],
-          isOpen: true,
-        };
-      }),
+        }),
 
-    removeItem: (variantId) =>
-      set((state) => ({
-        items: state.items.filter((i) => i.variantId !== variantId),
-      })),
+      removeItem: (variantId) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.variantId !== variantId),
+        })),
 
-    updateQuantity: (variantId, quantity) =>
-      set((state) => ({
-        items: state.items.map((i) =>
-          i.variantId === variantId
-            ? { ...i, quantity: Math.min(Math.max(1, quantity), i.maxStock) }
-            : i
-        ),
-      })),
+      updateQuantity: (variantId, quantity) =>
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.variantId === variantId
+              ? { ...i, quantity: Math.min(Math.max(1, quantity), i.maxStock) }
+              : i
+          ),
+        })),
 
-    clearCart: () => set({ items: [] }),
-    openCart: () => set({ isOpen: true }),
-    closeCart: () => set({ isOpen: false }),
+      clearCart: () => set({ items: [] }),
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
 
-    totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-    totalPrice: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
-    checkoutUrl: () => buildCheckoutUrl(get().items),
-  })
+      totalItems: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      totalPrice: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+      checkoutUrl: () => buildCheckoutUrl(get().items),
+    }),
+    {
+      name: "mazoteca-cart",
+      // Solo persistir los items, no el estado isOpen del drawer
+      partialize: (state) => ({ items: state.items }),
+    }
+  )
 );
 
