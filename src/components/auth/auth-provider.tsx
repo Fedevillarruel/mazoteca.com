@@ -28,25 +28,17 @@ export function useAuth() {
 }
 
 interface Props {
-  /** Valor inicial pasado desde el Server Component (layout.tsx) */
   initialUser: AuthUser | null;
   children: ReactNode;
 }
 
 export function AuthProvider({ initialUser, children }: Props) {
   const [user, setUser] = useState<AuthUser | null>(initialUser);
-  const [loading, setLoading] = useState(false);
-
-  // Sincronizar estado cuando el servidor re-hidrata con un nuevo initialUser
-  // (ocurre después de login/logout con router.refresh())
-  useEffect(() => {
-    setUser(initialUser);
-  }, [initialUser]);
+  const [loading, setLoading] = useState(!initialUser);
 
   useEffect(() => {
     const supabase = createClient();
 
-    // Obtener perfil desde Supabase profiles
     async function fetchProfile(userId: string): Promise<AuthUser | null> {
       const { data } = await supabase
         .from("profiles")
@@ -56,11 +48,12 @@ export function AuthProvider({ initialUser, children }: Props) {
       return data ?? null;
     }
 
-    // Si el servidor no pudo resolver el usuario (proxy aún no activo en Vercel),
-    // verificamos la sesión del lado cliente como fallback
-    async function initSession() {
-      if (initialUser) return; // ya tenemos datos del servidor, no hace falta
-      setLoading(true);
+    // Si no hay initialUser del servidor, intentamos leer la sesión del cliente
+    async function init() {
+      if (initialUser) {
+        setLoading(false);
+        return;
+      }
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
@@ -69,24 +62,30 @@ export function AuthProvider({ initialUser, children }: Props) {
       setLoading(false);
     }
 
-    initSession();
+    init();
 
-    // Escuchar cambios de sesión en tiempo real (login, logout, token refresh)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT" || !session?.user) {
-        setUser(null);
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-        setLoading(true);
-        const profile = await fetchProfile(session.user.id);
-        setUser(profile);
-        setLoading(false);
+    // Detectar login/logout en tiempo real
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_OUT" || !session?.user) {
+          setUser(null);
+          setLoading(false);
+        } else if (
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "USER_UPDATED"
+        ) {
+          setLoading(true);
+          const profile = await fetchProfile(session.user.id);
+          setUser(profile);
+          setLoading(false);
+        }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
-  }, [initialUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>
