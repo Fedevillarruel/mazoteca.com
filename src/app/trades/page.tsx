@@ -77,7 +77,7 @@ export default function TradesPage() {
         {[
           { label: "Pendientes", value: "2", color: "text-amber-400" },
           { label: "Completados", value: "12", color: "text-green-400" },
-          { label: "Enviados hoy", value: "1/3", color: "text-primary-400" },
+          { label: "Esta semana", value: "0/1", color: "text-primary-400" },
           { label: "Reputación", value: "4.9★", color: "text-accent-400" },
         ].map((stat) => (
           <Card key={stat.label} variant="glass">

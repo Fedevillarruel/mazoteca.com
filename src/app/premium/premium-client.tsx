@@ -16,7 +16,7 @@ import {
 const features = [
   { icon: Layers,      title: "Mazos",           free: "Hasta 2 mazos",       premium: "Mazos ilimitados" },
   { icon: ShoppingBag, title: "Singles",          free: "Hasta 5 publicaciones", premium: "Publicaciones ilimitadas" },
-  { icon: RefreshCw,   title: "Intercambios",     free: "3 por día",           premium: "Ilimitados" },
+  { icon: RefreshCw,   title: "Intercambios",     free: "1 por semana",        premium: "Ilimitados" },
   { icon: Shield,      title: "Sin publicidades", free: "Con publicidades",    premium: "Sin publicidades" },
   { icon: Star,        title: "Badge Premium",    free: "—",                   premium: "Badge exclusivo en tu perfil" },
   { icon: Zap,         title: "Acceso anticipado",free: "—",                   premium: "Nuevas expansiones antes que nadie" },

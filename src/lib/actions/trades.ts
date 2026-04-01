@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { tradeProposalSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
+import { gameConfig } from "@/config/site";
 
 export async function createTrade(formData: FormData) {
   const supabase = await createClient();
@@ -61,6 +62,31 @@ export async function createTrade(formData: FormData) {
 
   if (!receiver) {
     return { error: "El usuario destinatario no existe." };
+  }
+
+  // Enforce weekly trade limit for free users
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_premium")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_premium) {
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // domingo de esta semana
+    weekStart.setHours(0, 0, 0, 0);
+
+    const { count: tradesThisWeek } = await supabase
+      .from("trades")
+      .select("*", { count: "exact", head: true })
+      .eq("proposer_id", user.id)
+      .gte("created_at", weekStart.toISOString());
+
+    if ((tradesThisWeek ?? 0) >= gameConfig.freeTier.maxTradesPerWeek) {
+      return {
+        error: `Alcanzaste el límite de ${gameConfig.freeTier.maxTradesPerWeek} intercambio por semana del plan gratuito. Actualizá a Premium para intercambiar sin límites.`,
+      };
+    }
   }
 
   // Create the trade

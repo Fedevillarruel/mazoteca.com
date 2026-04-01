@@ -64,14 +64,14 @@ export const gameConfig = {
   freeTier: {
     maxDecks: 2,
     maxMarketplaceListings: 5,
-    maxTradesPerDay: 3,
+    maxTradesPerWeek: 1,
   },
 
   // Premium tier limits
   premiumTier: {
     maxDecks: 50,
     maxMarketplaceListings: 100,
-    maxTradesPerDay: 50,
+    maxTradesPerWeek: 999,
   },
 } as const;
 
