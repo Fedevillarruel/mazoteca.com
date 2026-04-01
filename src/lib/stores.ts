@@ -201,9 +201,10 @@ function buildCheckoutUrl(items: CartItem[]): string {
     ? domain
     : `https://${domain}`;
   // Tiendanube acepta múltiples productos en el carrito via:
-  // /carrito/agregar?add_to_cart[{variantId}]={qty}&add_to_cart[{variantId2}]={qty2}
+  // /carrito/agregar?add_to_cart%5B{variantId}%5D={qty}
+  // Los corchetes deben estar URL-encoded (%5B y %5D) para que TN los procese.
   const params = items
-    .map((i) => `add_to_cart[${i.variantId}]=${i.quantity}`)
+    .map((i) => `add_to_cart%5B${i.variantId}%5D=${i.quantity}`)
     .join("&");
   return `${base}/carrito/agregar?${params}`;
 }

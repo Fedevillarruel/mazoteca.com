@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Catálogo completo de cartas TCG. Explorá todas las cartas existentes, filtrá por tipo y agregá a tu mazo, álbum o wishlist.",
 };
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic"; // siempre server-render, datos frescos de Tiendanube
 
 export default async function CatalogPage() {
   const singlesMap = await getCatalogSingles().catch(() => new Map());
