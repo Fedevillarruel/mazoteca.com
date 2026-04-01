@@ -271,7 +271,7 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
         <div className="text-center py-16">
           <Search className="h-10 w-10 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-300 font-medium">No se encontraron cartas</p>
-          <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros o el texto de búsqueda</p>
+            <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros o el texto de búsqueda</p>
           <Button variant="secondary" size="sm" className="mt-4" onClick={clearFilters}>Limpiar filtros</Button>
         </div>
       )}

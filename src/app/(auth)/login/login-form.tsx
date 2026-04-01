@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signIn, signInWithGoogle } from "@/lib/actions/auth";
@@ -9,7 +8,6 @@ import { Mail, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 export function LoginForm() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -23,8 +21,9 @@ export function LoginForm() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push("/");
-        router.refresh();
+        // Full page reload para que el servidor re-ejecute getCurrentUser()
+        // y el header reciba el initialUser correcto
+        window.location.href = "/";
       }
     } catch {
       setError("Ocurrió un error inesperado");
