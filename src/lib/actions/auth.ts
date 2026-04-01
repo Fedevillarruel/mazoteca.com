@@ -38,6 +38,7 @@ export async function signUp(formData: FormData): Promise<AuthActionResult> {
     username: formData.get("username") as string,
     password: formData.get("password") as string,
     confirmPassword: formData.get("confirmPassword") as string,
+    avatarUrl: (formData.get("avatarUrl") as string) || null,
   };
 
   const parsed = registerSchema.safeParse(rawData);
@@ -63,8 +64,9 @@ export async function signUp(formData: FormData): Promise<AuthActionResult> {
     password: parsed.data.password,
     options: {
       data: {
-        username: parsed.data.username,
-      },
+          username: parsed.data.username,
+          avatar_url: rawData.avatarUrl || null,
+        },
     },
   });
 
@@ -80,6 +82,7 @@ export async function signUp(formData: FormData): Promise<AuthActionResult> {
     await supabase.from("profiles").upsert({
       id: signUpData.user.id,
       username: parsed.data.username,
+      avatar_url: rawData.avatarUrl || null,
     });
   }
 

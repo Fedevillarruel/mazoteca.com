@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,19 @@ import {
   Lock,
   Save,
   Trash2,
+  Check,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/auth/auth-provider";
+
+const AVATARS = [
+  { id: "nemea", label: "Nemea", src: "/avatars/nemea.png" },
+  { id: "igno", label: "Igno", src: "/avatars/igno.png" },
+  { id: "viggo", label: "Viggo", src: "/avatars/viggo.png" },
+];
 
 const sections = [
   { id: "profile", label: "Perfil", icon: User },
@@ -27,9 +40,38 @@ const sections = [
 ] as const;
 
 type Section = (typeof sections)[number]["id"];
+type SaveStatus = "idle" | "saving" | "success" | "error";
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<Section>("profile");
+  const { user } = useAuth();
+
+  const initialAvatarId =
+    user?.avatar_url
+      ? (AVATARS.find((a) => a.src === user.avatar_url)?.id ?? null)
+      : null;
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(initialAvatarId);
+  const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
+  async function handleSaveProfile() {
+    if (!user) return;
+    setSaveStatus("saving");
+    const supabase = createClient();
+    const avatarSrc = AVATARS.find((a) => a.id === selectedAvatar)?.src ?? user.avatar_url;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarSrc, bio: bio || null, location: location || null })
+      .eq("id", user.id);
+    if (error) {
+      setSaveStatus("error");
+    } else {
+      setSaveStatus("success");
+      setTimeout(() => setSaveStatus("idle"), 2500);
+      window.location.reload();
+    }
+  }
 
   return (
     <PageLayout
@@ -59,26 +101,52 @@ export default function SettingsPage() {
         <div className="lg:col-span-3 space-y-6">
           {activeSection === "profile" && (
             <div className="space-y-6">
-              {/* Avatar Upload */}
+              {/* Avatar Picker */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Foto de perfil</CardTitle>
+                  <CardTitle>Avatar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-6">
-                    <div className="h-20 w-20 rounded-2xl bg-surface-800 flex items-center justify-center overflow-hidden shrink-0 border-2 border-surface-700">
-                      <User className="h-8 w-8 text-surface-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-500 transition-colors cursor-pointer">
-                        <User className="h-4 w-4" />
-                        Subir imagen
-                        <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" />
-                      </label>
-                      <p className="text-xs text-surface-500">
-                        JPG, PNG o WebP. Máximo 2MB.
-                      </p>
-                    </div>
+                  <p className="text-sm text-surface-400 mb-4">
+                    Elegí tu avatar de coleccionista
+                  </p>
+                  <div className="grid grid-cols-3 gap-3 max-w-xs">
+                    {AVATARS.map((avatar) => {
+                      const isSelected = selectedAvatar === avatar.id;
+                      return (
+                        <button
+                          key={avatar.id}
+                          type="button"
+                          onClick={() => setSelectedAvatar(avatar.id)}
+                          className={cn(
+                            "relative aspect-square rounded-xl overflow-hidden border-2 transition-all focus:outline-none",
+                            isSelected
+                              ? "border-primary-500 ring-2 ring-primary-500/30 scale-[1.03]"
+                              : "border-surface-700 hover:border-surface-500"
+                          )}
+                        >
+                          <Image
+                            src={avatar.src}
+                            alt={avatar.label}
+                            fill
+                            className="object-cover"
+                            sizes="120px"
+                          />
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-primary-600/20 flex items-end justify-end p-1.5">
+                              <span className="bg-primary-500 text-white rounded-full p-0.5">
+                                <Check className="h-3 w-3" />
+                              </span>
+                            </div>
+                          )}
+                          <div className="absolute bottom-0 inset-x-0 bg-linear-to-t from-black/60 to-transparent pt-4 pb-1.5 px-2">
+                            <p className="text-[11px] font-semibold text-white text-center leading-none">
+                              {avatar.label}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -89,19 +157,46 @@ export default function SettingsPage() {
                   <CardTitle>Información de perfil</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <Input label="Nickname" defaultValue="KingdomPlayer" />
-                    <Input label="Email" type="email" defaultValue="player@email.com" disabled />
+                  <div>
+                    <label className="block text-sm font-medium text-surface-200 mb-1.5">
+                      Nickname
+                    </label>
+                    <input
+                      value={user?.username ?? ""}
+                      disabled
+                      className="w-full bg-surface-800/50 border border-surface-700 rounded-lg px-3 py-2.5 text-sm text-surface-400 cursor-not-allowed"
+                    />
+                    <p className="text-xs text-surface-500 mt-1">
+                      El nickname no se puede cambiar
+                    </p>
                   </div>
                   <Textarea
                     label="Biografía"
                     placeholder="Contá algo sobre vos..."
-                    defaultValue="Coleccionista y competidor de Kingdom TCG"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
                     rows={3}
                   />
-                  <Input label="Ubicación" placeholder="Ej: Buenos Aires, Argentina" />
-                  <div className="flex justify-end">
-                    <Button>
+                  <Input
+                    label="Ubicación"
+                    placeholder="Ej: Buenos Aires, Argentina"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                  <div className="flex items-center justify-end gap-3">
+                    {saveStatus === "success" && (
+                      <span className="flex items-center gap-1.5 text-sm text-success">
+                        <CheckCircle className="h-4 w-4" />
+                        Cambios guardados
+                      </span>
+                    )}
+                    {saveStatus === "error" && (
+                      <span className="flex items-center gap-1.5 text-sm text-error">
+                        <AlertCircle className="h-4 w-4" />
+                        Error al guardar
+                      </span>
+                    )}
+                    <Button onClick={handleSaveProfile} isLoading={saveStatus === "saving"}>
                       <Save className="h-4 w-4" />
                       Guardar cambios
                     </Button>
@@ -179,8 +274,9 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-surface-400 mb-4">
-                    Al eliminar tu cuenta se borrarán permanentemente todos tus datos, mazos,
-                    colección e historial. Esta acción no se puede deshacer.
+                    Al eliminar tu cuenta se borrarán permanentemente todos tus
+                    datos, mazos, colección e historial. Esta acción no se puede
+                    deshacer.
                   </p>
                   <Button variant="danger">
                     <Trash2 className="h-4 w-4" />
@@ -198,23 +294,51 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {[
-                  { id: "trades", label: "Intercambios", description: "Propuestas y actualizaciones" },
-                  { id: "singles", label: "Singles", description: "Ofertas en tus publicaciones" },
-                  { id: "friends", label: "Amigos", description: "Solicitudes y actividad" },
-                  { id: "forum", label: "Foro", description: "Respuestas a tus hilos" },
-                  { id: "system", label: "Sistema", description: "Actualizaciones y novedades" },
+                  {
+                    id: "trades",
+                    label: "Intercambios",
+                    description: "Propuestas y actualizaciones",
+                  },
+                  {
+                    id: "singles",
+                    label: "Singles",
+                    description: "Ofertas en tus publicaciones",
+                  },
+                  {
+                    id: "friends",
+                    label: "Amigos",
+                    description: "Solicitudes y actividad",
+                  },
+                  {
+                    id: "forum",
+                    label: "Foro",
+                    description: "Respuestas a tus hilos",
+                  },
+                  {
+                    id: "system",
+                    label: "Sistema",
+                    description: "Actualizaciones y novedades",
+                  },
                 ].map((pref) => (
                   <div
                     key={pref.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-surface-800/50"
                   >
                     <div>
-                      <p className="text-sm font-medium text-surface-200">{pref.label}</p>
-                      <p className="text-xs text-surface-400">{pref.description}</p>
+                      <p className="text-sm font-medium text-surface-200">
+                        {pref.label}
+                      </p>
+                      <p className="text-xs text-surface-400">
+                        {pref.description}
+                      </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-surface-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600" />
+                      <input
+                        type="checkbox"
+                        defaultChecked
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-surface-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600" />
                     </label>
                   </div>
                 ))}
