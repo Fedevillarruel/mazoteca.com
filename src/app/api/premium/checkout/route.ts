@@ -59,7 +59,8 @@ export async function POST() {
           currency_id: "ARS",
         },
       ],
-      payer: { email },
+      // No pre-cargar el email del pagador: si coincide con la cuenta vendedora
+      // MercadoPago bloquea el botón de pagar. El usuario lo ingresa en el checkout.
       external_reference: user.id,
       back_urls: {
         success: `${APP_URL}/premium/success`,
