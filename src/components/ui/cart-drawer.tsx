@@ -191,8 +191,6 @@ export function CartDrawer() {
             {/* Botón checkout */}
             <a
               href={url}
-              target="_blank"
-              rel="noopener noreferrer"
               onClick={closeCart}
               className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-500 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-lg shadow-primary-600/30"
             >
