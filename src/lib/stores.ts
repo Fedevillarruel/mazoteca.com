@@ -193,11 +193,17 @@ interface CartState {
 }
 
 function buildCheckoutUrl(items: CartItem[]): string {
+  // Hardcoded para evitar problemas con env vars corruptos en Vercel
+  // (NEXT_PUBLIC_ vars se embeben en el bundle en build time)
+  const TN_DOMAIN = "https://fediniappdemo.mitiendanube.com";
   const raw = process.env.NEXT_PUBLIC_TN_STORE_DOMAIN ?? "";
-  // Strip accidental surrounding quotes (e.g. "domain.com" → domain.com)
-  const domain = raw.replace(/^["']|["']$/g, "");
-  if (!domain || items.length === 0) return "#";
-  const base = domain.startsWith("http") ? domain : `https://${domain}`;
+  // Strip accidental surrounding quotes and newlines (env vars from Vercel CLI can have these)
+  const domain = raw.replace(/^["'\s]+|["'\s]+$/g, "").replace(/\s+/g, "");
+  const base = domain
+    ? (domain.startsWith("http") ? domain : `https://${domain}`)
+    : TN_DOMAIN;
+
+  if (items.length === 0) return "#";
 
   // Tiendanube: para agregar al carrito se usa /?add-to-cart={variantId}&quantity={qty}
   // Para múltiples ítems se puede encadenar con &add-to-cart[]=id pero no es estándar.

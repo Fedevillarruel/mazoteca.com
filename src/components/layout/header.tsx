@@ -141,8 +141,10 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
   async function handleSignOut() {
     setOpen(false);
     const supabase = createClient();
+    // Limpiar sesión en el cliente y luego redirigir a la route server-side
+    // que limpia las cookies del servidor (necesario para SSR con Supabase)
     await supabase.auth.signOut();
-    window.location.href = "/";
+    window.location.href = "/auth/signout";
   }
 
   return (
@@ -468,7 +470,7 @@ export function Header({ user }: HeaderProps) {
                   </Link>
                 )}
                 <button
-                  onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/"; }}
+                  onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/auth/signout"; }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
                 >
                   <LogOut className="h-5 w-5" />Cerrar sesión
