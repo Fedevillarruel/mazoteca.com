@@ -232,7 +232,7 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
           <div className="border-t border-surface-800 p-1.5">
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-error hover:bg-error/10 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Cerrar sesión
@@ -453,7 +453,7 @@ export function Header({ user }: HeaderProps) {
                 </Link>
                 <button
                   onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/"; }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-error hover:bg-error/10 rounded-xl"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
                 >
                   <LogOut className="h-5 w-5" />Cerrar sesión
                 </button>
