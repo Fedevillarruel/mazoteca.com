@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signIn, signInWithGoogle } from "@/lib/actions/auth";
+import { signInWithGoogle } from "@/lib/actions/auth";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -12,19 +13,30 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
     setIsLoading(true);
 
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
     try {
-      const result = await signIn(formData);
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        // Full page reload para que el servidor re-ejecute getCurrentUser()
-        // y el header reciba el initialUser correcto
-        window.location.href = "/";
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError("Email o contraseña incorrectos");
+        return;
       }
+
+      // El onAuthStateChange en AuthProvider detecta el SIGNED_IN automáticamente.
+      // Full reload para que el servidor también lea la sesión fresca.
+      window.location.href = "/";
     } catch {
       setError("Ocurrió un error inesperado");
     } finally {
@@ -75,7 +87,7 @@ export function LoginForm() {
         <div className="flex-1 h-px bg-surface-700" />
       </div>
 
-      <form action={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           name="email"
           type="email"
