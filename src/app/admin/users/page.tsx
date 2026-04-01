@@ -1,29 +1,16 @@
 import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Search,
-  Shield,
-  Ban,
-  MoreHorizontal,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Search, Users } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { RoleSelector } from "./role-selector";
 
 export const metadata: Metadata = {
   title: "Admin — Usuarios",
 };
 
-const placeholderUsers = [
-  { id: "1", username: "DragonMaster99", email: "dragon@email.com", role: "user", status: "active", joined: "2025-01-15", premium: true },
-  { id: "2", username: "CrystalKnight", email: "crystal@email.com", role: "moderator", status: "active", joined: "2025-02-20", premium: true },
-  { id: "3", username: "ShadowHunter", email: "shadow@email.com", role: "user", status: "active", joined: "2025-03-10", premium: false },
-  { id: "4", username: "ToxicPlayer", email: "toxic@email.com", role: "user", status: "banned", joined: "2025-04-01", premium: false },
-  { id: "5", username: "StormWizard", email: "storm@email.com", role: "user", status: "active", joined: "2025-05-18", premium: false },
-];
+export const revalidate = 0;
 
 const roleColors: Record<string, "primary" | "accent" | "default"> = {
   admin: "accent",
@@ -31,26 +18,59 @@ const roleColors: Record<string, "primary" | "accent" | "default"> = {
   user: "default",
 };
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const pageSize = 50;
+  const offset = (page - 1) * pageSize;
+
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("profiles")
+    .select("id, username, display_name, role, is_premium, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + pageSize - 1);
+
+  if (q) {
+    query = query.ilike("username", `%${q}%`);
+  }
+
+  const { data: users, count } = await query;
+  const totalPages = Math.ceil((count ?? 0) / pageSize);
+
   return (
     <div className="min-h-screen bg-surface-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
           <div>
             <Link href="/admin" className="text-xs text-surface-400 hover:text-surface-200 mb-1 block">
               ← Volver al dashboard
             </Link>
-            <h1 className="text-2xl font-bold text-surface-50">Gestión de Usuarios</h1>
+            <h1 className="text-2xl font-bold text-surface-50 flex items-center gap-2">
+              <Users className="h-6 w-6 text-primary-400" />
+              Gestión de Usuarios
+            </h1>
           </div>
-          <div className="flex gap-2">
-            <Badge variant="default">{placeholderUsers.length} usuarios</Badge>
-          </div>
+          <Badge variant="default">{count ?? 0} usuarios</Badge>
         </div>
 
-        <div className="relative max-w-md mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
-          <Input placeholder="Buscar por nombre o email..." className="pl-9" />
-        </div>
+        {/* Search */}
+        <form method="GET">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+            <input
+              name="q"
+              defaultValue={q ?? ""}
+              placeholder="Buscar por nombre o email..."
+              className="w-full pl-9 pr-4 py-2 bg-surface-800 border border-surface-700 rounded-lg text-sm text-surface-100 placeholder:text-surface-500 focus:outline-none focus:border-primary-500"
+            />
+          </div>
+        </form>
 
         <Card>
           <CardContent className="p-0">
@@ -59,77 +79,86 @@ export default function AdminUsersPage() {
                 <thead>
                   <tr className="border-b border-surface-700">
                     <th className="text-left p-4 text-surface-400 font-medium">Usuario</th>
-                    <th className="text-left p-4 text-surface-400 font-medium">Email</th>
+                    <th className="text-left p-4 text-surface-400 font-medium">Nombre</th>
                     <th className="text-left p-4 text-surface-400 font-medium">Rol</th>
-                    <th className="text-left p-4 text-surface-400 font-medium">Estado</th>
                     <th className="text-left p-4 text-surface-400 font-medium">Premium</th>
                     <th className="text-left p-4 text-surface-400 font-medium">Registro</th>
-                    <th className="text-right p-4 text-surface-400 font-medium">Acciones</th>
+                    <th className="text-right p-4 text-surface-400 font-medium">Cambiar rol</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {placeholderUsers.map((user) => (
+                  {(users ?? []).map((user) => (
                     <tr key={user.id} className="border-b border-surface-800 hover:bg-surface-800/30">
                       <td className="p-4">
                         <Link
                           href={`/profile/${user.username}`}
                           className="font-medium text-surface-100 hover:text-primary-400"
                         >
-                          {user.username}
+                          {user.username ?? "—"}
                         </Link>
                       </td>
-                      <td className="p-4 text-surface-400">{user.email}</td>
+                      <td className="p-4 text-surface-400 text-xs">{user.display_name ?? "—"}</td>
                       <td className="p-4">
-                        <Badge variant={roleColors[user.role] || "default"}>{user.role}</Badge>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={user.status === "active" ? "success" : "error"}>
-                          {user.status === "active" ? "Activo" : "Baneado"}
+                        <Badge variant={roleColors[user.role ?? "user"] ?? "default"}>
+                          {user.role ?? "user"}
                         </Badge>
                       </td>
                       <td className="p-4">
-                        {user.premium ? (
+                        {user.is_premium ? (
                           <Badge variant="accent">Premium</Badge>
                         ) : (
                           <span className="text-surface-500">—</span>
                         )}
                       </td>
-                      <td className="p-4 text-surface-400">{user.joined}</td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-end gap-1">
-                          {user.status === "active" ? (
-                            <Button variant="ghost" size="icon-sm" title="Banear">
-                              <Ban className="h-3.5 w-3.5" />
-                            </Button>
-                          ) : (
-                            <Button variant="ghost" size="icon-sm" title="Desbanear">
-                              <Shield className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="icon-sm">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
+                      <td className="p-4 text-surface-400 text-xs">
+                        {user.created_at
+                          ? new Date(user.created_at as string).toLocaleDateString("es-AR")
+                          : "—"}
+                      </td>
+                      <td className="p-4 text-right">
+                        <RoleSelector userId={user.id} currentRole={user.role ?? "user"} />
                       </td>
                     </tr>
                   ))}
+                  {(users ?? []).length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-surface-400">
+                        No se encontraron usuarios.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-xs text-surface-400">Mostrando 1-5 de 2.847</p>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon-sm" disabled>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon-sm">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-surface-400">
+              Página {page} de {totalPages} ({count} usuarios)
+            </p>
+            <div className="flex gap-2">
+              {page > 1 && (
+                <Link
+                  href={`?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page - 1) })}`}
+                  className="px-3 py-1.5 text-xs bg-surface-800 border border-surface-700 rounded hover:bg-surface-700 text-surface-200"
+                >
+                  ← Anterior
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link
+                  href={`?${new URLSearchParams({ ...(q ? { q } : {}), page: String(page + 1) })}`}
+                  className="px-3 py-1.5 text-xs bg-surface-800 border border-surface-700 rounded hover:bg-surface-700 text-surface-200"
+                >
+                  Siguiente →
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

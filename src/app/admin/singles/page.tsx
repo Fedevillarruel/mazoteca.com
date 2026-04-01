@@ -50,7 +50,7 @@ export default async function AdminSinglesPage() {
         </div>
 
         {/* Stats cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card variant="glass">
             <CardContent className="p-5 flex items-center gap-4">
               <Package className="h-8 w-8 text-primary-400 shrink-0" />
@@ -81,6 +81,17 @@ export default async function AdminSinglesPage() {
                   {lastSync?.status === "success" ? "OK" : lastSync?.status ?? "—"}
                 </p>
                 <p className="text-xs text-surface-400">Último estado de sync</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card variant="glass">
+            <CardContent className="p-5 flex items-center gap-4">
+              <AlertTriangle className={`h-8 w-8 shrink-0 ${stats.unmatchedCount > 0 ? "text-yellow-400" : "text-surface-600"}`} />
+              <div>
+                <p className={`text-2xl font-bold ${stats.unmatchedCount > 0 ? "text-yellow-400" : "text-surface-50"}`}>
+                  {stats.unmatchedCount ?? 0}
+                </p>
+                <p className="text-xs text-surface-400">Sin match en catálogo</p>
               </div>
             </CardContent>
           </Card>
@@ -187,6 +198,50 @@ export default async function AdminSinglesPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Unmatched products diagnostic */}
+        {stats.unmatchedCount > 0 && stats.unmatchedProducts.length > 0 && (
+          <Card className="border-yellow-500/30 bg-yellow-900/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base text-yellow-300">
+                <AlertTriangle className="h-4 w-4" />
+                Productos sin match en catálogo ({stats.unmatchedCount})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-surface-400">
+                Estos productos están en Tiendanube pero <strong className="text-surface-200">no tienen un código de carta válido</strong>.
+                No aparecerán en el catálogo de la web. Para vincularlos, agregá el tag correcto
+                en TN (ej: <code className="bg-surface-800 px-1 rounded text-xs">KT001</code>).
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-surface-700">
+                      <th className="text-left text-surface-400 py-2 pr-4 font-medium">ID</th>
+                      <th className="text-left text-surface-400 py-2 pr-4 font-medium">Nombre del producto</th>
+                      <th className="text-left text-surface-400 py-2 font-medium">Handle (slug)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-800">
+                    {stats.unmatchedProducts.map((p) => (
+                      <tr key={p.id}>
+                        <td className="py-2 pr-4 text-surface-500 font-mono">#{p.id}</td>
+                        <td className="py-2 pr-4 text-surface-200">{p.name}</td>
+                        <td className="py-2 text-surface-400 font-mono">{p.handle ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {stats.unmatchedCount > 50 && (
+                  <p className="text-xs text-surface-500 mt-2">
+                    Mostrando 50 de {stats.unmatchedCount}. Sincronizá para ver el listado actualizado.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

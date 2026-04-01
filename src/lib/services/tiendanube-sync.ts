@@ -19,7 +19,18 @@ import {
 
 // ── Full sync ────────────────────────────────────────────────
 
-export async function syncAllProducts(trigger: "cron" | "manual" = "manual") {
+export interface SyncResult {
+  success: boolean;
+  synced: number;
+  failed: number;
+  noCode: number;         // products with no extractable card_code
+  noMatch: number;        // products where card_code doesn't exist in cards table
+  errors: { productId: number; name: string; error: string }[];
+  unmatched: { productId: number; name: string; rawCode: string | null }[];
+  error?: string;
+}
+
+export async function syncAllProducts(trigger: "cron" | "manual" = "manual"): Promise<SyncResult> {
   const supabase = createAdminClient();
 
   // Create sync log entry
@@ -33,26 +44,70 @@ export async function syncAllProducts(trigger: "cron" | "manual" = "manual") {
 
   try {
     const products = await fetchAllProducts();
+
+    // Pre-load all valid card codes for fast matching
+    const { data: cardRows } = await supabase
+      .from("cards")
+      .select("code");
+    const validCodes = new Set((cardRows ?? []).map((r) => r.code as string));
+
     let synced = 0;
+    let failed = 0;
+    let noCode = 0;
+    let noMatch = 0;
+    const errors: SyncResult["errors"] = [];
+    const unmatched: SyncResult["unmatched"] = [];
 
     for (const product of products) {
-      await upsertProduct(product);
-      synced++;
+      const rawCode = extractCardCode(product);
+      const normalizedCode = toCardsFKCode(rawCode);
+      const productName = product.name?.es ?? `Producto ${product.id}`;
+
+      if (!normalizedCode) {
+        noCode++;
+        unmatched.push({ productId: product.id, name: productName, rawCode: null });
+        // Still upsert to keep product data, just with null card_code
+        try { await upsertProduct(product); } catch { /* skip */ }
+        continue;
+      }
+
+      if (!validCodes.has(normalizedCode)) {
+        noMatch++;
+        unmatched.push({ productId: product.id, name: productName, rawCode: normalizedCode });
+        // Still upsert product data even without a match — card_code will be null
+        try { await upsertProduct(product); } catch { /* skip */ }
+        continue;
+      }
+
+      try {
+        await upsertProduct(product);
+        synced++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[syncAllProducts] product ${product.id}:`, msg);
+        errors.push({ productId: product.id, name: productName, error: msg });
+        failed++;
+      }
     }
 
-    // Mark success
+    const overallStatus = failed > 0 && synced === 0 ? "error" : "success";
+    const summaryMsg = unmatched.length > 0
+      ? `${unmatched.length} productos sin match: ${unmatched.map((u) => `#${u.productId} (${u.rawCode ?? "sin código"})`).join(", ")}`
+      : undefined;
+
     if (logId) {
       await supabase
         .from("tiendanube_sync_log")
         .update({
-          status: "success",
+          status: overallStatus,
           products_synced: synced,
+          error_msg: summaryMsg ?? (errors[0]?.error ?? null),
           finished_at: new Date().toISOString(),
         })
         .eq("id", logId);
     }
 
-    return { success: true, synced };
+    return { success: true, synced, failed, noCode, noMatch, errors, unmatched };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[syncAllProducts]", msg);
@@ -68,7 +123,7 @@ export async function syncAllProducts(trigger: "cron" | "manual" = "manual") {
         .eq("id", logId);
     }
 
-    return { success: false, error: msg };
+    return { success: false, synced: 0, failed: 0, noCode: 0, noMatch: 0, errors: [], unmatched: [], error: msg };
   }
 }
 
@@ -125,7 +180,7 @@ export async function deleteProduct(productId: number) {
  * Normaliza el tag de TN (ej. "KA000001") al código de FK de cards (ej. "KA001").
  * cards.code usa padStart(3), TN puede usar padStart(6) u otras variantes.
  */
-function toCardsFKCode(raw: string | null): string | null {
+export function toCardsFKCode(raw: string | null): string | null {
   if (!raw) return null;
   const m = raw.match(/^(K[TCREPA])0*(\d+)$/i);
   if (!m) return raw.toUpperCase();
@@ -425,7 +480,7 @@ export async function getAllPublishedSingles(opts?: {
 export async function getSyncStats() {
   const supabase = createAdminClient();
 
-  const [lastSync, productCount, variantCount] = await Promise.all([
+  const [lastSync, productCount, variantCount, unmatchedCount, unmatchedProducts] = await Promise.all([
     supabase
       .from("tiendanube_sync_log")
       .select("*")
@@ -438,11 +493,22 @@ export async function getSyncStats() {
       .from("tiendanube_variants")
       .select("*", { count: "exact", head: true })
       .gt("stock", 0),
+    supabase
+      .from("tiendanube_products")
+      .select("*", { count: "exact", head: true })
+      .is("card_code", null),
+    supabase
+      .from("tiendanube_products")
+      .select("id, name, handle")
+      .is("card_code", null)
+      .limit(50),
   ]);
 
   return {
     lastSyncs: lastSync.data ?? [],
     totalProducts: productCount.count ?? 0,
     totalVariantsInStock: variantCount.count ?? 0,
+    unmatchedCount: unmatchedCount.count ?? 0,
+    unmatchedProducts: (unmatchedProducts.data ?? []) as { id: number; name: string; handle: string | null }[],
   };
 }
