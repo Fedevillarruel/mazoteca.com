@@ -24,16 +24,20 @@ export function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      console.log("[Login] llamando signInWithPassword...");
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      console.log("[Login] resultado:", { user: data?.user?.email ?? null, error: signInError?.message ?? null });
 
       if (signInError) {
         setError("Email o contraseña incorrectos");
         return;
       }
 
+      console.log("[Login] éxito, redirigiendo a /...");
       // El onAuthStateChange en AuthProvider detecta el SIGNED_IN automáticamente.
       // Full reload para que el servidor también lea la sesión fresca.
       window.location.href = "/";

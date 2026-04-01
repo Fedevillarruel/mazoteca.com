@@ -54,11 +54,14 @@ export function AuthProvider({ initialUser, children }: Props) {
 
     // Si no hay initialUser del servidor, intentamos leer la sesión del cliente
     async function init() {
+      console.log("[AuthProvider] init — initialUser:", initialUser);
       if (initialUser) {
         setLoading(false);
         return;
       }
+      console.log("[AuthProvider] no initialUser, llamando getCurrentUser()...");
       const profile = await fetchProfile();
+      console.log("[AuthProvider] init profile result:", profile);
       setUser(profile);
       setLoading(false);
     }
@@ -68,6 +71,7 @@ export function AuthProvider({ initialUser, children }: Props) {
     // Detectar login/logout en tiempo real
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("[AuthProvider] onAuthStateChange event:", event, "user:", session?.user?.email ?? null);
         if (event === "SIGNED_OUT" || !session?.user) {
           setUser(null);
           setLoading(false);
@@ -77,7 +81,9 @@ export function AuthProvider({ initialUser, children }: Props) {
           event === "USER_UPDATED"
         ) {
           setLoading(true);
+          console.log("[AuthProvider] SIGNED_IN — llamando getCurrentUser()...");
           const profile = await fetchProfile();
+          console.log("[AuthProvider] SIGNED_IN profile result:", profile);
           setUser(profile);
           setLoading(false);
         }
