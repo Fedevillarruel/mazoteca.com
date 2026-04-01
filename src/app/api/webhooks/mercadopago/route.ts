@@ -2,47 +2,92 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhookSignature, getSubscription, mapMPStatus } from "@/lib/services/mercadopago";
 import { createAdminClient } from "@/lib/supabase/server";
 
+const MP_BASE_URL = "https://api.mercadopago.com";
+
+async function getPayment(paymentId: string) {
+  const res = await fetch(`${MP_BASE_URL}/v1/payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
     const signature = request.headers.get("x-signature") || "";
     const requestId = request.headers.get("x-request-id") || "";
 
-    // Verify webhook signature
-    const secret = process.env.MP_WEBHOOK_SECRET;
-    if (!secret) {
-      console.error("[MP Webhook] Missing MP_WEBHOOK_SECRET");
-      return NextResponse.json({ error: "Server config error" }, { status: 500 });
-    }
-
     const payload = JSON.parse(body);
     const dataId = payload.data?.id;
-
-    if (!verifyWebhookSignature(signature, requestId, dataId, secret)) {
-      console.error("[MP Webhook] Invalid signature");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-
     const { type, action } = payload;
 
-    // Only handle subscription (preapproval) events
+    // Verify webhook signature only if secret is configured
+    const secret = process.env.MP_WEBHOOK_SECRET;
+    if (secret && dataId) {
+      if (!verifyWebhookSignature(signature, requestId, dataId, secret)) {
+        console.error("[MP Webhook] Invalid signature");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      }
+    }
+
+    const supabase = createAdminClient();
+
+    // ── Handle one-time PAYMENT (premium lifetime) ──────────────
+    if (type === "payment") {
+      console.log(`[MP Webhook] payment.${action} — ID: ${dataId}`);
+
+      const payment = await getPayment(dataId);
+      if (!payment) {
+        console.error("[MP Webhook] Could not fetch payment:", dataId);
+        return NextResponse.json({ ok: true }); // don't retry
+      }
+
+      // Only process approved payments for premium_lifetime
+      const isPremiumPayment = payment.metadata?.type === "premium_lifetime"
+        || payment.external_reference?.includes("-"); // fallback: external_reference = user_id (UUID)
+
+      if (payment.status === "approved" && isPremiumPayment) {
+        const userId = payment.metadata?.user_id ?? payment.external_reference;
+        if (userId) {
+          await supabase
+            .from("profiles")
+            .update({ is_premium: true })
+            .eq("id", userId);
+
+          // Log the payment
+          await supabase.from("premium_payments").upsert({
+            profile_id: userId,
+            mp_payment_id: dataId.toString(),
+            amount_ars: payment.transaction_amount,
+            blue_rate: payment.metadata?.blue_rate,
+            price_usd: payment.metadata?.price_usd,
+            status: "approved",
+            paid_at: payment.date_approved ?? new Date().toISOString(),
+          }, { onConflict: "mp_payment_id" });
+
+          console.log(`[MP Webhook] User ${userId} upgraded to Premium ✓`);
+        }
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+    // ── Handle SUBSCRIPTION (preapproval) events ─────────────────
     if (type !== "subscription_preapproval") {
       return NextResponse.json({ ok: true });
     }
 
     console.log(`[MP Webhook] ${type}.${action} — ID: ${dataId}`);
 
-    // Fetch subscription details from MercadoPago
     const mpSubscription = await getSubscription(dataId);
     if (!mpSubscription) {
       console.error("[MP Webhook] Could not fetch subscription from MP");
       return NextResponse.json({ error: "Could not fetch MP subscription" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
     const status = mapMPStatus(mpSubscription.status);
 
-    // Find our subscription record by mp_preapproval_id
     const { data: subscription } = await supabase
       .from("subscriptions")
       .select("id, profile_id")
@@ -54,7 +99,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
-    // Update subscription status
     await supabase
       .from("subscriptions")
       .update({
@@ -66,14 +110,12 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", subscription.id);
 
-    // Update profile premium status
     const isPremium = status === "active";
     await supabase
       .from("profiles")
       .update({ is_premium: isPremium })
       .eq("id", subscription.profile_id);
 
-    // Log the event
     await supabase.from("subscription_events").insert({
       subscription_id: subscription.id,
       event_type: `${type}.${action}`,

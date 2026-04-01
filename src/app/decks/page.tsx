@@ -5,7 +5,8 @@ import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Swords } from "lucide-react";
+import { Plus, Swords, Crown } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Mazos",
@@ -84,7 +85,26 @@ const officialDecks = [
   },
 ];
 
-export default function DecksPage() {
+export default async function DecksPage() {
+  // Check user's deck limit
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let isPremium = false;
+  let userDeckCount = 0;
+
+  if (user) {
+    const [profileRes, deckCountRes] = await Promise.all([
+      supabase.from("profiles").select("is_premium").eq("id", user.id).single(),
+      supabase.from("decks").select("id", { count: "exact", head: true }).eq("profile_id", user.id),
+    ]);
+    isPremium = profileRes.data?.is_premium ?? false;
+    userDeckCount = deckCountRes.count ?? 0;
+  }
+
+  const FREE_DECK_LIMIT = 2;
+  const canCreateDeck = !user || isPremium || userDeckCount < FREE_DECK_LIMIT;
+
   return (
     <PageLayout
       title="Mazos"
@@ -97,12 +117,21 @@ export default function DecksPage() {
           <Badge variant="default" className="cursor-pointer px-3 py-1">Viggo & Nemea</Badge>
           <Badge variant="default" className="cursor-pointer px-3 py-1">Igno & Erya</Badge>
         </div>
-        <Link href="/decks/new">
-          <Button>
-            <Plus className="h-4 w-4" />
-            Crear mazo
-          </Button>
-        </Link>
+        {canCreateDeck ? (
+          <Link href="/decks/new">
+            <Button>
+              <Plus className="h-4 w-4" />
+              Crear mazo
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/premium">
+            <Button variant="secondary">
+              <Crown className="h-4 w-4 text-accent-400" />
+              Premium para más mazos
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Official Decks Section */}
@@ -155,16 +184,35 @@ export default function DecksPage() {
         <h3 className="text-lg font-semibold text-surface-100 mb-2">
           ¿Tenés una estrategia en mente?
         </h3>
-        <p className="text-surface-400 mb-6 max-w-md mx-auto">
-          Usá nuestro deck builder con validación automática de reglas,
-          detección de cartas faltantes y sugerencias inteligentes.
-        </p>
-        <Link href="/decks/new">
-          <Button>
-            <Plus className="h-4 w-4" />
-            Crear mi primer mazo
-          </Button>
-        </Link>
+        {canCreateDeck ? (
+          <>
+            <p className="text-surface-400 mb-6 max-w-md mx-auto">
+              Usá nuestro deck builder con validación automática de reglas,
+              detección de cartas faltantes y sugerencias inteligentes.
+            </p>
+            <Link href="/decks/new">
+              <Button>
+                <Plus className="h-4 w-4" />
+                Crear mi primer mazo
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="text-surface-400 mb-2 max-w-md mx-auto">
+              Alcanzaste el límite de <strong className="text-surface-200">2 mazos</strong> del plan gratuito.
+            </p>
+            <p className="text-surface-500 text-sm mb-6 max-w-sm mx-auto">
+              Pasate a Premium con un pago único de USD 12 y creá mazos ilimitados.
+            </p>
+            <Link href="/premium">
+              <Button>
+                <Crown className="h-4 w-4" />
+                Obtener Premium
+              </Button>
+            </Link>
+          </>
+        )}
       </div>
     </PageLayout>
   );
