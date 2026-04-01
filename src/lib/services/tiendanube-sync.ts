@@ -304,6 +304,8 @@ export async function getVariantsByCardCode(cardCode: string) {
         id,
         name,
         handle,
+        description,
+        images,
         published
       )
     `

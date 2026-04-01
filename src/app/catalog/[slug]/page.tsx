@@ -13,9 +13,11 @@ import {
   Layers,
   BookOpen,
   Crown,
+  ImageOff,
+  AlignLeft,
 } from "lucide-react";
 import { getCardBySlug } from "@/data/cards";
-// import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync"; // temporalmente oculto
+import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync";
 
 export async function generateMetadata({
   params,
@@ -56,8 +58,25 @@ export default async function CardDetailPage({
   const displayName = card.name;
   const typeLabel = categoryLabels[card.card_type] ?? card.card_type;
 
-  // Variantes de Tiendanube — temporalmente oculto con la sección de singles
-  // const tnVariants = await getVariantsByCardCode(card.code);
+  // Obtener imagen y descripción desde Tiendanube
+  const tnVariants = await getVariantsByCardCode(card.code);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tnProduct = tnVariants.length > 0 ? (tnVariants[0].tiendanube_products as any) : null;
+  // La imagen puede venir de la variante o de las imágenes del producto TN
+  const tnImages: { src: string }[] = Array.isArray(tnProduct?.images)
+    ? tnProduct.images
+    : tnProduct?.images
+      ? [tnProduct.images]
+      : [];
+  const cardImage: string | null =
+    tnVariants.find((v) => v.image_url)?.image_url ??
+    tnImages[0]?.src ??
+    null;
+  // Descripción del producto TN (limpia de HTML)
+  const rawDescription: string | null = tnProduct?.description ?? null;
+  const tnDescription = rawDescription
+    ? rawDescription.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim()
+    : null;
 
   return (
     <PageLayout>
@@ -72,13 +91,21 @@ export default async function CardDetailPage({
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Card Image */}
         <div className="relative aspect-2.5/3.5 max-w-sm mx-auto lg:mx-0 rounded-2xl overflow-hidden bg-surface-800 border border-surface-700/50 shadow-xl">
-          <Image
-            src="/placeholder-card.webp"
-            alt={displayName}
-            fill
-            className="object-cover"
-            priority
-          />
+          {cardImage ? (
+            <Image
+              src={cardImage}
+              alt={displayName}
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, 384px"
+            />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-surface-600">
+              <ImageOff className="h-12 w-12" />
+              <span className="text-xs font-mono">{card.code}</span>
+            </div>
+          )}
           {/* code badge */}
           <div className="absolute top-3 left-3 px-2 py-0.5 rounded bg-surface-900/90 border border-surface-700 text-[11px] font-mono text-surface-300">
             {card.code}
@@ -145,6 +172,23 @@ export default async function CardDetailPage({
                 <BookOpen className="h-4 w-4 text-surface-500 mt-0.5 shrink-0" />
                 <p className="text-sm italic text-surface-400 leading-relaxed">
                   {card.flavor_text}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Descripción del producto (desde Tiendanube) */}
+          {tnDescription && (
+            <Card className="mb-6 border-surface-700/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm text-surface-300">
+                  <AlignLeft className="h-4 w-4 text-surface-500" />
+                  Descripción
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-sm text-surface-400 leading-relaxed whitespace-pre-line">
+                  {tnDescription}
                 </p>
               </CardContent>
             </Card>
