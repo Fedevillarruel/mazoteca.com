@@ -227,6 +227,16 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
               <Settings className="h-4 w-4 text-surface-400" />
               Configuración
             </Link>
+            {!user.is_premium && (
+              <Link
+                href="/premium"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-accent-400 hover:text-accent-300 hover:bg-accent-500/10 transition-colors border border-accent-500/30 mt-1"
+              >
+                <Crown className="h-4 w-4" />
+                Obtener Premium — USD 12
+              </Link>
+            )}
           </nav>
 
           <div className="border-t border-surface-800 p-1.5">
@@ -451,6 +461,12 @@ export function Header({ user }: HeaderProps) {
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <Settings className="h-5 w-5" />Configuración
                 </Link>
+                {!user.is_premium && (
+                  <Link href="/premium" onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-accent-400 hover:text-accent-300 hover:bg-accent-500/10 rounded-xl border border-accent-500/30">
+                    <Crown className="h-5 w-5" />Obtener Premium — USD 12
+                  </Link>
+                )}
                 <button
                   onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/"; }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"

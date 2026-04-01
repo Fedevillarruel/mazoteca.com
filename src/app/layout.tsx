@@ -89,12 +89,13 @@ export default async function RootLayout({
             {children}
           </ConditionalShell>
         </Providers>
-        {/* Google AdSense */}
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+        {/* Google AdSense — solo para usuarios no-premium */}
+        {!headerUser?.is_premium && (
           <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2116982403838267"
             crossOrigin="anonymous"
-            strategy="lazyOnload"
+            strategy="afterInteractive"
           />
         )}
       </body>
