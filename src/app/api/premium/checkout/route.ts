@@ -5,9 +5,9 @@ import { getBlueDolarRate } from "@/lib/services/dolarapi";
 const MP_BASE_URL = "https://api.mercadopago.com";
 const ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN!;
 const PRICE_USD = Number(process.env.PREMIUM_PRICE_USD ?? 12);
-// Hardcodeado para garantizar que MP siempre reciba URLs HTTPS válidas.
-// Las vars NEXT_PUBLIC_ no están disponibles en runtime del servidor en Vercel.
-const APP_URL = "https://mazoteca.com";
+// Hardcodeado con www para evitar el 307 redirect de mazoteca.com → www.mazoteca.com
+// MercadoPago no sigue redirects en back_urls ni notification_url.
+const APP_URL = "https://www.mazoteca.com";
 
 export async function POST() {
   try {

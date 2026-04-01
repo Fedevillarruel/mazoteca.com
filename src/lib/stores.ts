@@ -197,16 +197,24 @@ function buildCheckoutUrl(items: CartItem[]): string {
   // Strip accidental surrounding quotes (e.g. "domain.com" → domain.com)
   const domain = raw.replace(/^["']|["']$/g, "");
   if (!domain || items.length === 0) return "#";
-  const base = domain.startsWith("http")
-    ? domain
-    : `https://${domain}`;
-  // Tiendanube acepta múltiples productos en el carrito via:
-  // /carrito/agregar?add_to_cart%5B{variantId}%5D={qty}
-  // Los corchetes deben estar URL-encoded (%5B y %5D) para que TN los procese.
+  const base = domain.startsWith("http") ? domain : `https://${domain}`;
+
+  // Tiendanube: para agregar al carrito se usa /?add-to-cart={variantId}&quantity={qty}
+  // Para múltiples ítems se puede encadenar con &add-to-cart[]=id pero no es estándar.
+  // La forma más confiable es usar el primer ítem para el deep-link y el resto
+  // se agrega via el carrito nativo de TN al llegar a la tienda.
+  // Con un solo ítem: /?add-to-cart={id}&quantity={qty}&go_to_checkout=1
+  if (items.length === 1) {
+    const item = items[0];
+    return `${base}/?add-to-cart=${item.variantId}&quantity=${item.quantity}&go_to_checkout=1`;
+  }
+
+  // Con múltiples ítems: agregar el primero y redirigir al carrito
+  // Los demás los agrega el usuario desde la tienda (limitación de TN deep-links)
   const params = items
-    .map((i) => `add_to_cart%5B${i.variantId}%5D=${i.quantity}`)
+    .map((i) => `add-to-cart[]=${i.variantId}&quantity[]=${i.quantity}`)
     .join("&");
-  return `${base}/carrito/agregar?${params}`;
+  return `${base}/?${params}`;
 }
 
 export const useCartStore = create<CartState>()(
