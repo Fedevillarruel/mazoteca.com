@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Search,
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
-import { signOut } from "@/lib/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 import { useCartStore } from "@/lib/stores";
 import { CartDrawer } from "@/components/ui/cart-drawer";
 
@@ -74,7 +74,6 @@ function UserAvatar({ user, size = 7 }: { user: NonNullable<HeaderProps["user"]>
 function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   // close on outside click
   useEffect(() => {
@@ -87,8 +86,9 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
 
   async function handleSignOut() {
     setOpen(false);
-    await signOut();
-    router.refresh();
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/";
   }
 
   return (
@@ -382,7 +382,7 @@ export function Header({ user }: HeaderProps) {
                   <Settings className="h-5 w-5" />Configuración
                 </Link>
                 <button
-                  onClick={async () => { setMobileMenuOpen(false); await signOut(); }}
+                  onClick={async () => { setMobileMenuOpen(false); const supabase = createClient(); await supabase.auth.signOut(); window.location.href = "/"; }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-error hover:bg-error/10 rounded-xl"
                 >
                   <LogOut className="h-5 w-5" />Cerrar sesión
