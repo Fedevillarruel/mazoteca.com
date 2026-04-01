@@ -55,11 +55,23 @@ CREATE TABLE IF NOT EXISTS public.listing_offers (
   status       TEXT NOT NULL DEFAULT 'pending'
                CHECK (status IN ('pending', 'accepted', 'rejected', 'cancelled')),
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT chk_offer_parties CHECK (
-    buyer_id != (SELECT seller_id FROM public.card_listings WHERE id = listing_id)
-  )
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Trigger para evitar que el vendedor se ofrezca a sí mismo
+CREATE OR REPLACE FUNCTION public.check_offer_not_seller()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.buyer_id = (SELECT seller_id FROM public.card_listings WHERE id = NEW.listing_id) THEN
+    RAISE EXCEPTION 'El comprador no puede ser el mismo vendedor de la publicación';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_check_offer_not_seller
+  BEFORE INSERT OR UPDATE ON public.listing_offers
+  FOR EACH ROW EXECUTE FUNCTION public.check_offer_not_seller();
 
 CREATE INDEX IF NOT EXISTS idx_listing_offers_listing ON public.listing_offers(listing_id);
 CREATE INDEX IF NOT EXISTS idx_listing_offers_buyer   ON public.listing_offers(buyer_id);
