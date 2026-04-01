@@ -17,7 +17,7 @@ import {
   AlignLeft,
 } from "lucide-react";
 import { getCardBySlug } from "@/data/cards";
-import { getVariantsByCardCode } from "@/lib/services/tiendanube-sync";
+import { getVariantsByCardCode, getTNProductMedia } from "@/lib/services/tiendanube-sync";
 
 export async function generateMetadata({
   params,
@@ -59,24 +59,18 @@ export default async function CardDetailPage({
   const typeLabel = categoryLabels[card.card_type] ?? card.card_type;
 
   // Obtener imagen y descripción desde Tiendanube
-  const tnVariants = await getVariantsByCardCode(card.code);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tnProduct = tnVariants.length > 0 ? (tnVariants[0].tiendanube_products as any) : null;
-  // La imagen puede venir de la variante o de las imágenes del producto TN
-  const tnImages: { src: string }[] = Array.isArray(tnProduct?.images)
-    ? tnProduct.images
-    : tnProduct?.images
-      ? [tnProduct.images]
-      : [];
+  // getTNProductMedia busca directo en tiendanube_products (no necesita variantes)
+  const [tnVariants, tnMedia] = await Promise.all([
+    getVariantsByCardCode(card.code),
+    getTNProductMedia(card.code),
+  ]);
+  // Imagen: primero de variante (tiene image_url específica por variante),
+  // luego del producto directo
   const cardImage: string | null =
     tnVariants.find((v) => v.image_url)?.image_url ??
-    tnImages[0]?.src ??
+    tnMedia?.imageUrl ??
     null;
-  // Descripción del producto TN (limpia de HTML)
-  const rawDescription: string | null = tnProduct?.description ?? null;
-  const tnDescription = rawDescription
-    ? rawDescription.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim()
-    : null;
+  const tnDescription = tnMedia?.description ?? null;
 
   return (
     <PageLayout>

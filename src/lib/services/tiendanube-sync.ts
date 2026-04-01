@@ -317,6 +317,37 @@ export async function getVariantsByCardCode(cardCode: string) {
 }
 
 /**
+ * Returns the first image URL and description for a card code,
+ * looking directly in tiendanube_products (no variant join required).
+ * Returns null if no product found for that code.
+ */
+export async function getTNProductMedia(cardCode: string): Promise<{
+  imageUrl: string | null;
+  description: string | null;
+} | null> {
+  const supabase = createAdminClient();
+
+  const { data } = await supabase
+    .from("tiendanube_products")
+    .select("images, description")
+    .eq("card_code", cardCode)
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  const images: { src: string }[] = Array.isArray(data.images) ? data.images : [];
+  const imageUrl = images[0]?.src ?? null;
+
+  const rawDesc: string | null = data.description ?? null;
+  const description = rawDesc
+    ? rawDesc.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim() || null
+    : null;
+
+  return { imageUrl, description };
+}
+
+/**
  * Returns the set of card codes that have at least one product in the TN store.
  * Used by the catalog to show "disponible en singles" badges.
  */
