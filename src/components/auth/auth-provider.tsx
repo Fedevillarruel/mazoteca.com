@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getCurrentUser } from "@/lib/actions/auth";
 
 interface AuthUser {
   id: string;
@@ -39,13 +40,16 @@ export function AuthProvider({ initialUser, children }: Props) {
   useEffect(() => {
     const supabase = createClient();
 
-    async function fetchProfile(userId: string): Promise<AuthUser | null> {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url, is_premium")
-        .eq("id", userId)
-        .single();
-      return data ?? null;
+    // Usa getCurrentUser() para obtener (y auto-crear) el perfil si no existe
+    async function fetchProfile(): Promise<AuthUser | null> {
+      const session = await getCurrentUser();
+      if (!session?.profile) return null;
+      return {
+        id: session.profile.id,
+        username: session.profile.username,
+        avatar_url: session.profile.avatar_url,
+        is_premium: session.profile.is_premium,
+      };
     }
 
     // Si no hay initialUser del servidor, intentamos leer la sesión del cliente
@@ -54,11 +58,8 @@ export function AuthProvider({ initialUser, children }: Props) {
         setLoading(false);
         return;
       }
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        setUser(profile);
-      }
+      const profile = await fetchProfile();
+      setUser(profile);
       setLoading(false);
     }
 
@@ -76,7 +77,7 @@ export function AuthProvider({ initialUser, children }: Props) {
           event === "USER_UPDATED"
         ) {
           setLoading(true);
-          const profile = await fetchProfile(session.user.id);
+          const profile = await fetchProfile();
           setUser(profile);
           setLoading(false);
         }
