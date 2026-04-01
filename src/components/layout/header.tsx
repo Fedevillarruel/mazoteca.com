@@ -21,7 +21,6 @@ import {
   LogOut,
   Settings,
   ChevronDown,
-  BookCopy,
   RefreshCw,
   ShoppingBag,
   ShoppingCart,
@@ -148,14 +147,6 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
             >
               <Layers className="h-4 w-4 text-surface-400" />
               Mi colección
-            </Link>
-            <Link
-              href="/album"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-surface-300 hover:text-surface-100 hover:bg-surface-800 transition-colors"
-            >
-              <BookCopy className="h-4 w-4 text-surface-400" />
-              Mi álbum
             </Link>
             <Link
               href="/trades"
