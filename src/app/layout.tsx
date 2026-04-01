@@ -5,7 +5,6 @@ import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Providers } from "./providers";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { siteConfig } from "@/config/site";
-import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -83,21 +82,22 @@ export default async function RootLayout({
       lang="es"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Google AdSense — solo para usuarios no-premium */}
+        {!headerUser?.is_premium && (
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2116982403838267"
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body className="min-h-full flex flex-col bg-surface-950 text-surface-100">
         <Providers>
           <ConditionalShell initialUser={headerUser}>
             {children}
           </ConditionalShell>
         </Providers>
-        {/* Google AdSense — solo para usuarios no-premium */}
-        {!headerUser?.is_premium && (
-          <Script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2116982403838267"
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-        )}
       </body>
     </html>
   );
