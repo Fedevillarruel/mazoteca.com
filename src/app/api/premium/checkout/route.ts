@@ -5,12 +5,9 @@ import { getBlueDolarRate } from "@/lib/services/dolarapi";
 const MP_BASE_URL = "https://api.mercadopago.com";
 const ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN!;
 const PRICE_USD = Number(process.env.PREMIUM_PRICE_USD ?? 12);
-// NEXT_PUBLIC_ vars solo están disponibles en el cliente (bundle time).
-// En el servidor usamos APP_URL (sin prefijo) con fallback seguro.
-const APP_URL =
-  process.env.APP_URL ??
-  process.env.NEXT_PUBLIC_APP_URL ??
-  "https://mazoteca.com";
+// Hardcodeado para garantizar que MP siempre reciba URLs HTTPS válidas.
+// Las vars NEXT_PUBLIC_ no están disponibles en runtime del servidor en Vercel.
+const APP_URL = "https://mazoteca.com";
 
 export async function POST() {
   try {
