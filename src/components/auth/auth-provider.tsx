@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUser } from "@/lib/actions/auth";
 
 interface AuthUser {
   id: string;
@@ -40,29 +39,49 @@ export function AuthProvider({ initialUser, children }: Props) {
   useEffect(() => {
     const supabase = createClient();
 
-    // Usa getCurrentUser() para obtener (y auto-crear) el perfil si no existe
-    async function fetchProfile(): Promise<AuthUser | null> {
-      const session = await getCurrentUser();
-      if (!session?.profile) return null;
-      return {
-        id: session.profile.id,
-        username: session.profile.username,
-        avatar_url: session.profile.avatar_url,
-        is_premium: session.profile.is_premium,
-      };
+    // Obtiene o crea el perfil directamente desde el browser client
+    async function fetchOrCreateProfile(authUser: { id: string; email?: string; user_metadata?: Record<string, string> }): Promise<AuthUser | null> {
+      // 1. Intentar leer el perfil existente
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url, is_premium")
+        .eq("id", authUser.id)
+        .single();
+
+      if (profile) return profile as AuthUser;
+
+      // 2. No existe → crearlo con datos del auth user
+      const username =
+        authUser.user_metadata?.username ||
+        authUser.user_metadata?.full_name?.replace(/\s+/g, "").toLowerCase() ||
+        authUser.email?.split("@")[0] ||
+        `user_${authUser.id.slice(0, 8)}`;
+
+      const { data: created } = await supabase
+        .from("profiles")
+        .upsert({
+          id: authUser.id,
+          username,
+          avatar_url: authUser.user_metadata?.avatar_url ?? null,
+          display_name: authUser.user_metadata?.full_name ?? null,
+        })
+        .select("id, username, avatar_url, is_premium")
+        .single();
+
+      return created as AuthUser ?? null;
     }
 
-    // Si no hay initialUser del servidor, intentamos leer la sesión del cliente
+    // Si no hay initialUser del servidor, leer la sesión actual
     async function init() {
-      console.log("[AuthProvider] init — initialUser:", initialUser);
       if (initialUser) {
         setLoading(false);
         return;
       }
-      console.log("[AuthProvider] no initialUser, llamando getCurrentUser()...");
-      const profile = await fetchProfile();
-      console.log("[AuthProvider] init profile result:", profile);
-      setUser(profile);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const profile = await fetchOrCreateProfile(session.user);
+        setUser(profile);
+      }
       setLoading(false);
     }
 
@@ -71,7 +90,6 @@ export function AuthProvider({ initialUser, children }: Props) {
     // Detectar login/logout en tiempo real
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("[AuthProvider] onAuthStateChange event:", event, "user:", session?.user?.email ?? null);
         if (event === "SIGNED_OUT" || !session?.user) {
           setUser(null);
           setLoading(false);
@@ -81,9 +99,7 @@ export function AuthProvider({ initialUser, children }: Props) {
           event === "USER_UPDATED"
         ) {
           setLoading(true);
-          console.log("[AuthProvider] SIGNED_IN — llamando getCurrentUser()...");
-          const profile = await fetchProfile();
-          console.log("[AuthProvider] SIGNED_IN profile result:", profile);
+          const profile = await fetchOrCreateProfile(session.user);
           setUser(profile);
           setLoading(false);
         }
