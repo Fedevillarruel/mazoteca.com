@@ -60,7 +60,7 @@ export async function syncAllProducts(trigger: "cron" | "manual" = "manual"): Pr
 
     for (const product of products) {
       const rawCode = extractCardCode(product);
-      const normalizedCode = toCardsFKCode(rawCode);
+      const normalizedCode = await toCardsFKCode(rawCode);
       const productName = product.name?.es ?? `Producto ${product.id}`;
 
       if (!normalizedCode) {
@@ -180,7 +180,7 @@ export async function deleteProduct(productId: number) {
  * Normaliza el tag de TN (ej. "KA000001") al código de FK de cards (ej. "KA001").
  * cards.code usa padStart(3), TN puede usar padStart(6) u otras variantes.
  */
-export function toCardsFKCode(raw: string | null): string | null {
+export async function toCardsFKCode(raw: string | null): Promise<string | null> {
   if (!raw) return null;
   const m = raw.match(/^(K[TCREPA])0*(\d+)$/i);
   if (!m) return raw.toUpperCase();
@@ -191,7 +191,7 @@ async function upsertProduct(product: TNProduct) {
   const supabase = createAdminClient();
 
   const tnTag = extractCardCode(product);       // tag exacto de TN: "KA000001"
-  const cardCode = toCardsFKCode(tnTag);        // normalizado para FK: "KA001"
+  const cardCode = await toCardsFKCode(tnTag);  // normalizado para FK: "KA001"
 
   // Extraer juego y subcategoría de las categorías TN del producto
   // Categorías raíz (parent = 0 o null) = Juego (ej: "Kingdom TCG")
