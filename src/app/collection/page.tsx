@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getCardByCode } from "@/data/cards";
+import { getCatalogSingles } from "@/lib/services/tiendanube-sync";
 import { CollectionView } from "./collection-view";
 
 export const metadata: Metadata = {
@@ -21,13 +22,15 @@ export default async function CollectionPage() {
 
   const supabase = await createClient();
 
-  // Fetch only cards the user has actually added to their album
-  const { data: albumRows } = await supabase
-    .from("user_album")
-    .select("card_code, quantity, is_favorite")
-    .eq("profile_id", userSession.profile.id)
-    .order("card_code");
-
+  // Fetch album rows + singlesMap (for tn_game) in parallel
+  const [{ data: albumRows }, singlesMap] = await Promise.all([
+    supabase
+      .from("user_album")
+      .select("card_code, quantity, is_favorite")
+      .eq("profile_id", userSession.profile.id)
+      .order("card_code"),
+    getCatalogSingles().catch(() => new Map()),
+  ]);
 
   // Join with static card data
   const rawCards = (albumRows ?? [])
@@ -44,6 +47,7 @@ export default async function CollectionPage() {
         edition: card.edition,
         quantity: row.quantity ?? 1,
         is_favorite: row.is_favorite ?? false,
+        tn_game: singlesMap.get(row.card_code)?.tn_game ?? null,
       };
     });
   const cards: CollectionCard[] = rawCards.filter((c) => c !== null) as CollectionCard[];
@@ -62,4 +66,5 @@ export type CollectionCard = {
   edition: string;
   quantity: number;
   is_favorite: boolean;
+  tn_game: string | null;
 };

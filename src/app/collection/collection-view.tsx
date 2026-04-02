@@ -14,6 +14,7 @@ import {
   Heart,
   SlidersHorizontal,
   X,
+  Gamepad2,
 } from "lucide-react";
 import { toggleFavorite } from "@/lib/actions/profile";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,14 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
   const [view,        setView]        = useState<"grid" | "list">("grid");
   const [search,      setSearch]      = useState("");
   const [category,    setCategory]    = useState("");
+  const [game,        setGame]        = useState("");
   const [showFavs,    setShowFavs]    = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Build dynamic game options from the actual cards in the album
+  const gameOptions = Array.from(
+    new Set(cards.map((c) => c.tn_game).filter((g): g is string => !!g))
+  ).sort();
 
   const [optimisticCards, addOptimistic] = useOptimistic(
     cards,
@@ -50,6 +57,7 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
 
   const filtered = optimisticCards
     .filter((c) => {
+      if (game && c.tn_game !== game) return false;
       if (category && c.category !== category) return false;
       if (showFavs && !c.is_favorite) return false;
       if (search) {
@@ -72,9 +80,9 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
   }
 
   const clearFilters = () => {
-    setSearch(""); setCategory(""); setShowFavs(false);
+    setSearch(""); setCategory(""); setGame(""); setShowFavs(false);
   };
-  const hasFilters = !!(search || category || showFavs);
+  const hasFilters = !!(search || category || game || showFavs);
 
   return (
     <PageLayout
@@ -169,29 +177,62 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
       {/* ── Filter panel ── */}
       {showFilters && (
         <Card className="mb-4">
-          <CardContent className="p-4">
-            <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">
-              Categoría
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              <Badge
-                variant={category === "" ? "primary" : "default"}
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setCategory("")}
-              >
-                Todas
-              </Badge>
-              {CATEGORIES.map((cat) => (
+          <CardContent className="p-4 space-y-4">
+
+            {/* Game filter — only shown if there are multiple games */}
+            {gameOptions.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Gamepad2 className="h-3.5 w-3.5" /> Juego
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  <Badge
+                    variant={game === "" ? "primary" : "default"}
+                    className="cursor-pointer px-3 py-1"
+                    onClick={() => setGame("")}
+                  >
+                    Todos
+                  </Badge>
+                  {gameOptions.map((g) => (
+                    <Badge
+                      key={g}
+                      variant={game === g ? "primary" : "default"}
+                      className="cursor-pointer px-3 py-1"
+                      onClick={() => setGame(g)}
+                    >
+                      {g}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Category filter */}
+            <div>
+              <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">
+                Categoría
+              </p>
+              <div className="flex gap-2 flex-wrap">
                 <Badge
-                  key={cat}
-                  variant={category === cat ? "primary" : "default"}
+                  variant={category === "" ? "primary" : "default"}
                   className="cursor-pointer px-3 py-1"
-                  onClick={() => setCategory(cat)}
+                  onClick={() => setCategory("")}
                 >
-                  {cat}
+                  Todas
                 </Badge>
-              ))}
+                {CATEGORIES.map((cat) => (
+                  <Badge
+                    key={cat}
+                    variant={category === cat ? "primary" : "default"}
+                    className="cursor-pointer px-3 py-1"
+                    onClick={() => setCategory(cat)}
+                  >
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
             </div>
+
           </CardContent>
         </Card>
       )}
