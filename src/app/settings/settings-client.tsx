@@ -125,6 +125,39 @@ export function SettingsClient({
   const [notifStatus, setNotifStatus] = useState<SaveStatus>("idle");
   const [notifError, setNotifError] = useState<string | null>(null);
 
+  // ── Appearance ────────────────────────────────────────────────────────────
+  const [theme, setTheme] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("mz-theme") ?? "dark";
+    }
+    return "dark";
+  });
+  const [density, setDensity] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("mz-density") ?? "comfortable";
+    }
+    return "comfortable";
+  });
+  const [appearanceStatus, setAppearanceStatus] = useState<SaveStatus>("idle");
+
+  function applyTheme(value: string) {
+    document.documentElement.setAttribute("data-theme", value);
+    localStorage.setItem("mz-theme", value);
+    setTheme(value);
+  }
+
+  function applyDensity(value: string) {
+    document.documentElement.setAttribute("data-density", value);
+    localStorage.setItem("mz-density", value);
+    setDensity(value);
+  }
+
+  function handleSaveAppearance() {
+    // Already applied live; just show feedback
+    setAppearanceStatus("success");
+    setTimeout(() => setAppearanceStatus("idle"), 2500);
+  }
+
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   async function handleSaveProfile() {
@@ -515,31 +548,75 @@ export function SettingsClient({
             <Card>
               <CardHeader><CardTitle>Apariencia</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <Select
-                  label="Tema"
-                  options={[
-                    { value: "dark", label: "Oscuro (predeterminado)" },
-                    { value: "light", label: "Claro (próximamente)" },
-                    { value: "system", label: "Automático del sistema" },
-                  ]}
-                  defaultValue="dark"
-                />
-                <Select
-                  label="Densidad de la vista"
-                  options={[
-                    { value: "comfortable", label: "Cómoda" },
-                    { value: "compact", label: "Compacta" },
-                  ]}
-                  defaultValue="comfortable"
-                />
-                <Select
-                  label="Idioma"
-                  options={[
-                    { value: "es", label: "Español" },
-                    { value: "en", label: "English (próximamente)" },
-                  ]}
-                  defaultValue="es"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1.5">Tema</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { value: "dark", label: "Oscuro", desc: "Predeterminado" },
+                      { value: "light", label: "Claro", desc: "Fondo blanco" },
+                      { value: "system", label: "Automático", desc: "Según el sistema" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => applyTheme(opt.value)}
+                        className={cn(
+                          "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-sm",
+                          theme === opt.value
+                            ? "border-primary-500 bg-primary-600/10 text-primary-300"
+                            : "border-surface-700 hover:border-surface-500 text-surface-300"
+                        )}
+                      >
+                        <span className="text-lg">
+                          {opt.value === "dark" ? "🌙" : opt.value === "light" ? "☀️" : "⚙️"}
+                        </span>
+                        <span className="font-medium">{opt.label}</span>
+                        <span className="text-xs text-surface-400">{opt.desc}</span>
+                        {theme === opt.value && (
+                          <CheckCircle className="h-3.5 w-3.5 text-primary-400" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-surface-200 mb-1.5">Densidad de la vista</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { value: "comfortable", label: "Cómoda", desc: "Más espacio entre elementos" },
+                      { value: "compact", label: "Compacta", desc: "Mayor densidad de información" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => applyDensity(opt.value)}
+                        className={cn(
+                          "flex flex-col items-start gap-1 p-3 rounded-xl border-2 transition-all text-sm",
+                          density === opt.value
+                            ? "border-primary-500 bg-primary-600/10 text-primary-300"
+                            : "border-surface-700 hover:border-surface-500 text-surface-300"
+                        )}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">{opt.label}</span>
+                          {density === opt.value && (
+                            <CheckCircle className="h-3.5 w-3.5 text-primary-400" />
+                          )}
+                        </div>
+                        <span className="text-xs text-surface-400">{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-1">
+                  <StatusMsg status={appearanceStatus} error={null} />
+                  <Button onClick={handleSaveAppearance}>
+                    <Save className="h-4 w-4" />
+                    Guardar apariencia
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}

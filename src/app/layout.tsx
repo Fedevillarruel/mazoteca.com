@@ -84,6 +84,12 @@ export default async function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
+        {/* Anti-flash: aplica tema y densidad desde localStorage antes de que el navegador pinte */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('mz-theme')||'dark';var d=localStorage.getItem('mz-density')||'comfortable';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-density',d);}catch(e){}})();`,
+          }}
+        />
         {/* Google AdSense — solo para usuarios no-premium */}
         {!headerUser?.is_premium && (
           <script

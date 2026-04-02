@@ -69,6 +69,89 @@
 }
 
 /* ============================================================
+   Theme: Light
+   ============================================================ */
+
+[data-theme="light"] {
+  --color-surface-50:  #ffffff;
+  --color-surface-100: #f4f5f7;
+  --color-surface-200: #e8eaee;
+  --color-surface-300: #cdd2db;
+  --color-surface-400: #8b97aa;
+  --color-surface-500: #6b7a8f;
+  --color-surface-600: #4f5d72;
+  --color-surface-700: #374151;
+  --color-surface-800: #e8eaee;
+  --color-surface-850: #f0f2f5;
+  --color-surface-900: #f4f5f7;
+  --color-surface-950: #ffffff;
+}
+
+[data-theme="light"] body {
+  background-color: #f4f5f7;
+  color: #1e2a3b;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 64, 255, 0.05) 0%, transparent 60%);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track { background: #e8eaee; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #aab4c4; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #8b97aa; }
+
+/* ============================================================
+   Theme: System (auto dark/light)
+   ============================================================ */
+
+@media (prefers-color-scheme: light) {
+  [data-theme="system"] {
+    --color-surface-50:  #ffffff;
+    --color-surface-100: #f4f5f7;
+    --color-surface-200: #e8eaee;
+    --color-surface-300: #cdd2db;
+    --color-surface-400: #8b97aa;
+    --color-surface-500: #6b7a8f;
+    --color-surface-600: #4f5d72;
+    --color-surface-700: #374151;
+    --color-surface-800: #e8eaee;
+    --color-surface-850: #f0f2f5;
+    --color-surface-900: #f4f5f7;
+    --color-surface-950: #ffffff;
+  }
+  [data-theme="system"] body {
+    background-color: #f4f5f7;
+    color: #1e2a3b;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 64, 255, 0.05) 0%, transparent 60%);
+  }
+}
+
+/* ============================================================
+   Density: Compact
+   ============================================================ */
+
+[data-density="compact"] {
+  --spacing-base: 0.75;
+}
+
+[data-density="compact"] .card-compact {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Reduce vertical padding in compact mode */
+[data-density="compact"] [class*="p-4"] { padding: 0.5rem !important; }
+[data-density="compact"] [class*="p-5"] { padding: 0.75rem !important; }
+[data-density="compact"] [class*="p-6"] { padding: 0.875rem !important; }
+[data-density="compact"] [class*="py-4"] { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+[data-density="compact"] [class*="py-5"] { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+[data-density="compact"] [class*="py-6"] { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+[data-density="compact"] [class*="gap-6"] { gap: 0.875rem !important; }
+[data-density="compact"] [class*="gap-8"] { gap: 1rem !important; }
+[data-density="compact"] [class*="space-y-6"] > * + * { margin-top: 0.75rem !important; }
+[data-density="compact"] [class*="space-y-4"] > * + * { margin-top: 0.5rem !important; }
+[data-density="compact"] .text-base { font-size: 0.875rem !important; }
+[data-density="compact"] h1 { font-size: 1.375rem !important; }
+[data-density="compact"] h2 { font-size: 1.125rem !important; }
+[data-density="compact"] h3 { font-size: 1rem !important; }
+
+/* ============================================================
    Base styles
    ============================================================ */
 
