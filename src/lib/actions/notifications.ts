@@ -2,18 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { NotificationCategory, NotificationPreferences } from "@/lib/types/actions";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type NotificationCategory = "trades" | "singles" | "friends" | "forum" | "system";
-
-export interface NotificationPreferences {
-  trades: boolean;
-  singles: boolean;
-  friends: boolean;
-  forum: boolean;
-  system: boolean;
-}
+export type { NotificationCategory, NotificationPreferences };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -4,12 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { loginSchema, registerSchema } from "@/lib/validations";
+import type { AuthActionResult } from "@/lib/types/actions";
 
-export interface AuthActionResult {
-  error?: string;
-  success?: boolean;
-  redirectUrl?: string;
-}
+export type { AuthActionResult };
 
 export async function signInWithGoogle(): Promise<AuthActionResult> {
   const supabase = await createClient();

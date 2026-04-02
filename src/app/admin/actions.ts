@@ -1,24 +1,9 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/server";
+import type { AdminDashboardStats } from "@/lib/types/actions";
 
-export interface AdminDashboardStats {
-  totalUsers: number;
-  newUsersLast7d: number;
-  totalCards: number;
-  premiumUsers: number;
-  totalListings: number;
-  activeListings: number;
-  pendingReports: number;
-  totalTrades: number;
-  activeTrades: number;
-  totalForumThreads: number;
-  totalForumPosts: number;
-  totalSinglesProducts: number;
-  singlesInStock: number;
-  lastSyncStatus: string | null;
-  lastSyncAt: string | null;
-}
+export type { AdminDashboardStats };
 
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const supabase = createAdminClient();

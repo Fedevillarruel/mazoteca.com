@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import type { UserRole } from "@/lib/types/actions";
 
-export type UserRole = "user" | "moderator" | "admin";
+export type { UserRole };
 
 export async function updateUserRole(userId: string, newRole: UserRole) {
   // Verify the caller is an admin
