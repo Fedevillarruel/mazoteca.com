@@ -74,6 +74,7 @@ export default async function RootLayout({
         username: session.profile.username,
         avatar_url: session.profile.avatar_url,
         is_premium: session.profile.is_premium,
+        role: session.profile.role as string ?? "user",
       }
     : null;
 

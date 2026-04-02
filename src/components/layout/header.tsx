@@ -23,6 +23,7 @@ import {
   RefreshCw,
   ShoppingBag,
   Smile,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
@@ -48,6 +49,7 @@ interface HeaderProps {
     username: string;
     avatar_url: string | null;
     is_premium: boolean;
+    role: string;
   } | null;
 }
 
@@ -224,6 +226,16 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
               <Settings className="h-4 w-4 text-surface-400" />
               Configuración
             </Link>
+            {(user.role === "admin" || user.role === "moderator") && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 transition-colors"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Panel Admin
+              </Link>
+            )}
             {!user.is_premium && (
               <Link
                 href="/premium"
@@ -446,6 +458,12 @@ export function Header({ user }: HeaderProps) {
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <Settings className="h-5 w-5" />Configuración
                 </Link>
+                {(user.role === "admin" || user.role === "moderator") && (
+                  <Link href="/admin" onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-primary-400 hover:text-primary-300 hover:bg-primary-500/10 rounded-xl">
+                    <LayoutDashboard className="h-5 w-5" />Panel Admin
+                  </Link>
+                )}
                 {!user.is_premium && (
                   <Link href="/premium" onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-accent-400 hover:text-accent-300 hover:bg-accent-500/10 rounded-xl border border-accent-500/30">
