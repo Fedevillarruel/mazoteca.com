@@ -414,3 +414,60 @@ export async function addToAlbum(cardCode: string): Promise<{ success?: boolean;
   if (result.error) return { error: result.error };
   return { success: true };
 }
+
+/**
+ * Marca/desmarca una carta como favorita en el álbum del usuario.
+ * La carta debe estar ya en el álbum (is_favorite solo aplica a cartas poseídas).
+ */
+export async function toggleFavorite(
+  cardCode: string
+): Promise<{ favorite?: boolean; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { needsAuth: true };
+
+  const { data: existing } = await supabase
+    .from("user_album")
+    .select("id, is_favorite")
+    .eq("profile_id", user.id)
+    .eq("card_code", cardCode)
+    .maybeSingle();
+
+  if (!existing) return { error: "La carta no está en tu álbum." };
+
+  const next = !existing.is_favorite;
+  const { error } = await supabase
+    .from("user_album")
+    .update({ is_favorite: next })
+    .eq("id", existing.id);
+
+  if (error) return { error: "Error al actualizar favorito." };
+
+  revalidatePath("/collection");
+  revalidatePath("/album");
+  return { favorite: next };
+}
+
+/**
+ * Devuelve los códigos de carta marcados como favoritos por el usuario.
+ * Si no está autenticado, devuelve un array vacío.
+ */
+export async function getFavorites(): Promise<string[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("user_album")
+    .select("card_code")
+    .eq("profile_id", user.id)
+    .eq("is_favorite", true);
+
+  return (data ?? []).map((row: { card_code: string }) => row.card_code);
+}
