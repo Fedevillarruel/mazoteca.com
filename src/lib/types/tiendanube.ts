@@ -23,4 +23,5 @@ export interface CatalogSingleEntry {
   all_images: string[];
   handle: string | null;
   variant_ids: number[];
+  tn_game: string | null;
 }

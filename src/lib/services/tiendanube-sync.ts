@@ -373,6 +373,7 @@ export async function getCatalogSingles(): Promise<Map<string, CatalogSingleEntr
       promotional_price,
       stock,
       image_url,
+      tn_game,
       tiendanube_products!inner (
         handle,
         images,
@@ -407,6 +408,7 @@ export async function getCatalogSingles(): Promise<Map<string, CatalogSingleEntr
         all_images: allImages,
         handle,
         variant_ids: [v.id],
+        tn_game: (v.tn_game as string | null) ?? null,
       });
     } else {
       const entry = map.get(code)!;

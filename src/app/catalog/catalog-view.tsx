@@ -21,6 +21,9 @@ import {
   Sparkles,
   Crosshair,
   BookMarked,
+  ChevronLeft,
+  ChevronRight,
+  Gamepad2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,10 +34,6 @@ import {
   type KTCGCategory,
 } from "@/data/cards";
 import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
-// import { useCartStore } from "@/lib/stores"; // temporalmente oculto
-
-// ── TN domain (for buy links) ────────────────────────────────
-// (usado solo para imagen de fallback de tienda si es necesario)
 
 interface CardWithSingle extends KTCGCard {
   single: CatalogSingleEntry;
@@ -42,12 +41,18 @@ interface CardWithSingle extends KTCGCard {
 
 // ── Sort options ─────────────────────────────────────────────
 const sortOptions = [
-  { label: "Código (asc)", value: "code_asc" },
+  { label: "Código (asc)",  value: "code_asc" },
   { label: "Código (desc)", value: "code_desc" },
-  { label: "Nombre (A-Z)", value: "name_asc" },
-  { label: "Precio (menor)", value: "price_asc" },
-  { label: "Precio (mayor)", value: "price_desc" },
-  { label: "Stock (mayor)", value: "stock_desc" },
+  { label: "Nombre (A-Z)",  value: "name_asc" },
+];
+
+// ── Page size options ─────────────────────────────────────────
+const PAGE_SIZE_OPTIONS = [
+  { label: "20",  value: 20 },
+  { label: "50",  value: 50 },
+  { label: "100", value: 100 },
+  { label: "500", value: 500 },
+  { label: "Todos", value: Infinity },
 ];
 
 // ── Category icons ────────────────────────────────────────────
@@ -79,32 +84,49 @@ const factionOptions = [
   ...factions.map((f) => ({ label: f, value: f.toLowerCase() })),
 ];
 
-const PAGE_SIZE = 48;
+// ── Main Component ────────────────────────────────────────────
 
-// ── Price helpers — temporalmente ocultos con precio/stock ───
-// function formatARS(n: number) {
-//   return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
-// }
-
-// ---- Main Component ----
-
-export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSingleEntry> }) {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [level, setLevel] = useState("");
-  const [faction, setFaction] = useState("");
-  const [sort, setSort] = useState("code_asc");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+export function CatalogView({
+  singlesMap,
+  albumCodes = new Set(),
+}: {
+  singlesMap: Map<string, CatalogSingleEntry>;
+  albumCodes?: Set<string>;
+}) {
+  const [search,      setSearch]      = useState("");
+  const [category,    setCategory]    = useState("");
+  const [level,       setLevel]       = useState("");
+  const [faction,     setFaction]     = useState("");
+  const [tcgFilter,   setTcgFilter]   = useState("");
+  const [sort,        setSort]        = useState("code_asc");
+  const [viewMode,    setViewMode]    = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [pageSize,    setPageSize]    = useState(20);
+  const [page,        setPage]        = useState(1);
+  // Track in-album state client-side (starts from server prop)
+  const [albumSet,    setAlbumSet]    = useState<Set<string>>(albumCodes);
 
-  const activeFilterCount = [category, level, faction].filter(Boolean).length;
+  // Collect unique TCG/game names from the singles map
+  const tcgOptions = useMemo(() => {
+    const games = new Set<string>();
+    for (const entry of singlesMap.values()) {
+      if (entry.tn_game) games.add(entry.tn_game);
+    }
+    return [
+      { label: "Todos los juegos", value: "" },
+      ...[...games].sort().map((g) => ({ label: g, value: g })),
+    ];
+  }, [singlesMap]);
+
+  const activeFilterCount = [category, level, faction, tcgFilter].filter(Boolean).length;
 
   const clearFilters = useCallback(() => {
     setCategory("");
     setLevel("");
     setFaction("");
+    setTcgFilter("");
     setSearch("");
+    setPage(1);
   }, []);
 
   // Only cards present in singlesMap (uploaded to TiendaNube)
@@ -114,7 +136,7 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
       .map((c) => ({ ...c, single: singlesMap.get(c.code)! }));
   }, [singlesMap]);
 
-  // Filter + sort + paginate
+  // Filter + sort
   const filtered = useMemo(() => {
     let cards = [...catalogCards];
 
@@ -140,41 +162,73 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
           (c.crowned && c.crowned.toLowerCase().includes(fl))
       );
     }
+    if (tcgFilter) {
+      cards = cards.filter((c) => c.single.tn_game === tcgFilter);
+    }
 
     cards.sort((a, b) => {
       switch (sort) {
-        case "code_asc": return a.code.localeCompare(b.code);
+        case "code_asc":  return a.code.localeCompare(b.code);
         case "code_desc": return b.code.localeCompare(a.code);
-        case "name_asc": return a.name.localeCompare(b.name);
-        case "price_asc": return (a.single.min_price ?? 0) - (b.single.min_price ?? 0);
-        case "price_desc": return (b.single.min_price ?? 0) - (a.single.min_price ?? 0);
-        case "stock_desc": return b.single.total_stock - a.single.total_stock;
-        default: return 0;
+        case "name_asc":  return a.name.localeCompare(b.name);
+        default:          return 0;
       }
     });
 
     return cards;
-  }, [catalogCards, search, category, level, faction, sort]);
+  }, [catalogCards, search, category, level, faction, tcgFilter, sort]);
 
-  const visible = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
+  // Pagination
+  const effectivePageSize = pageSize === Infinity ? filtered.length : pageSize;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / effectivePageSize));
+  const safePage   = Math.min(page, totalPages);
+  const visible    = filtered.slice((safePage - 1) * effectivePageSize, safePage * effectivePageSize);
+
+  function handleSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function handleFilter(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setter(e.target.value);
+      setPage(1);
+    };
+  }
+
+  async function handleToggleAlbum(code: string) {
+    const wasIn = albumSet.has(code);
+    // Optimistic update
+    setAlbumSet((prev) => {
+      const next = new Set(prev);
+      if (wasIn) { next.delete(code); } else { next.add(code); }
+      return next;
+    });
+    const res = await toggleAlbum(code);
+    if (res.needsAuth) { window.location.href = "/login"; return; }
+    // Revert on error
+    if (res.error) {
+      setAlbumSet((prev) => {
+        const next = new Set(prev);
+        if (wasIn) { next.add(code); } else { next.delete(code); }
+        return next;
+      });
+    }
+  }
 
   return (
     <div className="space-y-6">
-      {/* ---- Search & Controls Bar ---- */}
+      {/* ── Search & Controls ── */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1">
           <Input
             placeholder="Buscar por nombre o código (ej: KT001, Viggo)..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setVisibleCount(PAGE_SIZE);
-            }}
+            onChange={(e) => handleSearch(e.target.value)}
             leftIcon={<Search className="h-4 w-4" />}
             rightIcon={
               search ? (
-                <button onClick={() => setSearch("")} className="text-surface-400 hover:text-surface-200">
+                <button onClick={() => handleSearch("")} className="text-surface-400 hover:text-surface-200">
                   <X className="h-4 w-4" />
                 </button>
               ) : undefined
@@ -210,30 +264,36 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
         </div>
       </div>
 
-      {/* ---- Filters Panel ---- */}
+      {/* ── Filters Panel ── */}
       {showFilters && (
         <div className="bg-surface-900 border border-surface-800 rounded-xl p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Select label="Categoría" options={categoryOptions} value={category} onChange={(e) => { setCategory(e.target.value); setVisibleCount(PAGE_SIZE); }} />
-            <Select label="Nivel" options={levelOptions} value={level} onChange={(e) => { setLevel(e.target.value); setVisibleCount(PAGE_SIZE); }} />
-            <Select label="Facción" options={factionOptions} value={faction} onChange={(e) => { setFaction(e.target.value); setVisibleCount(PAGE_SIZE); }} />
-            <Select label="Ordenar por" options={sortOptions} value={sort} onChange={(e) => setSort(e.target.value)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label className="flex text-xs font-semibold text-surface-400 uppercase tracking-wider mb-1.5 items-center gap-1">
+                <Gamepad2 className="h-3.5 w-3.5" /> TCG
+              </label>
+              <select
+                value={tcgFilter}
+                onChange={handleFilter(setTcgFilter)}
+                className="w-full bg-surface-800 border border-surface-700 rounded-lg px-3 py-2 text-sm text-surface-200 focus:outline-none focus:border-primary-500"
+              >
+                {tcgOptions.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <Select label="Categoría" options={categoryOptions} value={category} onChange={handleFilter(setCategory)} />
+            <Select label="Nivel"     options={levelOptions}    value={level}    onChange={handleFilter(setLevel)} />
+            <Select label="Facción"   options={factionOptions}  value={faction}  onChange={handleFilter(setFaction)} />
+            <Select label="Ordenar"   options={sortOptions}     value={sort}     onChange={(e) => setSort(e.target.value)} />
           </div>
           {activeFilterCount > 0 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-surface-800">
               <div className="flex flex-wrap gap-2">
-                {category && (
-                  <Badge variant="primary">{category}<button onClick={() => setCategory("")} className="ml-1"><X className="h-3 w-3" /></button></Badge>
-                )}
-                {level && (
-                  <Badge variant="primary">Nivel {level}<button onClick={() => setLevel("")} className="ml-1"><X className="h-3 w-3" /></button></Badge>
-                )}
-                {faction && (
-                  <Badge variant="primary">
-                    {factionOptions.find((o) => o.value === faction)?.label}
-                    <button onClick={() => setFaction("")} className="ml-1"><X className="h-3 w-3" /></button>
-                  </Badge>
-                )}
+                {tcgFilter && <Badge variant="primary">{tcgFilter}<button onClick={() => { setTcgFilter(""); setPage(1); }} className="ml-1"><X className="h-3 w-3" /></button></Badge>}
+                {category  && <Badge variant="primary">{category}<button onClick={() => { setCategory(""); setPage(1); }} className="ml-1"><X className="h-3 w-3" /></button></Badge>}
+                {level     && <Badge variant="primary">Nivel {level}<button onClick={() => { setLevel(""); setPage(1); }} className="ml-1"><X className="h-3 w-3" /></button></Badge>}
+                {faction   && <Badge variant="primary">{factionOptions.find((o) => o.value === faction)?.label}<button onClick={() => { setFaction(""); setPage(1); }} className="ml-1"><X className="h-3 w-3" /></button></Badge>}
               </div>
               <Button variant="ghost" size="sm" onClick={clearFilters}>Limpiar filtros</Button>
             </div>
@@ -241,85 +301,146 @@ export function CatalogView({ singlesMap }: { singlesMap: Map<string, CatalogSin
         </div>
       )}
 
-      {/* ---- Results count ---- */}
-      <div className="flex items-center justify-between">
+      {/* ── Results info + page size selector ── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <p className="text-sm text-surface-400">
-          Mostrando <span className="text-surface-200 font-medium">{visible.length}</span>{" "}
-          de <span className="text-surface-200 font-medium">{filtered.length}</span> cartas en venta
+          <span className="text-surface-200 font-medium">{filtered.length}</span> cartas
+          {filtered.length !== catalogCards.length && (
+            <> · filtradas de <span className="text-surface-200 font-medium">{catalogCards.length}</span></>
+          )}
         </p>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-surface-500">Mostrar:</span>
+          <div className="flex rounded-lg border border-surface-700 overflow-hidden">
+            {PAGE_SIZE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => { setPageSize(opt.value); setPage(1); }}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-medium transition-colors",
+                  pageSize === opt.value
+                    ? "bg-primary-600 text-white"
+                    : "bg-surface-800 text-surface-400 hover:text-surface-200"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* ---- Card Grid ---- */}
+      {/* ── Card Grid ── */}
       {viewMode === "grid" ? (
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {visible.map((card) => (
-            <CatalogCard key={card.code} card={card} />
+            <CatalogCard
+              key={card.code}
+              card={card}
+              inAlbum={albumSet.has(card.code)}
+              onToggleAlbum={handleToggleAlbum}
+            />
           ))}
         </div>
       ) : (
         <div className="space-y-3">
           {visible.map((card) => (
-            <CatalogListItem key={card.code} card={card} />
+            <CatalogListItem
+              key={card.code}
+              card={card}
+              inAlbum={albumSet.has(card.code)}
+              onToggleAlbum={handleToggleAlbum}
+            />
           ))}
         </div>
       )}
 
-      {/* ---- No results ---- */}
+      {/* ── No results ── */}
       {filtered.length === 0 && (
         <div className="text-center py-16">
           <Search className="h-10 w-10 text-surface-600 mx-auto mb-3" />
           <p className="text-surface-300 font-medium">No se encontraron cartas</p>
-            <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros o el texto de búsqueda</p>
+          <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros o el texto de búsqueda</p>
           <Button variant="secondary" size="sm" className="mt-4" onClick={clearFilters}>Limpiar filtros</Button>
         </div>
       )}
 
-      {/* ---- Load More ---- */}
-      {hasMore && (
-        <div className="flex justify-center pt-4">
-          <Button variant="secondary" onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}>
-            Cargar más ({filtered.length - visibleCount} restantes)
-          </Button>
+      {/* ── Pagination ── */}
+      {filtered.length > 0 && pageSize !== Infinity && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage === 1}
+            className="p-2 rounded-lg bg-surface-800 border border-surface-700 text-surface-400 disabled:opacity-30 hover:text-surface-200 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 2)
+            .reduce<(number | "...")[]>((acc, p, i, arr) => {
+              if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push("...");
+              acc.push(p);
+              return acc;
+            }, [])
+            .map((item, i) =>
+              item === "..." ? (
+                <span key={`ellipsis-${i}`} className="px-2 text-surface-500 text-sm">…</span>
+              ) : (
+                <button
+                  key={item}
+                  onClick={() => setPage(item as number)}
+                  className={cn(
+                    "h-9 min-w-9 px-3 rounded-lg text-sm font-medium border transition-colors",
+                    safePage === item
+                      ? "bg-primary-600 border-primary-500 text-white"
+                      : "bg-surface-800 border-surface-700 text-surface-400 hover:text-surface-200"
+                  )}
+                >
+                  {item}
+                </button>
+              )
+            )}
+
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage === totalPages}
+            className="p-2 rounded-lg bg-surface-800 border border-surface-700 text-surface-400 disabled:opacity-30 hover:text-surface-200 transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
+      )}
+
+      {/* Current page info */}
+      {filtered.length > 0 && pageSize !== Infinity && totalPages > 1 && (
+        <p className="text-center text-xs text-surface-500">
+          Página {safePage} de {totalPages} · {visible.length} cartas
+        </p>
       )}
     </div>
   );
 }
 
-// ---- Grid Card Component ----
+// ── Grid Card ─────────────────────────────────────────────────
 
-function CatalogCard({ card }: { card: CardWithSingle }) {
+function CatalogCard({
+  card,
+  inAlbum,
+  onToggleAlbum,
+}: {
+  card: CardWithSingle;
+  inAlbum: boolean;
+  onToggleAlbum: (code: string) => void;
+}) {
   const Icon = categoryIcon[card.category] ?? Shield;
   const { single } = card;
   const hasDiscount = single.promotional_price != null && single.min_price != null && single.promotional_price < single.min_price;
-  // displayPrice, originalPrice, lowStock — temporalmente ocultos con precio/stock
-  // const displayPrice = single.promotional_price ?? single.min_price;
-  // const originalPrice = hasDiscount ? single.min_price : null;
-  const outOfStock = single.total_stock === 0;
-  // const lowStock = !outOfStock && single.total_stock <= 3;
-
-  // Cart temporalmente oculto
-  // const { addItem, items } = useCartStore();
-  // const variantId = single.variant_ids[0];
-  // const inCart = variantId != null && items.some((i) => i.variantId === variantId);
-  // const [added, setAdded] = useState(false);
-
-  const [inAlbum, setInAlbum] = useState(false);
-  const [albumPending, setAlbumPending] = useState(false);
-
-  async function handleAddToAlbum() {
-    if (albumPending) return;
-    setAlbumPending(true);
-    setInAlbum((prev) => !prev);
-    const res = await toggleAlbum(card.code);
-    if (res.needsAuth) { window.location.href = "/login"; return; }
-    if (res.error) { setInAlbum((prev) => !prev); }
-    setAlbumPending(false);
-  }
 
   return (
     <div className="group relative bg-surface-900 border border-surface-800 rounded-xl overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5">
-      {/* Image — clickable → detail page */}
+      {/* Image */}
       <Link href={`/catalog/${card.slug}`} className="block">
         <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
           {single.image_url ? (
@@ -327,8 +448,14 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
               src={single.image_url}
               alt={card.name}
               fill
-              className="object-cover"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              className={cn(
+                "object-cover transition-all duration-300",
+                // B&W unless in album, then always color; hover always color
+                inAlbum
+                  ? "grayscale-0"
+                  : "grayscale group-hover:grayscale-0"
+              )}
+              sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 15vw"
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center">
@@ -349,10 +476,10 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
             </div>
           )}
 
-          {/* Out of stock overlay */}
-          {outOfStock && (
-            <div className="absolute inset-0 bg-surface-950/70 flex items-center justify-center">
-              <span className="text-xs font-semibold text-surface-300 uppercase tracking-widest bg-surface-900/80 px-2 py-1 rounded">Sin stock</span>
+          {/* In album indicator */}
+          {inAlbum && (
+            <div className="absolute bottom-2 right-2 h-5 w-5 rounded-full bg-violet-600 flex items-center justify-center shadow">
+              <BookMarked className="h-2.5 w-2.5 text-white" />
             </div>
           )}
         </div>
@@ -360,32 +487,16 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
 
       {/* Info */}
       <div className="p-3 flex flex-col gap-1.5 flex-1">
-        <Link href={`/catalog/${card.slug}`} className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2 hover:text-primary-300 transition-colors">{card.name}</Link>
+        <Link
+          href={`/catalog/${card.slug}`}
+          className="text-xs font-semibold text-surface-200 leading-tight line-clamp-2 hover:text-primary-300 transition-colors"
+        >
+          {card.name}
+        </Link>
 
-        {/* Precio — temporalmente oculto */}
-        {/* {displayPrice != null && (
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-sm font-bold text-primary-400">{formatARS(displayPrice)}</span>
-            {originalPrice != null && (
-              <span className="text-[11px] text-surface-500 line-through">{formatARS(originalPrice)}</span>
-            )}
-          </div>
-        )} */}
-
-        {/* Stock — temporalmente oculto */}
-        {/* <div className="flex items-center gap-1">
-          ...
-        </div> */}
-
-        {/* Buttons — columna para que entren en mobile */}
-        <div className="mt-auto flex flex-col gap-1">
-          {/* Add to cart — temporalmente oculto */}
-          {/* <button onClick={handleAddToCart} ... /> */}
-
-          {/* Add to album */}
+        <div className="mt-auto">
           <button
-            onClick={handleAddToAlbum}
-            disabled={albumPending}
+            onClick={() => onToggleAlbum(card.code)}
             title={inAlbum ? "Quitar del álbum digital" : "Agregar al álbum digital"}
             className={cn(
               "w-full flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all duration-200 border",
@@ -403,43 +514,35 @@ function CatalogCard({ card }: { card: CardWithSingle }) {
   );
 }
 
-// ---- List Item Component ----
+// ── List Item ─────────────────────────────────────────────────
 
-function CatalogListItem({ card }: { card: CardWithSingle }) {
+function CatalogListItem({
+  card,
+  inAlbum,
+  onToggleAlbum,
+}: {
+  card: CardWithSingle;
+  inAlbum: boolean;
+  onToggleAlbum: (code: string) => void;
+}) {
   const Icon = categoryIcon[card.category] ?? Shield;
   const { single } = card;
-  // hasDiscount, displayPrice, originalPrice, outOfStock, lowStock — temporalmente ocultos
-  // const hasDiscount = ...
-  // const displayPrice = ...
-  // const originalPrice = ...
-  // const outOfStock = single.total_stock === 0;
-  // const lowStock = ...
-
-  // Cart temporalmente oculto
-  // const { addItem, items } = useCartStore();
-  // const variantId = single.variant_ids[0];
-  // const inCart = variantId != null && items.some(...);
-  // const [added, setAdded] = useState(false);
-
-  const [inAlbum, setInAlbum] = useState(false);
-  const [albumPending, setAlbumPending] = useState(false);
-
-  async function handleAddToAlbum() {
-    if (albumPending) return;
-    setAlbumPending(true);
-    setInAlbum((prev) => !prev);
-    const res = await toggleAlbum(card.code);
-    if (res.needsAuth) { window.location.href = "/login"; return; }
-    if (res.error) { setInAlbum((prev) => !prev); }
-    setAlbumPending(false);
-  }
 
   return (
     <div className="flex items-center gap-4 bg-surface-900 border border-surface-800 rounded-xl p-4 hover:border-surface-700 transition-colors">
-      {/* Thumbnail — clickable */}
-      <Link href={`/catalog/${card.slug}`} className="h-20 w-14 bg-surface-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative">
+      {/* Thumbnail */}
+      <Link href={`/catalog/${card.slug}`} className="h-20 w-14 bg-surface-800 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative group/thumb">
         {single.image_url ? (
-          <Image src={single.image_url} alt={card.name} fill className="object-cover" sizes="56px" />
+          <Image
+            src={single.image_url}
+            alt={card.name}
+            fill
+            className={cn(
+              "object-cover transition-all duration-300",
+              inAlbum ? "grayscale-0" : "grayscale group-hover/thumb:grayscale-0"
+            )}
+            sizes="56px"
+          />
         ) : (
           <Icon className="h-6 w-6 text-surface-600" />
         )}
@@ -453,42 +556,25 @@ function CatalogListItem({ card }: { card: CardWithSingle }) {
           {card.level != null && <Badge variant="info">Nv. {card.level}</Badge>}
           <span className="text-xs text-surface-400 font-mono">{card.code}</span>
           {card.edition && <span className="text-xs text-surface-500">Ed. {card.edition}</span>}
+          {single.tn_game && <span className="text-xs text-surface-500">{single.tn_game}</span>}
         </div>
-        {/* Stock — temporalmente oculto */}
-        {/* <p className="text-xs mt-1.5">
-          {outOfStock ? ... : lowStock ? ... : ...}
-        </p> */}
       </div>
 
-      {/* Price + buttons */}
-      <div className="shrink-0 text-right flex flex-col items-end gap-2">
-        {/* Precio — temporalmente oculto */}
-        {/* {displayPrice != null && (
-          <div className="flex flex-col items-end">
-            <span ...>{formatARS(displayPrice)}</span>
-            ...
-          </div>
-        )} */}
-        <div className="flex items-center gap-1.5">
-          {/* Add to cart — temporalmente oculto */}
-          {/* <button onClick={handleAddToCart} ... /> */}
-
-          {/* Add to album */}
-          <button
-            onClick={handleAddToAlbum}
-            disabled={albumPending}
-            title={inAlbum ? "Quitar del álbum digital" : "Agregar al álbum digital"}
-            className={cn(
-              "flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all duration-200 border shrink-0",
-              inAlbum
-                ? "bg-violet-600 border-violet-500 text-white"
-                : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
-            )}
-          >
-            <BookMarked className="h-3.5 w-3.5" />
-            <span>{inAlbum ? "En álbum" : "Álbum"}</span>
-          </button>
-        </div>
+      {/* Button */}
+      <div className="shrink-0">
+        <button
+          onClick={() => onToggleAlbum(card.code)}
+          title={inAlbum ? "Quitar del álbum digital" : "Agregar al álbum digital"}
+          className={cn(
+            "flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold transition-all duration-200 border shrink-0",
+            inAlbum
+              ? "bg-violet-600 border-violet-500 text-white"
+              : "bg-surface-800 border-surface-700 text-surface-400 hover:bg-violet-900/40 hover:text-violet-300 hover:border-violet-600"
+          )}
+        >
+          <BookMarked className="h-3.5 w-3.5" />
+          <span>{inAlbum ? "En álbum" : "Álbum"}</span>
+        </button>
       </div>
     </div>
   );

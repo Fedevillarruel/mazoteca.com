@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { getCardBySlug } from "@/data/cards";
 import { getVariantsByCardCode, getTNProductMedia } from "@/lib/services/tiendanube-sync";
+import { createClient } from "@/lib/supabase/server";
+import { AlbumButton } from "./album-button";
 
 export async function generateMetadata({
   params,
@@ -71,6 +73,20 @@ export default async function CardDetailPage({
     tnMedia?.imageUrl ??
     null;
   const tnDescription = tnMedia?.description ?? null;
+
+  // Check if user already has this card in their album
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let defaultInAlbum = false;
+  if (user) {
+    const { data } = await supabase
+      .from("user_album")
+      .select("card_code")
+      .eq("profile_id", user.id)
+      .eq("card_code", card.code)
+      .maybeSingle();
+    defaultInAlbum = data != null;
+  }
 
   return (
     <PageLayout>
@@ -203,10 +219,7 @@ export default async function CardDetailPage({
 
           {/* Actions */}
           <div className="flex gap-3 mt-6">
-            <Button variant="secondary" className="flex-1">
-              <Layers className="h-4 w-4" />
-              Agregar a mazo
-            </Button>
+            <AlbumButton cardCode={card.code} defaultInAlbum={defaultInAlbum} />
             <Button variant="secondary" className="flex-1">
               <RefreshCw className="h-4 w-4" />
               Ofrecer intercambio
