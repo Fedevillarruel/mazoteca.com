@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import type { AppSettings, UpdateSettingResult } from "@/lib/types/app-settings";
 import { SETTINGS_DEFAULTS } from "@/lib/types/app-settings";
 
@@ -94,6 +95,7 @@ export async function updateAppSetting(
       return { success: false, error: upsertError.message };
     }
 
+    revalidatePath("/admin/settings");
     return { success: true };
   } catch (e) {
     return { success: false, error: `Error inesperado: ${String(e)}` };

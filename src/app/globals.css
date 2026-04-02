@@ -93,6 +93,78 @@
   background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 64, 255, 0.05) 0%, transparent 60%);
 }
 
+/* ── Texto: clases surface-* en modo light ── */
+/* surface-50/100/200 se usan como texto en dark → deben ser oscuros en light */
+[data-theme="light"] [class*="text-surface-50"],
+[data-theme="light"] [class*="text-surface-100"],
+[data-theme="light"] [class*="text-surface-200"] {
+  color: #1e2a3b !important;
+}
+[data-theme="light"] [class*="text-surface-300"],
+[data-theme="light"] [class*="text-surface-400"] {
+  color: #4f5d72 !important;
+}
+[data-theme="light"] [class*="text-surface-500"],
+[data-theme="light"] [class*="text-surface-600"] {
+  color: #6b7a8f !important;
+}
+/* surface-700/800/900/950 se usan como fondos en dark → en light son fondos claros */
+[data-theme="light"] [class*="text-surface-700"],
+[data-theme="light"] [class*="text-surface-800"],
+[data-theme="light"] [class*="text-surface-900"],
+[data-theme="light"] [class*="text-surface-950"] {
+  color: #374151 !important;
+}
+
+/* ── Fondos: bg-surface-* en modo light ── */
+[data-theme="light"] [class*="bg-surface-900"],
+[data-theme="light"] [class*="bg-surface-950"] {
+  background-color: #f4f5f7 !important;
+}
+[data-theme="light"] [class*="bg-surface-850"],
+[data-theme="light"] [class*="bg-surface-800"] {
+  background-color: #e8eaee !important;
+}
+[data-theme="light"] [class*="bg-surface-700"] {
+  background-color: #dde1e9 !important;
+}
+
+/* ── Bordes: border-surface-* en modo light ── */
+[data-theme="light"] [class*="border-surface-700"],
+[data-theme="light"] [class*="border-surface-800"] {
+  border-color: #cdd2db !important;
+}
+
+/* ── Cards / glass en modo light ── */
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── text-white hardcodeado → negro en light ── */
+[data-theme="light"] .text-white {
+  color: #1e2a3b !important;
+}
+
+/* ── Inputs / selects ── */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color: #1e2a3b;
+  background-color: #ffffff;
+  border-color: #cdd2db;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #8b97aa;
+}
+
+/* ── Badges / pills de color ── */
+[data-theme="light"] [class*="bg-surface-800"][class*="text-surface"] {
+  background-color: #e8eaee !important;
+  color: #374151 !important;
+}
+
 [data-theme="light"] ::-webkit-scrollbar-track { background: #e8eaee; }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #aab4c4; }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #8b97aa; }
@@ -120,6 +192,40 @@
     background-color: #f4f5f7;
     color: #1e2a3b;
     background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(128, 64, 255, 0.05) 0%, transparent 60%);
+  }
+
+  /* ── Texto system-light ── */
+  [data-theme="system"] [class*="text-surface-50"],
+  [data-theme="system"] [class*="text-surface-100"],
+  [data-theme="system"] [class*="text-surface-200"] { color: #1e2a3b !important; }
+  [data-theme="system"] [class*="text-surface-300"],
+  [data-theme="system"] [class*="text-surface-400"] { color: #4f5d72 !important; }
+  [data-theme="system"] [class*="text-surface-500"],
+  [data-theme="system"] [class*="text-surface-600"] { color: #6b7a8f !important; }
+  [data-theme="system"] [class*="text-surface-700"],
+  [data-theme="system"] [class*="text-surface-800"],
+  [data-theme="system"] [class*="text-surface-900"],
+  [data-theme="system"] [class*="text-surface-950"] { color: #374151 !important; }
+  [data-theme="system"] .text-white { color: #1e2a3b !important; }
+
+  /* ── Fondos system-light ── */
+  [data-theme="system"] [class*="bg-surface-900"],
+  [data-theme="system"] [class*="bg-surface-950"] { background-color: #f4f5f7 !important; }
+  [data-theme="system"] [class*="bg-surface-850"],
+  [data-theme="system"] [class*="bg-surface-800"] { background-color: #e8eaee !important; }
+  [data-theme="system"] [class*="bg-surface-700"] { background-color: #dde1e9 !important; }
+  [data-theme="system"] [class*="border-surface-700"],
+  [data-theme="system"] [class*="border-surface-800"] { border-color: #cdd2db !important; }
+  [data-theme="system"] .glass {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  }
+  [data-theme="system"] input,
+  [data-theme="system"] textarea,
+  [data-theme="system"] select {
+    color: #1e2a3b;
+    background-color: #ffffff;
+    border-color: #cdd2db;
   }
 }
 
