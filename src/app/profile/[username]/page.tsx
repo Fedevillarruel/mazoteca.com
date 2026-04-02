@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { getProfileByUsername, getPublicDecksByUsername, getWishlistByUsername } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/actions/auth";
+import { ReportUserButton } from "./report-user-button";
 
 export async function generateMetadata({
   params,
@@ -125,7 +126,7 @@ export default async function ProfilePage({
           </div>
 
           {!isOwn && (
-            <div className="flex gap-2 shrink-0 sm:pt-14">
+            <div className="flex items-center gap-2 shrink-0 sm:pt-14">
               <Button size="sm">
                 <UserPlus className="h-4 w-4" />
                 Agregar amigo
@@ -133,6 +134,9 @@ export default async function ProfilePage({
               <Button variant="ghost" size="sm">
                 <MessageSquare className="h-4 w-4" />
               </Button>
+              {currentUser && (
+                <ReportUserButton targetId={profile.id} username={username} />
+              )}
             </div>
           )}
           {isOwn && (

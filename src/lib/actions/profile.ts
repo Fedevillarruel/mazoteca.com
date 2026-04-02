@@ -24,25 +24,29 @@ export async function updateProfile(formData: FormData) {
     decks_visibility: formData.get("decks_visibility") || "public",
   };
 
+  // Optional preset avatar_url (not validated by profileSchema)
+  const avatarUrl = formData.get("avatar_url") as string | null;
+
   const parsed = profileSchema.safeParse(raw);
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
   }
 
+  const updateData: Record<string, unknown> = {
+    display_name: parsed.data.display_name || null,
+    bio: parsed.data.bio || null,
+    location: parsed.data.location || null,
+    website: parsed.data.website === "" ? null : parsed.data.website || null,
+    digital_collection_visibility: parsed.data.digital_collection_visibility,
+    physical_collection_visibility: parsed.data.physical_collection_visibility,
+    decks_visibility: parsed.data.decks_visibility,
+    updated_at: new Date().toISOString(),
+  };
+  if (avatarUrl) updateData.avatar_url = avatarUrl;
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      display_name: parsed.data.display_name || null,
-      bio: parsed.data.bio || null,
-      location: parsed.data.location || null,
-      website: parsed.data.website === "" ? null : parsed.data.website || null,
-      digital_collection_visibility:
-        parsed.data.digital_collection_visibility,
-      physical_collection_visibility:
-        parsed.data.physical_collection_visibility,
-      decks_visibility: parsed.data.decks_visibility,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq("id", user.id);
 
   if (error) {
