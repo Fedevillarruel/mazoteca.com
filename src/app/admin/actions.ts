@@ -3,8 +3,6 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import type { AdminDashboardStats } from "@/lib/types/actions";
 
-export type { AdminDashboardStats };
-
 export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
   const supabase = createAdminClient();
 

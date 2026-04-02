@@ -4,8 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { NotificationCategory, NotificationPreferences } from "@/lib/types/actions";
 
-export type { NotificationCategory, NotificationPreferences };
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**

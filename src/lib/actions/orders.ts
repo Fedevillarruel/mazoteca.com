@@ -2,9 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import type { TnOrder, TnLineItem, TnAddress } from "@/lib/types/actions";
-
-export type { TnOrder, TnLineItem, TnAddress };
+import type { TnOrder } from "@/lib/types/actions";
 
 /** Obtiene los pedidos del usuario autenticado actualmente */
 export async function getMyOrders(): Promise<TnOrder[]> {

@@ -6,8 +6,6 @@ import { revalidatePath } from "next/cache";
 import { loginSchema, registerSchema } from "@/lib/validations";
 import type { AuthActionResult } from "@/lib/types/actions";
 
-export type { AuthActionResult };
-
 export async function signInWithGoogle(): Promise<AuthActionResult> {
   const supabase = await createClient();
 

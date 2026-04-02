@@ -26,8 +26,8 @@ import { updateProfile } from "@/lib/actions/profile";
 import {
   updateNotificationPreferences,
   updatePassword,
-  type NotificationPreferences,
 } from "@/lib/actions/notifications";
+import type { NotificationPreferences } from "@/lib/types/actions";
 
 const AVATARS = [
   { id: "nemea", label: "Nemea", src: "/avatars/nemea.png" },

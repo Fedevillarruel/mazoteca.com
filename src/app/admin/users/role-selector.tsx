@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateUserRole, type UserRole } from "./actions";
+import { updateUserRole } from "./actions";
+import type { UserRole } from "@/lib/types/actions";
 import { CheckCircle, Loader2 } from "lucide-react";
 
 const ROLES: { value: UserRole; label: string }[] = [
