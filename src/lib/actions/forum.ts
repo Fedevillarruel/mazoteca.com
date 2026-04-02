@@ -5,6 +5,7 @@ import { threadSchema, postSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSlug } from "@/lib/utils";
+import { sendNotification } from "./notifications";
 
 export async function createThread(formData: FormData) {
   const supabase = await createClient();
@@ -92,7 +93,7 @@ export async function createPost(formData: FormData) {
   // Check thread is not locked
   const { data: thread } = await supabase
     .from("forum_threads")
-    .select("is_locked, category_id")
+    .select("is_locked, category_id, author_id")
     .eq("id", threadId)
     .single();
 
@@ -121,6 +122,18 @@ export async function createPost(formData: FormData) {
       last_reply_by: user.id,
     })
     .eq("id", threadId);
+
+  // Notify thread author (unless they're replying to their own thread)
+  if (thread?.author_id && thread.author_id !== user.id) {
+    await sendNotification({
+      userId: thread.author_id,
+      type: "forum_comment",
+      title: "Nueva respuesta en tu hilo",
+      message: "Alguien respondió a tu hilo del foro.",
+      link: `/forum/${threadId}`,
+      category: "forum",
+    });
+  }
 
   revalidatePath(`/forum/${threadId}`);
   return { success: true };

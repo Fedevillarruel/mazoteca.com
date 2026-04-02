@@ -23,6 +23,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { updateProfile } from "@/lib/actions/profile";
+import {
+  updateNotificationPreferences,
+  updatePassword,
+  type NotificationPreferences,
+} from "@/lib/actions/notifications";
 
 const AVATARS = [
   { id: "nemea", label: "Nemea", src: "/avatars/nemea.png" },
@@ -58,20 +63,46 @@ function resolveAvatarId(avatarUrl: string | null): string | null {
   return AVATARS.find((a) => avatarUrl.includes(a.id))?.id ?? null;
 }
 
-export function SettingsClient({ profile }: { profile: ProfileData }) {
+function StatusMsg({ status, error }: { status: SaveStatus; error: string | null }) {
+  if (status === "success") {
+    return (
+      <span className="flex items-center gap-1.5 text-sm text-success">
+        <CheckCircle className="h-4 w-4" />
+        Cambios guardados
+      </span>
+    );
+  }
+  if (status === "error") {
+    return (
+      <span className="flex items-center gap-1.5 text-sm text-error">
+        <AlertCircle className="h-4 w-4" />
+        {error ?? "Error al guardar"}
+      </span>
+    );
+  }
+  return null;
+}
+
+export function SettingsClient({
+  profile,
+  initialPrefs,
+}: {
+  profile: ProfileData;
+  initialPrefs: NotificationPreferences;
+}) {
   const [activeSection, setActiveSection] = useState<Section>("profile");
 
-  // Profile section state — pre-populated from DB
+  // ── Profile ──────────────────────────────────────────────────────────────
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(
     resolveAvatarId(profile.avatar_url)
   );
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
   const [bio, setBio] = useState(profile.bio ?? "");
   const [location, setLocation] = useState(profile.location ?? "");
-  const [profileSaveStatus, setProfileSaveStatus] = useState<SaveStatus>("idle");
+  const [profileStatus, setProfileStatus] = useState<SaveStatus>("idle");
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // Privacy section state — pre-populated from DB
+  // ── Privacy ───────────────────────────────────────────────────────────────
   const [digitalVis, setDigitalVis] = useState(
     profile.digital_collection_visibility ?? "public"
   );
@@ -79,60 +110,145 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
     profile.physical_collection_visibility ?? "public"
   );
   const [decksVis, setDecksVis] = useState(profile.decks_visibility ?? "public");
-  const [privacySaveStatus, setPrivacySaveStatus] = useState<SaveStatus>("idle");
+  const [privacyStatus, setPrivacyStatus] = useState<SaveStatus>("idle");
   const [privacyError, setPrivacyError] = useState<string | null>(null);
 
+  // ── Security ──────────────────────────────────────────────────────────────
+  const [currentPwd, setCurrentPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [securityStatus, setSecurityStatus] = useState<SaveStatus>("idle");
+  const [securityError, setSecurityError] = useState<string | null>(null);
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+  const [prefs, setPrefs] = useState<NotificationPreferences>(initialPrefs);
+  const [notifStatus, setNotifStatus] = useState<SaveStatus>("idle");
+  const [notifError, setNotifError] = useState<string | null>(null);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   async function handleSaveProfile() {
-    if (profileSaveStatus === "saving") return;
-    setProfileSaveStatus("saving");
+    if (profileStatus === "saving") return;
+    setProfileStatus("saving");
     setProfileError(null);
-
     const avatarSrc = AVATARS.find((a) => a.id === selectedAvatar)?.src ?? profile.avatar_url;
-
-    const formData = new FormData();
-    if (displayName) formData.set("display_name", displayName);
-    if (bio) formData.set("bio", bio);
-    if (location) formData.set("location", location);
-    if (avatarSrc) formData.set("avatar_url", avatarSrc);
-    // Keep existing visibility values so updateProfile doesn't reset them
-    formData.set("digital_collection_visibility", digitalVis);
-    formData.set("physical_collection_visibility", physicalVis);
-    formData.set("decks_visibility", decksVis);
-
-    const result = await updateProfile(formData);
+    const fd = new FormData();
+    if (displayName) fd.set("display_name", displayName);
+    if (bio) fd.set("bio", bio);
+    if (location) fd.set("location", location);
+    if (avatarSrc) fd.set("avatar_url", avatarSrc);
+    fd.set("digital_collection_visibility", digitalVis);
+    fd.set("physical_collection_visibility", physicalVis);
+    fd.set("decks_visibility", decksVis);
+    const result = await updateProfile(fd);
     if (result?.error) {
       setProfileError(result.error);
-      setProfileSaveStatus("error");
-      setTimeout(() => setProfileSaveStatus("idle"), 3000);
+      setProfileStatus("error");
+      setTimeout(() => setProfileStatus("idle"), 3000);
     } else {
-      setProfileSaveStatus("success");
-      setTimeout(() => setProfileSaveStatus("idle"), 2500);
+      setProfileStatus("success");
+      setTimeout(() => setProfileStatus("idle"), 2500);
     }
   }
 
   async function handleSavePrivacy() {
-    if (privacySaveStatus === "saving") return;
-    setPrivacySaveStatus("saving");
+    if (privacyStatus === "saving") return;
+    setPrivacyStatus("saving");
     setPrivacyError(null);
-
-    const formData = new FormData();
-    if (displayName) formData.set("display_name", displayName);
-    if (bio) formData.set("bio", bio);
-    if (location) formData.set("location", location);
-    formData.set("digital_collection_visibility", digitalVis);
-    formData.set("physical_collection_visibility", physicalVis);
-    formData.set("decks_visibility", decksVis);
-
-    const result = await updateProfile(formData);
+    const fd = new FormData();
+    if (displayName) fd.set("display_name", displayName);
+    if (bio) fd.set("bio", bio);
+    if (location) fd.set("location", location);
+    fd.set("digital_collection_visibility", digitalVis);
+    fd.set("physical_collection_visibility", physicalVis);
+    fd.set("decks_visibility", decksVis);
+    const result = await updateProfile(fd);
     if (result?.error) {
       setPrivacyError(result.error);
-      setPrivacySaveStatus("error");
-      setTimeout(() => setPrivacySaveStatus("idle"), 3000);
+      setPrivacyStatus("error");
+      setTimeout(() => setPrivacyStatus("idle"), 3000);
     } else {
-      setPrivacySaveStatus("success");
-      setTimeout(() => setPrivacySaveStatus("idle"), 2500);
+      setPrivacyStatus("success");
+      setTimeout(() => setPrivacyStatus("idle"), 2500);
     }
   }
+
+  async function handleChangePassword() {
+    if (securityStatus === "saving") return;
+    setSecurityError(null);
+    if (newPwd !== confirmPwd) {
+      setSecurityError("Las contraseñas nuevas no coinciden.");
+      setSecurityStatus("error");
+      setTimeout(() => setSecurityStatus("idle"), 3000);
+      return;
+    }
+    if (newPwd.length < 8) {
+      setSecurityError("La nueva contraseña debe tener al menos 8 caracteres.");
+      setSecurityStatus("error");
+      setTimeout(() => setSecurityStatus("idle"), 3000);
+      return;
+    }
+    setSecurityStatus("saving");
+    const result = await updatePassword(currentPwd, newPwd);
+    if (result?.error) {
+      setSecurityError(result.error);
+      setSecurityStatus("error");
+      setTimeout(() => setSecurityStatus("idle"), 3000);
+    } else {
+      setSecurityStatus("success");
+      setCurrentPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+      setTimeout(() => setSecurityStatus("idle"), 2500);
+    }
+  }
+
+  async function handleSaveNotifications() {
+    if (notifStatus === "saving") return;
+    setNotifStatus("saving");
+    setNotifError(null);
+    const result = await updateNotificationPreferences(prefs);
+    if (result?.error) {
+      setNotifError(result.error);
+      setNotifStatus("error");
+      setTimeout(() => setNotifStatus("idle"), 3000);
+    } else {
+      setNotifStatus("success");
+      setTimeout(() => setNotifStatus("idle"), 2500);
+    }
+  }
+
+  const notifItems: {
+    key: keyof NotificationPreferences;
+    label: string;
+    description: string;
+  }[] = [
+    {
+      key: "trades",
+      label: "Intercambios",
+      description: "Propuestas recibidas, aceptaciones y contra-ofertas",
+    },
+    {
+      key: "singles",
+      label: "Singles",
+      description: "Ofertas en tus publicaciones y respuestas a tus ofertas",
+    },
+    {
+      key: "friends",
+      label: "Amigos",
+      description: "Solicitudes de amistad recibidas y aceptadas",
+    },
+    {
+      key: "forum",
+      label: "Foro",
+      description: "Respuestas a tus hilos del foro",
+    },
+    {
+      key: "system",
+      label: "Sistema",
+      description: "Actualizaciones, novedades y anuncios importantes",
+    },
+  ];
 
   return (
     <PageLayout
@@ -140,7 +256,7 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
       description="Personalizá tu experiencia en Mazoteca"
     >
       <div className="grid lg:grid-cols-4 gap-6">
-        {/* Sidebar Nav */}
+        {/* Sidebar */}
         <nav className="space-y-1">
           {sections.map((section) => (
             <button
@@ -158,19 +274,15 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
           ))}
         </nav>
 
-        {/* Content */}
         <div className="lg:col-span-3 space-y-6">
+
+          {/* ── Perfil ── */}
           {activeSection === "profile" && (
             <div className="space-y-6">
-              {/* Avatar Picker */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Avatar</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Avatar</CardTitle></CardHeader>
                 <CardContent>
-                  <p className="text-sm text-surface-400 mb-4">
-                    Elegí tu avatar de coleccionista
-                  </p>
+                  <p className="text-sm text-surface-400 mb-4">Elegí tu avatar de coleccionista</p>
                   <div className="grid grid-cols-3 gap-3 max-w-xs">
                     {AVATARS.map((avatar) => {
                       const isSelected = selectedAvatar === avatar.id;
@@ -186,13 +298,7 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                               : "border-surface-700 hover:border-surface-500"
                           )}
                         >
-                          <Image
-                            src={avatar.src}
-                            alt={avatar.label}
-                            fill
-                            className="object-cover"
-                            sizes="120px"
-                          />
+                          <Image src={avatar.src} alt={avatar.label} fill className="object-cover" sizes="120px" />
                           {isSelected && (
                             <div className="absolute inset-0 bg-primary-600/20 flex items-end justify-end p-1.5">
                               <span className="bg-primary-500 text-white rounded-full p-0.5">
@@ -201,9 +307,7 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                             </div>
                           )}
                           <div className="absolute bottom-0 inset-x-0 bg-linear-to-t from-black/60 to-transparent pt-4 pb-1.5 px-2">
-                            <p className="text-[11px] font-semibold text-white text-center leading-none">
-                              {avatar.label}
-                            </p>
+                            <p className="text-[11px] font-semibold text-white text-center leading-none">{avatar.label}</p>
                           </div>
                         </button>
                       );
@@ -212,24 +316,17 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                 </CardContent>
               </Card>
 
-              {/* Profile Info */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Información de perfil</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Información de perfil</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-surface-200 mb-1.5">
-                      Nickname
-                    </label>
+                    <label className="block text-sm font-medium text-surface-200 mb-1.5">Nickname</label>
                     <input
                       value={profile.username}
                       disabled
                       className="w-full bg-surface-800/50 border border-surface-700 rounded-lg px-3 py-2.5 text-sm text-surface-400 cursor-not-allowed"
                     />
-                    <p className="text-xs text-surface-500 mt-1">
-                      El nickname no se puede cambiar
-                    </p>
+                    <p className="text-xs text-surface-500 mt-1">El nickname no se puede cambiar</p>
                   </div>
                   <Input
                     label="Nombre para mostrar"
@@ -251,19 +348,8 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                     onChange={(e) => setLocation(e.target.value)}
                   />
                   <div className="flex items-center justify-end gap-3">
-                    {profileSaveStatus === "success" && (
-                      <span className="flex items-center gap-1.5 text-sm text-success">
-                        <CheckCircle className="h-4 w-4" />
-                        Cambios guardados
-                      </span>
-                    )}
-                    {profileSaveStatus === "error" && (
-                      <span className="flex items-center gap-1.5 text-sm text-error">
-                        <AlertCircle className="h-4 w-4" />
-                        {profileError ?? "Error al guardar"}
-                      </span>
-                    )}
-                    <Button onClick={handleSaveProfile} isLoading={profileSaveStatus === "saving"}>
+                    <StatusMsg status={profileStatus} error={profileError} />
+                    <Button onClick={handleSaveProfile} isLoading={profileStatus === "saving"}>
                       <Save className="h-4 w-4" />
                       Guardar cambios
                     </Button>
@@ -273,11 +359,10 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
             </div>
           )}
 
+          {/* ── Privacidad ── */}
           {activeSection === "privacy" && (
             <Card>
-              <CardHeader>
-                <CardTitle>Privacidad</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Privacidad</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <Select
                   label="Visibilidad de la colección digital"
@@ -310,19 +395,8 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                   onChange={(e) => setDecksVis(e.target.value)}
                 />
                 <div className="flex items-center justify-end gap-3">
-                  {privacySaveStatus === "success" && (
-                    <span className="flex items-center gap-1.5 text-sm text-success">
-                      <CheckCircle className="h-4 w-4" />
-                      Cambios guardados
-                    </span>
-                  )}
-                  {privacySaveStatus === "error" && (
-                    <span className="flex items-center gap-1.5 text-sm text-error">
-                      <AlertCircle className="h-4 w-4" />
-                      {privacyError ?? "Error al guardar"}
-                    </span>
-                  )}
-                  <Button onClick={handleSavePrivacy} isLoading={privacySaveStatus === "saving"}>
+                  <StatusMsg status={privacyStatus} error={privacyError} />
+                  <Button onClick={handleSavePrivacy} isLoading={privacyStatus === "saving"}>
                     <Save className="h-4 w-4" />
                     Guardar cambios
                   </Button>
@@ -331,18 +405,43 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
             </Card>
           )}
 
+          {/* ── Seguridad ── */}
           {activeSection === "security" && (
             <div className="space-y-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Cambiar contraseña</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Cambiar contraseña</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <Input label="Contraseña actual" type="password" />
-                  <Input label="Nueva contraseña" type="password" />
-                  <Input label="Confirmar nueva contraseña" type="password" />
-                  <div className="flex justify-end">
-                    <Button>
+                  <Input
+                    label="Contraseña actual"
+                    type="password"
+                    value={currentPwd}
+                    onChange={(e) => setCurrentPwd(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <Input
+                    label="Nueva contraseña"
+                    type="password"
+                    value={newPwd}
+                    onChange={(e) => setNewPwd(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <Input
+                    label="Confirmar nueva contraseña"
+                    type="password"
+                    value={confirmPwd}
+                    onChange={(e) => setConfirmPwd(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  {newPwd.length > 0 && (
+                    <PasswordStrength password={newPwd} />
+                  )}
+                  <div className="flex items-center justify-end gap-3">
+                    <StatusMsg status={securityStatus} error={securityError} />
+                    <Button
+                      onClick={handleChangePassword}
+                      isLoading={securityStatus === "saving"}
+                      disabled={!currentPwd || !newPwd || !confirmPwd}
+                    >
                       <Lock className="h-4 w-4" />
                       Cambiar contraseña
                     </Button>
@@ -356,9 +455,8 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-surface-400 mb-4">
-                    Al eliminar tu cuenta se borrarán permanentemente todos tus
-                    datos, mazos, colección e historial. Esta acción no se puede
-                    deshacer.
+                    Al eliminar tu cuenta se borrarán permanentemente todos tus datos,
+                    mazos, colección e historial. Esta acción no se puede deshacer.
                   </p>
                   <Button variant="danger">
                     <Trash2 className="h-4 w-4" />
@@ -369,76 +467,53 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
             </div>
           )}
 
+          {/* ── Notificaciones ── */}
           {activeSection === "notifications" && (
             <Card>
               <CardHeader>
                 <CardTitle>Preferencias de notificaciones</CardTitle>
+                <p className="text-sm text-surface-400 mt-1">
+                  Elegí qué tipo de notificaciones querés recibir.
+                </p>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {[
-                  {
-                    id: "trades",
-                    label: "Intercambios",
-                    description: "Propuestas y actualizaciones",
-                  },
-                  {
-                    id: "singles",
-                    label: "Singles",
-                    description: "Ofertas en tus publicaciones",
-                  },
-                  {
-                    id: "friends",
-                    label: "Amigos",
-                    description: "Solicitudes y actividad",
-                  },
-                  {
-                    id: "forum",
-                    label: "Foro",
-                    description: "Respuestas a tus hilos",
-                  },
-                  {
-                    id: "system",
-                    label: "Sistema",
-                    description: "Actualizaciones y novedades",
-                  },
-                ].map((pref) => (
+              <CardContent className="space-y-3">
+                {notifItems.map((item) => (
                   <div
-                    key={pref.id}
+                    key={item.key}
                     className="flex items-center justify-between p-3 rounded-lg bg-surface-800/50"
                   >
                     <div>
-                      <p className="text-sm font-medium text-surface-200">
-                        {pref.label}
-                      </p>
-                      <p className="text-xs text-surface-400">
-                        {pref.description}
-                      </p>
+                      <p className="text-sm font-medium text-surface-200">{item.label}</p>
+                      <p className="text-xs text-surface-400">{item.description}</p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
-                        defaultChecked
+                        checked={prefs[item.key]}
+                        onChange={(e) =>
+                          setPrefs((prev) => ({ ...prev, [item.key]: e.target.checked }))
+                        }
                         className="sr-only peer"
                       />
                       <div className="w-9 h-5 bg-surface-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600" />
                     </label>
                   </div>
                 ))}
-                <div className="flex justify-end">
-                  <Button>
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <StatusMsg status={notifStatus} error={notifError} />
+                  <Button onClick={handleSaveNotifications} isLoading={notifStatus === "saving"}>
                     <Save className="h-4 w-4" />
-                    Guardar cambios
+                    Guardar preferencias
                   </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
+          {/* ── Apariencia ── */}
           {activeSection === "appearance" && (
             <Card>
-              <CardHeader>
-                <CardTitle>Apariencia</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle>Apariencia</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <Select
                   label="Tema"
@@ -465,17 +540,48 @@ export function SettingsClient({ profile }: { profile: ProfileData }) {
                   ]}
                   defaultValue="es"
                 />
-                <div className="flex justify-end">
-                  <Button>
-                    <Save className="h-4 w-4" />
-                    Guardar cambios
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
+
         </div>
       </div>
     </PageLayout>
+  );
+}
+
+// ─── Password strength indicator ─────────────────────────────────────────────
+
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: "Mínimo 8 caracteres", ok: password.length >= 8 },
+    { label: "Letras mayúsculas y minúsculas", ok: /[a-z]/.test(password) && /[A-Z]/.test(password) },
+    { label: "Al menos un número", ok: /\d/.test(password) },
+    { label: "Carácter especial (!@#$...)", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const score = checks.filter((c) => c.ok).length;
+  const barColor = score <= 1 ? "bg-red-500" : score === 2 ? "bg-amber-500" : score === 3 ? "bg-yellow-400" : "bg-success";
+  const label = score <= 1 ? "Muy débil" : score === 2 ? "Débil" : score === 3 ? "Buena" : "Fuerte";
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 bg-surface-700 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${barColor}`}
+            style={{ width: `${(score / 4) * 100}%` }}
+          />
+        </div>
+        <span className="text-xs text-surface-400">{label}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-1">
+        {checks.map((c) => (
+          <p key={c.label} className={`text-xs flex items-center gap-1 ${c.ok ? "text-success" : "text-surface-500"}`}>
+            <span>{c.ok ? "✓" : "·"}</span>
+            {c.label}
+          </p>
+        ))}
+      </div>
+    </div>
   );
 }

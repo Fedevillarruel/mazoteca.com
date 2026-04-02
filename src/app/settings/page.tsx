@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/actions/auth";
+import { getNotificationPreferences } from "@/lib/actions/notifications";
 import { SettingsClient } from "./settings-client";
 
 export const metadata: Metadata = {
@@ -13,6 +14,8 @@ export default async function SettingsPage() {
 
   const { profile } = result;
   if (!profile) redirect("/login");
+
+  const initialPrefs = await getNotificationPreferences();
 
   return (
     <SettingsClient
@@ -27,6 +30,7 @@ export default async function SettingsPage() {
         physical_collection_visibility: (profile.physical_collection_visibility as string) ?? "public",
         decks_visibility: (profile.decks_visibility as string) ?? "public",
       }}
+      initialPrefs={initialPrefs}
     />
   );
 }

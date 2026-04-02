@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { sendNotification } from "./notifications";
 
 export async function sendFriendRequest(targetUserId: string) {
   const supabase = await createClient();
@@ -48,12 +49,13 @@ export async function sendFriendRequest(targetUserId: string) {
   }
 
   // Notify
-  await supabase.from("notifications").insert({
-    user_id: targetUserId,
+  await sendNotification({
+    userId: targetUserId,
     type: "friend_request",
     title: "Solicitud de amistad",
     message: "Recibiste una nueva solicitud de amistad.",
     link: "/friends",
+    category: "friends",
   });
 
   revalidatePath("/friends");
@@ -102,12 +104,13 @@ export async function respondToFriendRequest(
   }
 
   if (action === "accepted") {
-    await supabase.from("notifications").insert({
-      user_id: friendship.requester_id,
+    await sendNotification({
+      userId: friendship.requester_id,
       type: "friend_accepted",
-      title: "Solicitud aceptada",
+      title: "Solicitud de amistad aceptada 🎉",
       message: "Tu solicitud de amistad fue aceptada.",
       link: "/friends",
+      category: "friends",
     });
   }
 
@@ -182,59 +185,5 @@ export async function blockUser(targetUserId: string) {
   }
 
   revalidatePath("/friends");
-  return { success: true };
-}
-
-export async function markNotificationRead(notificationId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "No autenticado." };
-
-  await supabase
-    .from("notifications")
-    .update({ is_read: true })
-    .eq("id", notificationId)
-    .eq("user_id", user.id);
-
-  revalidatePath("/notifications");
-  return { success: true };
-}
-
-export async function markAllNotificationsRead() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "No autenticado." };
-
-  await supabase
-    .from("notifications")
-    .update({ is_read: true })
-    .eq("user_id", user.id)
-    .eq("is_read", false);
-
-  revalidatePath("/notifications");
-  return { success: true };
-}
-
-export async function deleteNotification(notificationId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return { error: "No autenticado." };
-
-  await supabase
-    .from("notifications")
-    .delete()
-    .eq("id", notificationId)
-    .eq("user_id", user.id);
-
-  revalidatePath("/notifications");
   return { success: true };
 }

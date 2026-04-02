@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { tradeProposalSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 import { gameConfig } from "@/config/site";
+import { sendNotification } from "./notifications";
 
 export async function createTrade(formData: FormData) {
   const supabase = await createClient();
@@ -136,12 +137,13 @@ export async function createTrade(formData: FormData) {
   }
 
   // Create notification for receiver
-  await supabase.from("notifications").insert({
-    user_id: parsed.data.receiver_id,
+  await sendNotification({
+    userId: parsed.data.receiver_id,
     type: "trade_proposed",
     title: "Nueva propuesta de intercambio",
     message: "Recibiste una nueva propuesta de intercambio.",
     link: `/trades?id=${trade.id}`,
+    category: "trades",
   });
 
   revalidatePath("/trades");
@@ -213,12 +215,20 @@ export async function respondToTrade(
         ? "rechazó"
         : "canceló";
 
-  await supabase.from("notifications").insert({
-    user_id: notifyUserId,
+  const notifTitle =
+    action === "accepted"
+      ? "Intercambio aceptado 🎉"
+      : action === "rejected"
+        ? "Intercambio rechazado"
+        : "Intercambio cancelado";
+
+  await sendNotification({
+    userId: notifyUserId,
     type: "trade_updated",
-    title: "Intercambio actualizado",
+    title: notifTitle,
     message: `Tu intercambio fue ${actionLabel}.`,
     link: `/trades?id=${tradeId}`,
+    category: "trades",
   });
 
   revalidatePath("/trades");
@@ -266,12 +276,13 @@ export async function counterTrade(
     return { error: "Error al enviar la contra-oferta." };
   }
 
-  await supabase.from("notifications").insert({
-    user_id: trade.proposer_id,
+  await sendNotification({
+    userId: trade.proposer_id,
     type: "trade_updated",
     title: "Contra-oferta recibida",
     message: "Recibiste una contra-oferta en tu intercambio.",
     link: `/trades?id=${tradeId}`,
+    category: "trades",
   });
 
   revalidatePath("/trades");

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { listingSchema, offerSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sendNotification } from "./notifications";
 
 export async function createListing(formData: FormData) {
   const supabase = await createClient();
@@ -133,6 +134,16 @@ export async function makeOffer(formData: FormData) {
     .update({ offers_count: (listing.offers_count || 0) + 1 })
     .eq("id", listingId);
 
+  // Notify seller
+  await sendNotification({
+    userId: listing.seller_id,
+    type: "offer_received",
+    title: "Nueva oferta en tu publicación",
+    message: `Recibiste una oferta de $${parsed.data.amount}.`,
+    link: `/singles/${listingId}`,
+    category: "singles",
+  });
+
   revalidatePath(`/singles/${listingId}`);
   return { success: true };
 }
@@ -153,7 +164,7 @@ export async function updateOfferStatus(
   // Verify the user is the seller
   const { data: offer } = await supabase
     .from("marketplace_offers")
-    .select("listing_id, marketplace_listings(seller_id)")
+    .select("listing_id, buyer_id, marketplace_listings(seller_id)")
     .eq("id", offerId)
     .single();
 
@@ -170,6 +181,23 @@ export async function updateOfferStatus(
   if (error) {
     console.error("[updateOfferStatus]", error);
     return { error: "Error al actualizar la oferta." };
+  }
+
+  // Notify buyer
+  if (offer?.buyer_id) {
+    const notifTitle = status === "accepted" ? "Oferta aceptada 🎉" : "Oferta rechazada";
+    const notifMsg  = status === "accepted"
+      ? "El vendedor aceptó tu oferta."
+      : "El vendedor rechazó tu oferta.";
+
+    await sendNotification({
+      userId: offer.buyer_id,
+      type: status === "accepted" ? "offer_accepted" : "offer_rejected",
+      title: notifTitle,
+      message: notifMsg,
+      link: `/singles/${offer.listing_id}`,
+      category: "singles",
+    });
   }
 
   revalidatePath(`/singles/${offer?.listing_id}`);
