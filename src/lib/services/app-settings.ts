@@ -15,7 +15,7 @@ export interface AppSettings {
   premium_enabled: boolean;
 }
 
-const DEFAULTS: AppSettings = {
+export const SETTINGS_DEFAULTS: AppSettings = {
   singles_enabled: true,
   cart_enabled: false,
   prices_enabled: false,
@@ -28,11 +28,6 @@ const DEFAULTS: AppSettings = {
 
 // ── Lectura pública (sin auth) ───────────────────────────────
 
-/**
- * Lee todas las feature flags de Supabase.
- * Si la tabla no existe devuelve los defaults para no bloquear el build.
- * Usa el cliente anon para que lo pueda leer el layout.
- */
 export async function getAppSettings(): Promise<AppSettings> {
   try {
     const supabase = createAdminClient();
@@ -40,24 +35,21 @@ export async function getAppSettings(): Promise<AppSettings> {
       .from("app_settings")
       .select("key, value");
 
-    if (error || !data) return DEFAULTS;
+    if (error || !data) return SETTINGS_DEFAULTS;
 
-    const result: AppSettings = { ...DEFAULTS };
+    const result: AppSettings = { ...SETTINGS_DEFAULTS };
     for (const row of data) {
       const key = row.key as keyof AppSettings;
-      if (key in DEFAULTS) {
-        result[key] = Boolean(row.value);
+      if (key in SETTINGS_DEFAULTS) {
+        result[key] = row.value === true || row.value === "true";
       }
     }
     return result;
   } catch {
-    return DEFAULTS;
+    return SETTINGS_DEFAULTS;
   }
 }
 
-/**
- * Obtiene un único flag por su key.
- */
 export async function getFlag(key: keyof AppSettings): Promise<boolean> {
   try {
     const supabase = createAdminClient();
@@ -67,10 +59,10 @@ export async function getFlag(key: keyof AppSettings): Promise<boolean> {
       .eq("key", key)
       .single();
 
-    if (data === null || data === undefined) return DEFAULTS[key];
-    return Boolean(data.value);
+    if (!data) return SETTINGS_DEFAULTS[key];
+    return data.value === true || data.value === "true";
   } catch {
-    return DEFAULTS[key];
+    return SETTINGS_DEFAULTS[key];
   }
 }
 
@@ -81,42 +73,56 @@ export interface UpdateSettingResult {
   error?: string;
 }
 
-/**
- * Actualiza un feature flag. Solo admins pueden llamar esto.
- */
 export async function updateAppSetting(
   key: keyof AppSettings,
   value: boolean
 ): Promise<UpdateSettingResult> {
   try {
+    // Verificar autenticación con cliente de usuario
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user) return { success: false, error: "No autenticado" };
+    if (authError || !user) {
+      return { success: false, error: "No autenticado. Recargá la página." };
+    }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (profile?.role !== "admin") {
-      return { success: false, error: "Solo los admins pueden modificar la configuración" };
+    if (profileError || !profile) {
+      return { success: false, error: "No se pudo verificar tu rol." };
     }
 
+    if (profile.role !== "admin") {
+      return { success: false, error: "Solo los admins pueden modificar esta configuración." };
+    }
+
+    // Escribir con admin client (bypasea RLS)
     const admin = createAdminClient();
-    const { error } = await admin
+    const { error: upsertError } = await admin
       .from("app_settings")
       .upsert(
-        { key, value, updated_by: user.id },
+        {
+          key,
+          value: value,   // boolean → jsonb (Supabase lo convierte automáticamente)
+          updated_by: user.id,
+          updated_at: new Date().toISOString(),
+        },
         { onConflict: "key" }
       );
 
-    if (error) return { success: false, error: error.message };
+    if (upsertError) {
+      return { success: false, error: upsertError.message };
+    }
+
     return { success: true };
   } catch (e) {
-    return { success: false, error: String(e) };
+    return { success: false, error: `Error inesperado: ${String(e)}` };
   }
 }

@@ -6,8 +6,10 @@ import {
   ShoppingCart,
   Layers,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import { getAppSettings } from "@/lib/services/app-settings";
+import { createAdminClient } from "@/lib/supabase/server";
 import { ToggleRow } from "./toggle-row";
 
 export const metadata: Metadata = {
@@ -16,8 +18,21 @@ export const metadata: Metadata = {
 
 export const revalidate = 0;
 
+async function checkTableExists(): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("app_settings").select("key").limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export default async function AdminSettingsPage() {
-  const settings = await getAppSettings();
+  const [settings, tableExists] = await Promise.all([
+    getAppSettings(),
+    checkTableExists(),
+  ]);
 
   return (
     <div className="min-h-screen bg-surface-900 p-4 sm:p-6 lg:p-8">
@@ -37,12 +52,55 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
 
+        {/* Warning si la tabla no existe */}
+        {!tableExists && (
+          <Card className="border-amber-500/40 bg-amber-500/10">
+            <CardContent className="p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-300 mb-1">
+                  La tabla <code className="font-mono bg-amber-500/20 px-1 rounded">app_settings</code> no existe en Supabase
+                </p>
+                <p className="text-xs text-surface-300 mb-2">
+                  Los toggles no van a guardar nada hasta que ejecutes la migración. Copiá y ejecutá este SQL en el <strong>SQL Editor de Supabase</strong>:
+                </p>
+                <a
+                  href="https://supabase.com/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-amber-400 hover:text-amber-300 underline"
+                >
+                  Ir al SQL Editor de Supabase →
+                </a>
+                <pre className="mt-2 text-xs bg-surface-900 rounded p-3 overflow-x-auto text-surface-300 border border-surface-700">
+{`-- Ejecutar en Supabase SQL Editor:
+CREATE TABLE IF NOT EXISTS app_settings (
+  key         TEXT PRIMARY KEY,
+  value       JSONB NOT NULL DEFAULT 'null'::jsonb,
+  description TEXT,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_by  UUID REFERENCES profiles(id)
+);
+
+INSERT INTO app_settings (key, value) VALUES
+  ('singles_enabled', 'true'), ('cart_enabled', 'false'),
+  ('prices_enabled', 'false'), ('trades_enabled', 'true'),
+  ('forum_enabled', 'true'), ('decks_enabled', 'true'),
+  ('album_enabled', 'true'), ('premium_enabled', 'true')
+ON CONFLICT (key) DO NOTHING;`}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Info */}
         <Card className="border-blue-500/20 bg-blue-500/5">
           <CardContent className="p-4 flex items-start gap-3">
             <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-surface-300">
               Los cambios se aplican <strong className="text-surface-100">inmediatamente</strong> en todo el sitio.
+
               Los toggles se guardan en la base de datos. Solo los admins pueden modificarlos.
             </p>
           </CardContent>
