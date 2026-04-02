@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,6 +25,19 @@ export const metadata: Metadata = {
 
 export const revalidate = 0;
 
+// Server action wrappers — form actions must return void
+async function markAllReadAction() {
+  "use server";
+  await markAllNotificationsRead();
+  revalidatePath("/notifications");
+}
+
+async function deleteNotifAction(id: string) {
+  "use server";
+  await deleteNotification(id);
+  revalidatePath("/notifications");
+}
+
 const iconMap: Record<string, typeof Bell> = {
   trade_proposed: RefreshCw,
   trade_updated: RefreshCw,
@@ -46,12 +60,12 @@ function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "Ahora";
-  if (mins < 60) return \`Hace \${mins} min\`;
+  if (mins < 60) return `Hace ${mins} min`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return \`Hace \${hrs}h\`;
+  if (hrs < 24) return `Hace ${hrs}h`;
   const days = Math.floor(hrs / 24);
   if (days === 1) return "Ayer";
-  return \`Hace \${days} días\`;
+  return `Hace ${days} días`;
 }
 
 export default async function NotificationsPage() {
@@ -73,7 +87,7 @@ export default async function NotificationsPage() {
           )}
         </div>
         {unreadCount > 0 && (
-          <form action={markAllNotificationsRead}>
+          <form action={markAllReadAction}>
             <button
               type="submit"
               className="flex items-center gap-1.5 text-xs text-surface-400 hover:text-surface-200 transition-colors px-2 py-1"
@@ -99,17 +113,17 @@ export default async function NotificationsPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div
-                      className={\`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 \${
+                      className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
                         isUnread
                           ? "bg-primary-600/20 text-primary-400"
                           : "bg-surface-800 text-surface-400"
-                      }\`}
+                      }`}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className={\`text-sm font-medium \${isUnread ? "text-surface-50" : "text-surface-300"}\`}>
+                        <p className={`text-sm font-medium ${isUnread ? "text-surface-50" : "text-surface-300"}`}>
                           {notif.title}
                         </p>
                         {isUnread && (
@@ -128,7 +142,7 @@ export default async function NotificationsPage() {
                         )}
                       </div>
                     </div>
-                    <form action={deleteNotification.bind(null, notif.id)}>
+                    <form action={deleteNotifAction.bind(null, notif.id)}>
                       <button
                         type="submit"
                         className="p-1 rounded text-surface-600 hover:text-surface-400 transition-colors shrink-0"
