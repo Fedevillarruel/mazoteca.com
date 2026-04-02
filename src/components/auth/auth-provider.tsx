@@ -14,6 +14,7 @@ interface AuthUser {
   username: string;
   avatar_url: string | null;
   is_premium: boolean;
+  role: string;
 }
 
 interface AuthContextValue {
