@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toggleAlbum, setAlbumQuantity, createCardListing } from "@/lib/actions/profile";
-import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
+import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
 
 // ── Types ─────────────────────────────────────────────────────
 export interface AlbumViewProps {

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updateAppSetting } from "@/lib/services/app-settings";
-import type { AppSettings } from "@/lib/services/app-settings";
+import type { AppSettings } from "@/lib/types/app-settings";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ToggleRowProps {

@@ -16,19 +16,9 @@ import {
   extractCondition,
   type TNProduct,
 } from "./tiendanube";
+import type { SyncResult, CatalogSingleEntry } from "@/lib/types/tiendanube";
 
 // ── Full sync ────────────────────────────────────────────────
-
-export interface SyncResult {
-  success: boolean;
-  synced: number;
-  failed: number;
-  noCode: number;         // products with no extractable card_code
-  noMatch: number;        // products where card_code doesn't exist in cards table
-  errors: { productId: number; name: string; error: string }[];
-  unmatched: { productId: number; name: string; rawCode: string | null }[];
-  error?: string;
-}
 
 export async function syncAllProducts(trigger: "cron" | "manual" = "manual"): Promise<SyncResult> {
   const supabase = createAdminClient();
@@ -364,18 +354,6 @@ export async function getCardCodesInStore(): Promise<Set<string>> {
     if (row.card_code) codes.add(row.card_code);
   }
   return codes;
-}
-
-export interface CatalogSingleEntry {
-  card_code: string;
-  min_price: number | null;
-  max_price: number | null;
-  promotional_price: number | null; // precio tachado (original) si hay descuento
-  total_stock: number;
-  image_url: string | null;
-  all_images: string[];            // todas las imágenes del producto para carrusel
-  handle: string | null;
-  variant_ids: number[];           // para checkout
 }
 
 /**

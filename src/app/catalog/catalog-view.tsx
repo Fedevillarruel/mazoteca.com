@@ -30,7 +30,7 @@ import {
   type KTCGCard,
   type KTCGCategory,
 } from "@/data/cards";
-import type { CatalogSingleEntry } from "@/lib/services/tiendanube-sync";
+import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
 // import { useCartStore } from "@/lib/stores"; // temporalmente oculto
 
 // ── TN domain (for buy links) ────────────────────────────────

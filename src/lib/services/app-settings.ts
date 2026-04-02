@@ -1,30 +1,8 @@
 "use server";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-
-// ── Tipos ────────────────────────────────────────────────────
-
-export interface AppSettings {
-  singles_enabled: boolean;
-  cart_enabled: boolean;
-  prices_enabled: boolean;
-  trades_enabled: boolean;
-  forum_enabled: boolean;
-  decks_enabled: boolean;
-  album_enabled: boolean;
-  premium_enabled: boolean;
-}
-
-export const SETTINGS_DEFAULTS: AppSettings = {
-  singles_enabled: true,
-  cart_enabled: false,
-  prices_enabled: false,
-  trades_enabled: true,
-  forum_enabled: true,
-  decks_enabled: true,
-  album_enabled: true,
-  premium_enabled: true,
-};
+import type { AppSettings, UpdateSettingResult } from "@/lib/types/app-settings";
+import { SETTINGS_DEFAULTS } from "@/lib/types/app-settings";
 
 // ── Lectura pública (sin auth) ───────────────────────────────
 
@@ -67,11 +45,6 @@ export async function getFlag(key: keyof AppSettings): Promise<boolean> {
 }
 
 // ── Escritura (solo admin) ───────────────────────────────────
-
-export interface UpdateSettingResult {
-  success: boolean;
-  error?: string;
-}
 
 export async function updateAppSetting(
   key: keyof AppSettings,
