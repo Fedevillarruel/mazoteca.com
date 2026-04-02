@@ -36,6 +36,7 @@ import {
   Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compareCards } from "@/lib/utils/card-sort";
 import { toggleAlbum, setAlbumQuantity, createCardListing } from "@/lib/actions/profile";
 import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
 
@@ -440,7 +441,9 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flipBookRef = useRef<any>(null);
 
-  const catalogCards: KTCGCard[] = allCards.filter((c) => singlesMap[c.code]);
+  const catalogCards: KTCGCard[] = allCards
+    .filter((c) => singlesMap[c.code])
+    .sort(compareCards);
 
   const ownedCount = catalogCards.filter((c) => (ownedMap[c.code] ?? 0) > 0).length;
   const totalCards = catalogCards.length;

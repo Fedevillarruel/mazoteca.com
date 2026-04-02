@@ -26,6 +26,7 @@ import {
   Gamepad2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { compareCards } from "@/lib/utils/card-sort";
 import {
   allCards,
   cardCategories,
@@ -41,9 +42,10 @@ interface CardWithSingle extends KTCGCard {
 
 // ── Sort options ─────────────────────────────────────────────
 const sortOptions = [
-  { label: "Código (asc)",  value: "code_asc" },
-  { label: "Código (desc)", value: "code_desc" },
-  { label: "Nombre (A-Z)",  value: "name_asc" },
+  { label: "Predeterminado",  value: "default" },
+  { label: "Código (asc)",    value: "code_asc" },
+  { label: "Código (desc)",   value: "code_desc" },
+  { label: "Nombre (A-Z)",    value: "name_asc" },
 ];
 
 // ── Page size options ─────────────────────────────────────────
@@ -98,7 +100,7 @@ export function CatalogView({
   const [level,       setLevel]       = useState("");
   const [faction,     setFaction]     = useState("");
   const [tcgFilter,   setTcgFilter]   = useState("");
-  const [sort,        setSort]        = useState("code_asc");
+  const [sort,        setSort]        = useState("default");
   const [viewMode,    setViewMode]    = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [pageSize,    setPageSize]    = useState(20);
@@ -168,10 +170,11 @@ export function CatalogView({
 
     cards.sort((a, b) => {
       switch (sort) {
+        case "default":   return compareCards(a, b);
         case "code_asc":  return a.code.localeCompare(b.code);
         case "code_desc": return b.code.localeCompare(a.code);
         case "name_asc":  return a.name.localeCompare(b.name);
-        default:          return 0;
+        default:          return compareCards(a, b);
       }
     });
 

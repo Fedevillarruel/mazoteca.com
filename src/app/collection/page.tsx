@@ -48,6 +48,7 @@ export default async function CollectionPage() {
         quantity: row.quantity ?? 1,
         is_favorite: row.is_favorite ?? false,
         tn_game: singlesMap.get(row.card_code)?.tn_game ?? null,
+        image_url: singlesMap.get(row.card_code)?.image_url ?? null,
       };
     });
   const cards: CollectionCard[] = rawCards.filter((c) => c !== null) as CollectionCard[];
@@ -67,4 +68,5 @@ export type CollectionCard = {
   quantity: number;
   is_favorite: boolean;
   tn_game: string | null;
+  image_url: string | null;
 };

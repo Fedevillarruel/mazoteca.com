@@ -2,6 +2,7 @@
 
 import { useState, useOptimistic, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { toggleFavorite } from "@/lib/actions/profile";
 import { cn } from "@/lib/utils";
+import { compareCards } from "@/lib/utils/card-sort";
 import type { CollectionCard } from "./page";
 
 // ── Filter options ───────────────────────────────────────────
@@ -67,9 +69,9 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
       return true;
     })
     .sort((a, b) => {
-      // Favorites first, then by code
+      // Favorites first, then canonical category/level order
       if (a.is_favorite !== b.is_favorite) return a.is_favorite ? -1 : 1;
-      return a.code.localeCompare(b.code);
+      return compareCards(a, b);
     });
 
   function handleFavorite(card: CollectionCard) {
@@ -287,11 +289,21 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
             <div key={card.code} className="relative group">
               {/* Card thumbnail */}
               <Link href={`/catalog/${card.slug}`}>
-                <div className="relative aspect-2.5/3.5 rounded-lg overflow-hidden border-2 border-primary-600/40 bg-surface-800 flex items-center justify-center transition-transform hover:scale-105 hover:border-primary-500">
-                  <div className="flex flex-col items-center gap-1 p-2 text-center">
-                    <span className="text-[9px] font-mono text-surface-400">{card.code}</span>
-                    <span className="text-[10px] text-surface-300 font-medium leading-tight line-clamp-2">{card.name}</span>
-                  </div>
+                <div className="relative aspect-2.5/3.5 rounded-lg overflow-hidden border-2 border-primary-600/40 bg-surface-800 transition-transform hover:scale-105 hover:border-primary-500">
+                  {card.image_url ? (
+                    <Image
+                      src={card.image_url}
+                      alt={card.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 12vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2 text-center">
+                      <span className="text-[9px] font-mono text-surface-400">{card.code}</span>
+                      <span className="text-[10px] text-surface-300 font-medium leading-tight line-clamp-2">{card.name}</span>
+                    </div>
+                  )}
                   {/* Quantity badge */}
                   {card.quantity > 1 && (
                     <div className="absolute top-1 right-1 h-5 w-5 rounded-full bg-primary-600 flex items-center justify-center">
@@ -304,10 +316,12 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
                       <Heart className="h-3.5 w-3.5 fill-rose-400 text-rose-400 drop-shadow" />
                     </div>
                   )}
-                  {/* Category label */}
-                  <div className="absolute bottom-0 inset-x-0 bg-black/70 px-1.5 py-1">
-                    <p className="text-[9px] text-surface-300 truncate text-center">{card.category}</p>
-                  </div>
+                  {/* Category label — only shown when no image */}
+                  {!card.image_url && (
+                    <div className="absolute bottom-0 inset-x-0 bg-black/70 px-1.5 py-1">
+                      <p className="text-[9px] text-surface-300 truncate text-center">{card.category}</p>
+                    </div>
+                  )}
                 </div>
               </Link>
 
@@ -337,8 +351,12 @@ export function CollectionView({ cards }: { cards: CollectionCard[] }) {
               key={card.code}
               className="flex items-center gap-3 p-3 rounded-lg bg-surface-800/50 hover:bg-surface-700/50 transition-colors"
             >
-              <div className="h-10 w-7 rounded bg-surface-700 shrink-0 flex items-center justify-center">
-                <span className="text-[8px] font-mono text-surface-500">{card.code.slice(-3)}</span>
+              <div className="relative h-14 w-10 rounded bg-surface-700 shrink-0 overflow-hidden flex items-center justify-center">
+                {card.image_url ? (
+                  <Image src={card.image_url} alt={card.name} fill className="object-cover" sizes="40px" />
+                ) : (
+                  <span className="text-[8px] font-mono text-surface-500">{card.code.slice(-3)}</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <Link href={`/catalog/${card.slug}`} className="text-sm font-medium text-surface-100 truncate block hover:text-primary-300 transition-colors">
