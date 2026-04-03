@@ -18,17 +18,19 @@ import {
   Crown, Shield, Star, Scroll, Sparkles, Crosshair,
   BookMarked, Search, X, Check, Grid3X3, BookOpen,
   ChevronLeft, ChevronRight, Plus, Minus, ShoppingBag,
-  RefreshCw, Copy,
+  RefreshCw, Copy, Heart, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { compareCards } from "@/lib/utils/card-sort";
-import { toggleAlbum, setAlbumQuantity, createCardListing } from "@/lib/actions/profile";
+import { toggleAlbum, setAlbumQuantity, createCardListing, toggleAlbumWishlist } from "@/lib/actions/profile";
 import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
 
 // ── Types ─────────────────────────────────────────────────────
 export interface AlbumViewProps {
-  albumMap: Record<string, number>; // card_code → quantity
+  albumMap: Record<string, number>;
   singlesMap: Record<string, CatalogSingleEntry>;
+  initialWishlist?: string[];
+  username?: string;
 }
 
 interface CardModalState {
@@ -42,26 +44,30 @@ const categoryIcon: Record<KTCGCategory, typeof Crown> = {
   Estrategia: Scroll, "Estrategia Primigenia": Sparkles, Arroje: Crosshair,
 };
 
-function formatARS(n: number) {
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency", currency: "ARS", maximumFractionDigits: 0,
-  }).format(n);
-}
-
 const CARDS_PER_PAGE = 9;
 const KTCG_LOGO = "https://kingdom-tcg.com/kingdom-tcg-tm-logo.svg";
+
+const PAGE_SIZE_OPTIONS = [20, 50, 100, 500, "all"] as const;
+type PageSizeOption = typeof PAGE_SIZE_OPTIONS[number];
+
+const CATEGORIES: KTCGCategory[] = ["Coronados", "Realeza", "Arroje", "Estrategia Primigenia", "Estrategia", "Tropas"];
+const LEVELS = [1, 2, 3, 4];
 
 // ── Card Detail Modal ─────────────────────────────────────────
 function CardModal({
   state,
   quantity,
+  isWishlisted,
   onClose,
   onSetQty,
+  onToggleWishlist,
 }: {
   state: CardModalState;
   quantity: number;
+  isWishlisted: boolean;
   onClose: () => void;
   onSetQty: (qty: number) => void;
+  onToggleWishlist: () => void;
 }) {
   const { card, single } = state;
   const Icon = categoryIcon[card.category];
@@ -109,11 +115,6 @@ function CardModal({
             <p className="text-xs text-surface-400 mt-0.5">
               {card.category}{card.level != null ? ` · Nv. ${card.level}` : ""}
             </p>
-            {single?.min_price != null && (
-              <p className="text-xs text-primary-400 font-semibold mt-1">
-                {formatARS(single.promotional_price ?? single.min_price)}
-              </p>
-            )}
           </div>
           <button onClick={onClose} className="text-surface-500 hover:text-surface-200 transition-colors p-1">
             <X className="h-4 w-4" />
@@ -136,6 +137,22 @@ function CardModal({
               <Check className="h-3 w-3" />
               {isOwned ? "La tengo" : "No la tengo"}
             </button>
+
+            {/* Wishlist toggle (shown when not owned) */}
+            {!isOwned && (
+              <button
+                onClick={onToggleWishlist}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                  isWishlisted
+                    ? "bg-violet-600 border-violet-500 text-white"
+                    : "bg-surface-800 border-surface-700 text-surface-400 hover:border-violet-500 hover:text-violet-300"
+                )}
+              >
+                <Heart className={cn("h-3 w-3", isWishlisted && "fill-white")} />
+                {isWishlisted ? "En wishlist" : "Agregar a wishlist"}
+              </button>
+            )}
 
             {isOwned && (
               <div className="flex items-center gap-2">
@@ -367,15 +384,21 @@ const BackCover = forwardRef<HTMLDivElement>(function BackCover(_, ref) {
 });
 
 // ── Main component ────────────────────────────────────────────
-export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewProps) {
-  const [ownedMap, setOwnedMap] = useState<Record<string, number>>(initialAlbumMap);
-  const [search, setSearch] = useState("");
-  const [filterOwned, setFilterOwned] = useState<"all" | "owned" | "missing">("all");
-  const [viewMode, setViewMode] = useState<"flip" | "grid">("flip");
-  const [, startTransition] = useTransition();
+export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishlist = [], username = "" }: AlbumViewProps) {
+  const [ownedMap, setOwnedMap]     = useState<Record<string, number>>(initialAlbumMap);
+  const [wishlistSet, setWishlistSet] = useState<Set<string>>(new Set(initialWishlist));
+  const [search, setSearch]         = useState("");
+  const [filterOwned, setFilterOwned] = useState<"all" | "owned" | "missing" | "wishlist">("all");
+  const [filterCategory, setFilterCategory] = useState<KTCGCategory | "all">("all");
+  const [filterLevel, setFilterLevel] = useState<number | "all">("all");
+  const [sortBy, setSortBy]         = useState<"default" | "name_asc" | "level_asc">("default");
+  const [pageSize, setPageSize]     = useState<PageSizeOption>(50);
+  const [gridPage, setGridPage]     = useState(1);
+  const [viewMode, setViewMode]     = useState<"flip" | "grid">("grid");
+  const [, startTransition]         = useTransition();
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [modal, setModal] = useState<CardModalState | null>(null);
+  const [modal, setModal]           = useState<CardModalState | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flipBookRef = useRef<any>(null);
@@ -383,9 +406,10 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
   const catalogCards: KTCGCard[] = allCards
     .filter((c) => singlesMap[c.code])
     .sort(compareCards);
-  const ownedCount = catalogCards.filter((c) => (ownedMap[c.code] ?? 0) > 0).length;
-  const totalCards = catalogCards.length;
-  const percentage = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
+  const ownedCount  = catalogCards.filter((c) => (ownedMap[c.code] ?? 0) > 0).length;
+  const totalCards  = catalogCards.length;
+  const percentage  = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
+  const wishlistCount = wishlistSet.size;
 
   const flipPages: KTCGCard[][] = [];
   for (let i = 0; i < catalogCards.length; i += CARDS_PER_PAGE) {
@@ -393,16 +417,36 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
   }
   const totalFlipPages = flipPages.length;
 
-  const filtered = catalogCards.filter((c) => {
+  // ── Filtered + sorted cards for grid ──────────────────────
+  const baseFiltered = catalogCards.filter((c) => {
     if (search) {
       const q = search.toLowerCase();
       if (!c.name.toLowerCase().includes(q) && !c.code.toLowerCase().includes(q)) return false;
     }
+    if (filterCategory !== "all" && c.category !== filterCategory) return false;
+    if (filterLevel !== "all" && c.level !== filterLevel) return false;
     const qty = ownedMap[c.code] ?? 0;
     if (filterOwned === "owned") return qty > 0;
     if (filterOwned === "missing") return qty === 0;
+    if (filterOwned === "wishlist") return wishlistSet.has(c.code);
     return true;
   });
+
+  const sorted = [...baseFiltered].sort((a, b) => {
+    if (sortBy === "name_asc") return a.name.localeCompare(b.name);
+    if (sortBy === "level_asc") return (a.level ?? 99) - (b.level ?? 99);
+    return compareCards(a, b);
+  });
+
+  // Pagination for grid
+  const pageSizeNum = pageSize === "all" ? sorted.length : pageSize;
+  const totalGridPages = Math.max(1, Math.ceil(sorted.length / pageSizeNum));
+  const currentGridPage = Math.min(gridPage, totalGridPages);
+  const pageStart = (currentGridPage - 1) * pageSizeNum;
+  const filtered = sorted.slice(pageStart, pageStart + pageSizeNum);
+
+  // Reset grid page when filters change
+  const resetGridPage = () => setGridPage(1);
 
   const handleCardClick = useCallback((card: KTCGCard) => {
     setModal({ card, single: singlesMap[card.code] });
@@ -430,8 +474,30 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
     });
   }
 
+  function handleToggleWishlist(code: string) {
+    const wasWishlisted = wishlistSet.has(code);
+    setWishlistSet((prev) => {
+      const next = new Set(prev);
+      if (wasWishlisted) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+    startTransition(async () => {
+      const res = await toggleAlbumWishlist(code);
+      if (res.needsAuth) { window.location.href = "/login"; return; }
+      if (res.error) {
+        // Revert
+        setWishlistSet((prev) => {
+          const next = new Set(prev);
+          if (wasWishlisted) next.add(code);
+          else next.delete(code);
+          return next;
+        });
+      }
+    });
+  }
+
   function handleToggleFromGrid(code: string) {
-    // For direct toggle from grid (without modal) — not used currently, kept for future
     const wasOwned = (ownedMap[code] ?? 0) > 0;
     setPendingCode(code);
     setOwnedMap((m) => {
@@ -454,7 +520,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
       setPendingCode(null);
     });
   }
-  void handleToggleFromGrid; // suppress unused warning
+  void handleToggleFromGrid;
 
   function goToPrev() { flipBookRef.current?.pageFlip()?.flipPrev(); }
   function goToNext() { flipBookRef.current?.pageFlip()?.flipNext(); }
@@ -465,15 +531,15 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
       <div className="grid grid-cols-3 gap-3 mb-6">
         <Card><CardContent className="p-3 text-center">
           <p className="text-2xl font-bold text-primary-400">{ownedCount}</p>
-          <p className="text-xs text-surface-400">Cartas en álbum</p>
+          <p className="text-xs text-surface-400">Tengo</p>
         </CardContent></Card>
         <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-surface-300">{totalCards}</p>
-          <p className="text-xs text-surface-400">En el catálogo</p>
+          <p className="text-2xl font-bold text-surface-300">{totalCards - ownedCount}</p>
+          <p className="text-xs text-surface-400">Me falta</p>
         </CardContent></Card>
         <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-accent-400">{percentage}%</p>
-          <p className="text-xs text-surface-400">Completado</p>
+          <p className="text-2xl font-bold text-violet-400">{wishlistCount}</p>
+          <p className="text-xs text-surface-400">Wishlist</p>
         </CardContent></Card>
       </div>
 
@@ -481,7 +547,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
       <div className="mb-5">
         <div className="flex items-center justify-between text-xs text-surface-400 mb-1.5">
           <span>Progreso del álbum</span>
-          <span>{ownedCount} / {totalCards}</span>
+          <span>{ownedCount} / {totalCards} · {percentage}%</span>
         </div>
         <div className="h-2 bg-surface-800 rounded-full overflow-hidden">
           <div className="h-full bg-linear-to-r from-primary-600 to-accent-500 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }} />
@@ -503,7 +569,8 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
       {/* View mode toggle */}
       <div className="flex items-center justify-between mb-5">
         <p className="text-xs text-surface-500 hidden sm:block">
-          Hacé clic en una carta para ver detalles, marcarla y publicarla
+          {username && <span>Álbum de <strong className="text-surface-300">{username}</strong> · </span>}
+          Hacé clic en una carta para ver detalles
         </p>
         <div className="flex bg-surface-900 border border-surface-700 rounded-lg overflow-hidden ml-auto">
           <button
@@ -568,75 +635,168 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
       {/* ── GRID MODE ── */}
       {viewMode === "grid" && (
         <>
-          <div className="flex flex-col sm:flex-row gap-3 mb-5">
-            <div className="flex-1">
+          {/* ── Filters row ── */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* Search */}
+            <div className="flex-1 min-w-48">
               <Input
                 placeholder="Buscar por nombre o código..."
-                value={search} onChange={(e) => setSearch(e.target.value)}
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); resetGridPage(); }}
                 leftIcon={<Search className="h-4 w-4" />}
                 rightIcon={search ? (
-                  <button onClick={() => setSearch("")} className="text-surface-400 hover:text-surface-200"><X className="h-4 w-4" /></button>
+                  <button onClick={() => { setSearch(""); resetGridPage(); }} className="text-surface-400 hover:text-surface-200"><X className="h-4 w-4" /></button>
                 ) : undefined}
               />
             </div>
-            <div className="flex gap-2">
-              {(["all", "owned", "missing"] as const).map((f) => (
-                <button key={f} onClick={() => setFilterOwned(f)}
-                  className={cn("px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                    filterOwned === f ? "bg-primary-600 text-white" : "bg-surface-800 text-surface-400 hover:text-surface-200 border border-surface-700")}
-                >
-                  {f === "all" ? "Todas" : f === "owned" ? "Tengo" : "Me falta"}
-                </button>
-              ))}
+
+            {/* Category */}
+            <div className="relative">
+              <select
+                value={filterCategory}
+                onChange={(e) => { setFilterCategory(e.target.value as KTCGCategory | "all"); resetGridPage(); }}
+                className="appearance-none pl-3 pr-8 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                <option value="all">Categoría</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
+            </div>
+
+            {/* Level */}
+            <div className="relative">
+              <select
+                value={filterLevel}
+                onChange={(e) => { setFilterLevel(e.target.value === "all" ? "all" : Number(e.target.value)); resetGridPage(); }}
+                className="appearance-none pl-3 pr-8 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                <option value="all">Nivel</option>
+                {LEVELS.map((lv) => (
+                  <option key={lv} value={lv}>Nivel {lv}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
+            </div>
+
+            {/* Sort */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => { setSortBy(e.target.value as typeof sortBy); resetGridPage(); }}
+                className="appearance-none pl-3 pr-8 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                <option value="default">Ordenar: Predeterminado</option>
+                <option value="name_asc">Ordenar: A–Z</option>
+                <option value="level_asc">Ordenar: Nivel</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
+            </div>
+
+            {/* Page size */}
+            <div className="relative">
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(e.target.value === "all" ? "all" : Number(e.target.value) as PageSizeOption); resetGridPage(); }}
+                className="appearance-none pl-3 pr-8 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                {PAGE_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt === "all" ? "Mostrar todas" : `Mostrar ${opt}`}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 mb-5 flex-wrap text-xs text-surface-500">
-            <span className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded border-2 border-primary-500 bg-primary-500/20" /> La tenés
-            </span>
-            <span className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded border-2 border-surface-700 opacity-50" /> No la tenés (gris)
-            </span>
-            <span className="text-amber-500 flex items-center gap-1">
-              <span className="bg-amber-500 text-white rounded px-1 text-[8px] font-bold">×2</span> Repetidas
-            </span>
+          {/* Collection filter tabs */}
+          <div className="flex gap-1.5 mb-5 flex-wrap">
+            {(["all", "owned", "missing", "wishlist"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => { setFilterOwned(f); resetGridPage(); }}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
+                  filterOwned === f
+                    ? f === "wishlist"
+                      ? "bg-violet-600 text-white"
+                      : "bg-primary-600 text-white"
+                    : "bg-surface-800 text-surface-400 hover:text-surface-200 border border-surface-700"
+                )}
+              >
+                {f === "wishlist" && <Heart className={cn("h-3 w-3", filterOwned === f && "fill-white")} />}
+                {f === "all" ? "Todas" : f === "owned" ? "Tengo" : f === "missing" ? "Me falta" : "Wishlist"}
+                {f === "wishlist" && wishlistCount > 0 && (
+                  <span className={cn("text-[10px] rounded-full px-1.5 py-0.5 font-bold",
+                    filterOwned === "wishlist" ? "bg-white/20" : "bg-violet-500/20 text-violet-400")}>
+                    {wishlistCount}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
-          {filtered.length === 0 ? (
+          {/* Results info */}
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-surface-500">
+              {sorted.length} carta{sorted.length !== 1 ? "s" : ""}
+              {pageSize !== "all" && sorted.length > pageSizeNum && (
+                <span className="ml-1">· Página {currentGridPage}/{totalGridPages}</span>
+              )}
+            </p>
+            <div className="flex items-center gap-2 text-xs text-surface-500">
+              <span className="flex items-center gap-1">
+                <div className="h-2.5 w-2.5 rounded border-2 border-primary-500 bg-primary-500/20" /> Tengo
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="h-2.5 w-2.5 rounded border-2 border-surface-700 opacity-50" /> Me falta
+              </span>
+              <span className="flex items-center gap-1">
+                <Heart className="h-2.5 w-2.5 text-violet-400 fill-violet-400" /> Wishlist
+              </span>
+            </div>
+          </div>
+
+          {sorted.length === 0 ? (
             <div className="text-center py-16">
               <BookMarked className="h-10 w-10 text-surface-600 mx-auto mb-3" />
               <p className="text-surface-300 font-medium">No hay cartas que mostrar</p>
-              <p className="text-sm text-surface-500 mt-1">
-                {filterOwned === "owned" ? (
-                  <>Aún no marcaste ninguna. Hacé clic en cualquier carta para marcarla.</>
-                ) : "Probá cambiando los filtros."}
-              </p>
+              <p className="text-sm text-surface-500 mt-1">Probá cambiando los filtros.</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
               {filtered.map((card) => {
-                const single = singlesMap[card.code];
-                const qty = ownedMap[card.code] ?? 0;
-                const isOwned = qty > 0;
+                const single   = singlesMap[card.code];
+                const qty      = ownedMap[card.code] ?? 0;
+                const isOwned  = qty > 0;
+                const isWL     = wishlistSet.has(card.code);
                 const isLoading = pendingCode === card.code;
-                const Icon = categoryIcon[card.category];
-                const displayPrice = single?.promotional_price ?? single?.min_price;
+                const Icon     = categoryIcon[card.category];
                 return (
                   <button
-                    key={card.code} onClick={() => handleCardClick(card)} disabled={isLoading}
+                    key={card.code}
+                    onClick={() => handleCardClick(card)}
+                    disabled={isLoading}
                     className={cn(
                       "group relative rounded-xl overflow-hidden border-2 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
-                      isOwned ? "border-primary-500 bg-primary-500/5 shadow-md shadow-primary-500/10"
-                             : "border-surface-700/50 bg-surface-900 opacity-50 hover:opacity-80 hover:border-surface-600",
+                      isOwned
+                        ? "border-primary-500 bg-primary-500/5 shadow-md shadow-primary-500/10"
+                        : isWL
+                          ? "border-violet-500/60 bg-violet-500/5 opacity-70 hover:opacity-100 hover:border-violet-400"
+                          : "border-surface-700/50 bg-surface-900 opacity-50 hover:opacity-80 hover:border-surface-600",
                       isLoading && "opacity-40 cursor-wait"
                     )}
                   >
                     <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
                       {single?.image_url ? (
-                        <Image src={single.image_url} alt={card.name} fill
-                          className={cn("object-cover transition-all", !isOwned && "grayscale")}
-                          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 15vw" />
+                        <Image
+                          src={single.image_url} alt={card.name} fill
+                          className={cn(
+                            "object-cover transition-all duration-300",
+                            !isOwned && "grayscale group-hover:grayscale-0"
+                          )}
+                          sizes="(max-width: 640px) 33vw, (max-width: 1024px) 20vw, 15vw"
+                        />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
                           <Icon className={cn("h-6 w-6 mb-1", isOwned ? "text-surface-500" : "text-surface-700")} />
@@ -653,6 +813,13 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
                           </span>
                         </div>
                       )}
+                      {!isOwned && isWL && (
+                        <div className="absolute top-1.5 right-1.5">
+                          <span className="bg-violet-500 text-white rounded-full p-0.5 shadow flex">
+                            <Heart className="h-2.5 w-2.5 fill-white" />
+                          </span>
+                        </div>
+                      )}
                       {qty > 1 && (
                         <div className="absolute bottom-1.5 right-1.5 bg-amber-500 text-white rounded px-1.5 text-[9px] font-bold">
                           ×{qty}
@@ -660,14 +827,34 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
                       )}
                     </div>
                     <div className="p-1.5">
-                      <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2 mb-0.5">{card.name}</p>
-                      {displayPrice != null && (
-                        <p className="text-[9px] text-primary-400 font-medium">{formatARS(displayPrice)}</p>
-                      )}
+                      <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2">{card.name}</p>
                     </div>
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {pageSize !== "all" && totalGridPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setGridPage((p) => Math.max(1, p - 1))}
+                disabled={currentGridPage === 1}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 hover:bg-surface-700 disabled:opacity-40"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" /> Anterior
+              </button>
+              <span className="text-xs text-surface-400 px-2">
+                {currentGridPage} / {totalGridPages}
+              </span>
+              <button
+                onClick={() => setGridPage((p) => Math.min(totalGridPages, p + 1))}
+                disabled={currentGridPage === totalGridPages}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 hover:bg-surface-700 disabled:opacity-40"
+              >
+                Siguiente <ChevronRight className="h-3.5 w-3.5" />
+              </button>
             </div>
           )}
         </>
@@ -683,8 +870,10 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap }: AlbumViewPr
         <CardModal
           state={modal}
           quantity={ownedMap[modal.card.code] ?? 0}
+          isWishlisted={wishlistSet.has(modal.card.code)}
           onClose={() => setModal(null)}
           onSetQty={(qty) => handleSetQty(modal.card.code, qty)}
+          onToggleWishlist={() => handleToggleWishlist(modal.card.code)}
         />
       )}
     </PageLayout>

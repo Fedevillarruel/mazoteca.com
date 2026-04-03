@@ -246,6 +246,73 @@ export async function toggleWishlist(cardId: string) {
   return { success: true, wishlisted: true };
 }
 
+/**
+ * Toggle wishlist for album using card_code (string).
+ * Stores in user_album.is_wishlisted column.
+ */
+export async function toggleAlbumWishlist(
+  cardCode: string
+): Promise<{ wishlisted?: boolean; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { needsAuth: true };
+
+  // Check if already in user_album (owned)
+  const { data: albumRow } = await supabase
+    .from("user_album")
+    .select("id, is_wishlisted")
+    .eq("profile_id", user.id)
+    .eq("card_code", cardCode)
+    .maybeSingle();
+
+  if (albumRow) {
+    const next = !albumRow.is_wishlisted;
+    const { error } = await supabase
+      .from("user_album")
+      .update({ is_wishlisted: next })
+      .eq("id", albumRow.id);
+    if (error) return { error: "Error al actualizar wishlist." };
+    revalidatePath("/album");
+    revalidatePath("/profile");
+    return { wishlisted: next };
+  } else {
+    // Not owned — upsert with quantity=0 and is_wishlisted=true
+    const { error } = await supabase
+      .from("user_album")
+      .upsert(
+        { profile_id: user.id, card_code: cardCode, quantity: 0, is_wishlisted: true },
+        { onConflict: "profile_id,card_code" }
+      );
+    if (error) return { error: "Error al agregar a wishlist." };
+    revalidatePath("/album");
+    revalidatePath("/profile");
+    return { wishlisted: true };
+  }
+}
+
+/**
+ * Returns card codes the user has wishlisted (via user_album.is_wishlisted).
+ */
+export async function getAlbumWishlist(): Promise<string[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("user_album")
+    .select("card_code")
+    .eq("profile_id", user.id)
+    .eq("is_wishlisted", true);
+
+  return (data ?? []).map((row: { card_code: string }) => row.card_code);
+}
+
 export async function submitReport(formData: FormData) {
   const supabase = await createClient();
   const {

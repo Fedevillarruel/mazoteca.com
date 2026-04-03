@@ -371,6 +371,31 @@ export async function getWishlistByUsername(username: string) {
   return data || [];
 }
 
+/**
+ * Get wishlist from user_album.is_wishlisted (card_code based).
+ */
+export async function getAlbumWishlistByUsername(username: string) {
+  const supabase = await createClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .single();
+
+  if (!profile) return [];
+
+  const { data, error } = await supabase
+    .from("user_album")
+    .select("card_code, created_at")
+    .eq("profile_id", profile.id)
+    .eq("is_wishlisted", true)
+    .order("created_at", { ascending: false });
+
+  if (error) return [];
+  return (data || []).map((row: { card_code: string; created_at: string }) => row.card_code);
+}
+
 // =============================================================================
 // Notifications
 // =============================================================================

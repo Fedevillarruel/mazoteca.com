@@ -21,7 +21,6 @@ import {
   Settings,
   ChevronDown,
   RefreshCw,
-  ShoppingBag,
   Smile,
   LayoutDashboard,
 } from "lucide-react";
@@ -209,14 +208,6 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
             >
               <RefreshCw className="h-4 w-4 text-surface-400" />
               Intercambios
-            </Link>
-            <Link
-              href="/orders"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-surface-300 hover:text-surface-100 hover:bg-surface-800 transition-colors"
-            >
-              <ShoppingBag className="h-4 w-4 text-surface-400" />
-              Mis Pedidos
             </Link>
             <Link
               href="/settings"

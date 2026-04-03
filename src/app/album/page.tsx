@@ -26,22 +26,26 @@ export default async function AlbumPage() {
 
   const userId = userSession.profile.id;
 
-  // Fetch user's album (card codes + quantities)
+  // Fetch user's album (card codes + quantities + wishlist)
   const { data: albumRows } = await supabase
     .from("user_album")
-    .select("card_code, quantity")
+    .select("card_code, quantity, is_wishlisted")
     .eq("profile_id", userId);
 
-  // albumMap: code → quantity
+  // albumMap: code → quantity (0 = wishlisted but not owned)
   const albumMap: Record<string, number> = {};
+  const wishlistSet: string[] = [];
   for (const row of albumRows ?? []) {
-    albumMap[row.card_code] = row.quantity ?? 1;
+    if ((row.quantity ?? 0) > 0) albumMap[row.card_code] = row.quantity ?? 1;
+    if (row.is_wishlisted) wishlistSet.push(row.card_code);
   }
 
   return (
     <AlbumView
       albumMap={albumMap}
       singlesMap={Object.fromEntries(singlesMap)}
+      initialWishlist={wishlistSet}
+      username={userSession.profile.username ?? ""}
     />
   );
 }

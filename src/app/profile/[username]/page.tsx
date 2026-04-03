@@ -17,14 +17,14 @@ import {
   Heart,
   Swords,
   Scroll,
-  BookMarked,
   Shield,
   Sparkles,
   Crosshair,
 } from "lucide-react";
-import { getProfileByUsername, getPublicDecksByUsername, getWishlistByUsername } from "@/lib/queries";
+import { getProfileByUsername, getPublicDecksByUsername, getAlbumWishlistByUsername } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { ReportUserButton } from "./report-user-button";
+import { allCards } from "@/data/cards";
 
 export async function generateMetadata({
   params,
@@ -47,12 +47,6 @@ const categoryIcon: Record<string, typeof Crown> = {
   Arroje: Crosshair,
 };
 
-function priorityLabel(p: number) {
-  if (p >= 4) return { label: "Alta", cls: "bg-red-500/15 text-red-400 border-red-500/30" };
-  if (p >= 2) return { label: "Media", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" };
-  return { label: "Baja", cls: "bg-surface-700 text-surface-400 border-surface-600" };
-}
-
 export default async function ProfilePage({
   params,
 }: {
@@ -60,14 +54,20 @@ export default async function ProfilePage({
 }) {
   const { username } = await params;
 
-  const [profile, decks, wishlist, currentUser] = await Promise.all([
+  const [profile, decks, wishlistCodes, currentUser] = await Promise.all([
     getProfileByUsername(username).catch(() => null),
     getPublicDecksByUsername(username).catch(() => []),
-    getWishlistByUsername(username).catch(() => []),
+    getAlbumWishlistByUsername(username).catch(() => [] as string[]),
     getCurrentUser().catch(() => null),
   ]);
 
   if (!profile) notFound();
+
+  // Resolve wishlist card codes to card data
+  const wishlist = wishlistCodes
+    .map((code: string) => allCards.find((c) => c.code === code))
+    .filter(Boolean)
+    .slice(0, 20);
 
   const isOwn = currentUser?.profile?.id === profile.id;
   const memberSince = new Date(profile.created_at).toLocaleDateString("es-AR", {
@@ -266,8 +266,8 @@ export default async function ProfilePage({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <BookMarked className="h-5 w-5 text-violet-400" />
-                  Wishlist
+                  <Heart className="h-5 w-5 text-violet-400" />
+                  Wishlist de &ldquo;{profile.display_name || username}&rdquo;
                 </span>
                 {wishlist.length > 0 && (
                   <span className="text-xs text-surface-500 font-normal">{wishlist.length}</span>
@@ -282,41 +282,25 @@ export default async function ProfilePage({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {wishlist.map((item) => {
-                    const card = item.card as unknown as {
-                      id: string; name: string; slug: string; code: string;
-                      image_url?: string; category?: string;
-                    } | null;
+                  {wishlist.map((card) => {
                     if (!card) return null;
                     const Icon = categoryIcon[card.category ?? ""] ?? Shield;
-                    const prio = priorityLabel(item.priority);
                     return (
-                      <Link
-                        key={item.id}
-                        href={`/catalog/${card.slug}`}
-                        className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-800/50 hover:bg-surface-700/50 border border-surface-800 hover:border-surface-700 transition-all"
+                      <div
+                        key={card.code}
+                        className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-800/50 border border-surface-800"
                       >
-                        <div className="h-10 w-7 rounded bg-surface-700 overflow-hidden shrink-0 flex items-center justify-center relative">
-                          {card.image_url ? (
-                            <Image
-                              src={card.image_url}
-                              alt={card.name}
-                              fill
-                              className="object-cover"
-                              sizes="28px"
-                            />
-                          ) : (
-                            <Icon className="h-4 w-4 text-surface-500" />
-                          )}
+                        <div className="h-10 w-7 rounded bg-surface-700 overflow-hidden shrink-0 flex items-center justify-center">
+                          <Icon className="h-4 w-4 text-surface-500" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-surface-100 truncate">{card.name}</p>
                           <p className="text-[10px] text-surface-500 font-mono">{card.code}</p>
                         </div>
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border shrink-0 ${prio.cls}`}>
-                          {prio.label}
-                        </span>
-                      </Link>
+                        {card.level != null && (
+                          <span className="text-[10px] text-surface-500 shrink-0">Nv.{card.level}</span>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
