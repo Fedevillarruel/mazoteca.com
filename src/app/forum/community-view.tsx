@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ interface ThreadItem {
 
 interface CommunityViewProps {
   threadsByTab: Record<string, ThreadItem[]>;
+  activeTab: Tab;
 }
 
 function EmptyTab({ label, tab }: { label: string; tab: Tab }) {
@@ -52,42 +52,32 @@ function EmptyTab({ label, tab }: { label: string; tab: Tab }) {
   );
 }
 
-export function CommunityView({ threadsByTab }: CommunityViewProps) {
-  const [tab, setTab] = useState<Tab>("general");
+const TAB_CONFIG: { key: Tab; label: string; emptyLabel: string }[] = [
+  { key: "general", label: "General", emptyLabel: "General" },
+  { key: "trading", label: "Trading", emptyLabel: "Trading" },
+  { key: "memes",   label: "Memes",   emptyLabel: "Memes"   },
+];
 
-  const posts = threadsByTab[tab] ?? [];
-
-  const tabConfig: { key: Tab; label: string; icon: typeof MessageSquare; emptyLabel: string }[] = [
-    { key: "general", label: "General", icon: MessageSquare, emptyLabel: "General" },
-    { key: "trading", label: "Trading", icon: RefreshCw, emptyLabel: "Trading" },
-    { key: "memes", label: "Memes", icon: Smile, emptyLabel: "Memes" },
-  ];
+export function CommunityView({ threadsByTab, activeTab }: CommunityViewProps) {
+  const posts = threadsByTab[activeTab] ?? [];
+  const tabMeta = TAB_CONFIG.find((t) => t.key === activeTab)!;
 
   return (
     <PageLayout title="Comunidad" description="Discutí, intercambiá y reíte con la comunidad de Kingdom TCG">
-      {/* Tabs */}
-      <div className="flex items-center gap-2 mb-6 border-b border-surface-800 pb-4">
-        {tabConfig.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              tab === key
-                ? "bg-primary-500/15 text-primary-400 border border-primary-500/30"
-                : "text-surface-400 hover:text-surface-200 hover:bg-surface-800"
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-            {threadsByTab[key]?.length > 0 && (
-              <span className="text-[10px] bg-surface-700 text-surface-400 px-1.5 py-0.5 rounded-full">
-                {threadsByTab[key].length}
-              </span>
-            )}
-          </button>
-        ))}
-        <div className="flex-1" />
-        <Link href="/forum/new">
+      {/* Header row: tab title + new post button */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          {activeTab === "trading" && <RefreshCw className="h-5 w-5 text-surface-400" />}
+          {activeTab === "memes"   && <Smile className="h-5 w-5 text-surface-400" />}
+          {activeTab === "general" && <MessageSquare className="h-5 w-5 text-surface-400" />}
+          <h2 className="text-lg font-semibold text-surface-100">{tabMeta.label}</h2>
+          {posts.length > 0 && (
+            <span className="text-[11px] bg-surface-800 text-surface-400 px-2 py-0.5 rounded-full border border-surface-700">
+              {posts.length}
+            </span>
+          )}
+        </div>
+        <Link href={`/forum/new?tab=${activeTab}`}>
           <Button size="sm">
             <Plus className="h-4 w-4" />
             Nuevo post
@@ -97,7 +87,7 @@ export function CommunityView({ threadsByTab }: CommunityViewProps) {
 
       {/* Content */}
       {posts.length === 0 ? (
-        <EmptyTab label={tabConfig.find((t) => t.key === tab)!.emptyLabel} tab={tab} />
+        <EmptyTab label={tabMeta.emptyLabel} tab={activeTab} />
       ) : (
         <div className="space-y-3">
           {posts.map((post) => (
@@ -107,9 +97,9 @@ export function CommunityView({ threadsByTab }: CommunityViewProps) {
                   <div className="hidden sm:flex h-10 w-10 rounded-lg bg-surface-800 items-center justify-center shrink-0">
                     {post.pinned ? (
                       <Pin className="h-4 w-4 text-accent-400" />
-                    ) : tab === "memes" ? (
+                    ) : activeTab === "memes" ? (
                       <Smile className="h-4 w-4 text-yellow-400" />
-                    ) : tab === "trading" ? (
+                    ) : activeTab === "trading" ? (
                       <RefreshCw className="h-4 w-4 text-blue-400" />
                     ) : (
                       <MessageSquare className="h-4 w-4 text-surface-500" />

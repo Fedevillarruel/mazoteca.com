@@ -7,7 +7,13 @@ export const metadata: Metadata = {
   description: "Foro de la comunidad de Kingdom TCG. General, Trading y Memes.",
 };
 
-export default async function ForumPage() {
+export default async function ForumPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab: tabParam } = await searchParams;
+  const activeTab = (["general", "trading", "memes"].includes(tabParam ?? "") ? tabParam : "general") as "general" | "trading" | "memes";
   const supabase = await createClient();
 
   const { data: categories } = await supabase
@@ -66,5 +72,5 @@ export default async function ForumPage() {
     })
   );
 
-  return <CommunityView threadsByTab={threadsByTab} />;
+  return <CommunityView threadsByTab={threadsByTab} activeTab={activeTab} />;
 }
