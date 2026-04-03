@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  Search,
   Menu,
   X,
   // BookOpen, // unused while Catálogo is hidden
@@ -26,6 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
+import { HeaderSearch } from "./header-search";
 // import { useCartStore } from "@/lib/stores"; // temporalmente oculto
 // import { CartDrawer } from "@/components/ui/cart-drawer"; // temporalmente oculto
 
@@ -249,7 +249,6 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
 export function Header({ user }: HeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   // Cart temporalmente oculto — const { totalItems, openCart } = useCartStore();
 
   return (
@@ -259,9 +258,9 @@ export function Header({ user }: HeaderProps) {
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary-500/40 to-transparent" />
 
       <div className="mx-auto max-w-350 px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 shrink-0">
             <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <div className="h-7 w-7 rounded-lg bg-primary-600 flex items-center justify-center shadow-lg shadow-primary-600/30 group-hover:bg-primary-500 transition-colors">
                 <Crown className="h-4 w-4 text-white" />
@@ -296,17 +295,13 @@ export function Header({ user }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-1">
-            {/* Search Toggle */}
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 text-surface-400 hover:text-surface-200 hover:bg-surface-800/70 rounded-lg transition-all"
-              aria-label="Buscar"
-            >
-              <Search className="h-4.5 w-4.5" />
-            </button>
+          {/* Search bar — center, expanded */}
+          <div className="flex-1 hidden sm:flex justify-center px-2">
+            <HeaderSearch />
+          </div>
 
+          {/* Right side */}
+          <div className="flex items-center gap-1 shrink-0 ml-auto sm:ml-0">
             {/* Cart button — temporalmente oculto */}
             {/* <button onClick={openCart} ...> </button> */}
 
@@ -351,20 +346,10 @@ export function Header({ user }: HeaderProps) {
           </div>
         </div>
 
-        {/* Search Bar */}
-        {searchOpen && (
-          <div className="pb-4 pt-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-500" />
-              <input
-                type="search"
-                placeholder="Buscar cartas, mazos, usuarios, publicaciones..."
-                className="w-full h-10 pl-10 pr-4 bg-surface-900/80 border border-surface-700/60 rounded-xl text-sm text-surface-100 placeholder:text-surface-500 focus:border-primary-500/70 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all"
-                autoFocus
-              />
-            </div>
-          </div>
-        )}
+        {/* Mobile search bar (below header row) */}
+        <div className="sm:hidden pb-3">
+          <HeaderSearch />
+        </div>
       </div>
 
       {/* Mobile Menu */}

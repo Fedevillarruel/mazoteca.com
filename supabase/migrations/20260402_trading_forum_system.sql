@@ -104,4 +104,4 @@ CREATE POLICY "card_photos_insert"
 
 CREATE POLICY "card_photos_delete_own"
   ON storage.objects FOR DELETE
-  USING (bucket_id = 'card-photos' AND owner = auth.uid()::text);
+  USING (bucket_id = 'card-photos' AND owner = auth.uid());
