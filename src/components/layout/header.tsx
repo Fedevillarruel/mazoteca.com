@@ -15,7 +15,7 @@ import {
   LogIn,
   Crown,
   Bell,
-  Layers,
+  // Layers, // unused while Colección is hidden
   BookMarked,
   LogOut,
   Settings,
@@ -192,14 +192,6 @@ function ProfileDropdown({ user }: { user: NonNullable<HeaderProps["user"]> }) {
             >
               <User className="h-4 w-4 text-surface-400" />
               Mi perfil
-            </Link>
-            <Link
-              href="/collection"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-surface-300 hover:text-surface-100 hover:bg-surface-800 transition-colors"
-            >
-              <Layers className="h-4 w-4 text-surface-400" />
-              Mi colección
             </Link>
             <Link
               href="/trades"
@@ -440,10 +432,6 @@ export function Header({ user }: HeaderProps) {
                 <Link href={`/profile/${user.username}`} onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
                   <User className="h-5 w-5" />Mi perfil
-                </Link>
-                <Link href="/collection" onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
-                  <Layers className="h-5 w-5" />Mi Colección
                 </Link>
                 <Link href="/settings" onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-surface-300 hover:text-surface-100 hover:bg-surface-800/70 rounded-xl">
