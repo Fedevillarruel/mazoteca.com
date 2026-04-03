@@ -453,6 +453,117 @@ export async function replyToThread(params: {
 
 // ─── Like a forum post ────────────────────────────────────────────────────────
 
+// ─── Edit a forum thread ─────────────────────────────────────────────────────
+
+export async function editForumThread(params: {
+  threadId: string;
+  title: string;
+  content: string;
+}): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { data: thread } = await supabase
+    .from("forum_threads")
+    .select("author_id")
+    .eq("id", params.threadId)
+    .single();
+
+  if (!thread || thread.author_id !== user.id) return { error: "No autorizado." };
+
+  const { error } = await supabase
+    .from("forum_threads")
+    .update({ title: params.title.trim(), content: params.content.trim(), updated_at: new Date().toISOString() })
+    .eq("id", params.threadId);
+
+  if (error) return { error: "Error al editar." };
+  revalidatePath(`/forum/${params.threadId}`);
+  return {};
+}
+
+// ─── Delete a forum thread ────────────────────────────────────────────────────
+
+export async function deleteForumThread(threadId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { data: thread } = await supabase
+    .from("forum_threads")
+    .select("author_id, category_id")
+    .eq("id", threadId)
+    .single();
+
+  if (!thread || thread.author_id !== user.id) return { error: "No autorizado." };
+
+  const { error } = await supabase.from("forum_threads").delete().eq("id", threadId);
+  if (error) return { error: "Error al eliminar." };
+
+  revalidatePath("/forum");
+  return {};
+}
+
+// ─── Edit a forum post (reply) ────────────────────────────────────────────────
+
+export async function editForumPost(params: {
+  postId: string;
+  content: string;
+  threadId: string;
+}): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { data: post } = await supabase
+    .from("forum_posts")
+    .select("author_id")
+    .eq("id", params.postId)
+    .single();
+
+  if (!post || post.author_id !== user.id) return { error: "No autorizado." };
+
+  const { error } = await supabase
+    .from("forum_posts")
+    .update({ content: params.content.trim(), is_edited: true, updated_at: new Date().toISOString() })
+    .eq("id", params.postId);
+
+  if (error) return { error: "Error al editar." };
+  revalidatePath(`/forum/${params.threadId}`);
+  return {};
+}
+
+// ─── Delete a forum post (reply) ─────────────────────────────────────────────
+
+export async function deleteForumPost(params: {
+  postId: string;
+  threadId: string;
+}): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { data: post } = await supabase
+    .from("forum_posts")
+    .select("author_id")
+    .eq("id", params.postId)
+    .single();
+
+  if (!post || post.author_id !== user.id) return { error: "No autorizado." };
+
+  const { error } = await supabase.from("forum_posts").delete().eq("id", params.postId);
+  if (error) return { error: "Error al eliminar." };
+
+  // Best-effort decrement replies count
+  try {
+    await supabase.rpc("decrement_thread_replies_count", { p_thread_id: params.threadId });
+  } catch { /* ignore if rpc not available */ }
+  revalidatePath(`/forum/${params.threadId}`);
+  return {};
+}
+
+// ─── Like a forum post ────────────────────────────────────────────────────────
+
 export async function likeForumPost(postId: string): Promise<{ liked?: boolean; error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

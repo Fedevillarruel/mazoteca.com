@@ -11,6 +11,61 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ThreadReplyForm } from "./thread-reply-form";
+import { ThreadActions } from "./thread-actions";
+import { PostActions } from "./post-actions";
+
+// ─── Helpers (defined outside component) ────────────────────────────────────
+
+type AuthorRow = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  reputation: number;
+  total_trades: number;
+};
+
+function AuthorInfo({ author, isOp }: { author: AuthorRow; isOp?: boolean }) {
+  const rep = Number(author.reputation);
+  return (
+    <div className="flex items-center gap-2.5 mb-3">
+      <Link href={`/profile/${author.username}`} className="shrink-0">
+        {author.avatar_url ? (
+          <Image src={author.avatar_url} alt={author.username} width={36} height={36}
+            className="h-9 w-9 rounded-lg object-cover ring-2 ring-surface-700" />
+        ) : (
+          <div className="h-9 w-9 rounded-lg bg-primary-700 flex items-center justify-center text-sm font-bold text-white ring-2 ring-surface-700">
+            {author.username.charAt(0).toUpperCase()}
+          </div>
+        )}
+      </Link>
+      <div>
+        <div className="flex items-center gap-1.5">
+          <Link href={`/profile/${author.username}`} className="text-sm font-semibold text-surface-100 hover:text-primary-400">
+            {author.display_name || author.username}
+          </Link>
+          {isOp && <Badge variant="accent" className="text-[10px]">OP</Badge>}
+        </div>
+        {rep > 0 && (
+          <p className="text-[10px] text-amber-400 flex items-center gap-0.5">
+            <Star className="h-2.5 w-2.5 fill-amber-400" />
+            {rep.toFixed(0)}/100
+            <span className="text-surface-500 ml-1">· {author.total_trades} trades</span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function timeAgo(d: string, nowMs: number): string {
+  const m = Math.floor((nowMs - new Date(d).getTime()) / 60000);
+  if (m < 60) return `Hace ${m} min`;
+  if (m < 1440) return `Hace ${Math.floor(m / 60)}h`;
+  return `Hace ${Math.floor(m / 1440)}d`;
+}
+
+// ─── Metadata ────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -18,6 +73,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { data } = await supabase.from("forum_threads").select("title").eq("id", id).single();
   return { title: data?.title ?? "Hilo — Foro", description: "Hilo de discusión en Mazoteca." };
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function ForumThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -27,7 +84,7 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
   const { data: thread } = await supabase
     .from("forum_threads")
     .select(`id, title, content, is_pinned, is_locked, views_count, replies_count,
-      created_at, thread_type, listing_id, deck_id,
+      created_at, updated_at, thread_type, listing_id, deck_id,
       category:forum_categories(name, slug),
       author:profiles(id, username, display_name, avatar_url, reputation, total_trades)`)
     .eq("id", id)
@@ -37,13 +94,16 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
 
   const { data: posts } = await supabase
     .from("forum_posts")
-    .select(`id, content, likes_count, created_at, is_edited,
+    .select(`id, content, likes_count, created_at, updated_at, is_edited,
       author:profiles(id, username, display_name, avatar_url, reputation, total_trades)`)
     .eq("thread_id", id)
     .order("created_at", { ascending: true });
 
-  // Fetch listing if trading thread
-  type ListingRow = { card_code: string; listing_type: string; price: number | null; condition: string; note: string | null; photo_front_url: string | null; photo_back_url: string | null; status: string; seller_id: string };
+  type ListingRow = {
+    card_code: string; listing_type: string; price: number | null;
+    condition: string; note: string | null; photo_front_url: string | null;
+    photo_back_url: string | null; status: string; seller_id: string;
+  };
   let listing: ListingRow | null = null;
   if (thread.thread_type === "trading" && thread.listing_id) {
     const { data: l } = await supabase
@@ -54,51 +114,14 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
     listing = l as ListingRow | null;
   }
 
-  const threadAuthor = Array.isArray(thread.author) ? thread.author[0] : thread.author;
+  const threadAuthor = (Array.isArray(thread.author) ? thread.author[0] : thread.author) as AuthorRow;
   const category = Array.isArray(thread.category) ? thread.category[0] : thread.category;
   const replies = posts ?? [];
+  const nowMs = new Date().getTime();
 
-  const timeAgo = (d: string) => {
-    const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
-    if (m < 60) return `Hace ${m} min`;
-    if (m < 1440) return `Hace ${Math.floor(m / 60)}h`;
-    return `Hace ${Math.floor(m / 1440)}d`;
-  };
-
-  type AuthorRow = { id: string; username: string; display_name: string | null; avatar_url: string | null; reputation: number; total_trades: number };
-
-  function AuthorInfo({ author, isOp }: { author: AuthorRow; isOp?: boolean }) {
-    const rep = Number(author.reputation);
-    return (
-      <div className="flex items-center gap-2.5 mb-3">
-        <Link href={`/profile/${author.username}`} className="shrink-0">
-          {author.avatar_url ? (
-            <Image src={author.avatar_url} alt={author.username} width={36} height={36}
-              className="h-9 w-9 rounded-lg object-cover ring-2 ring-surface-700" />
-          ) : (
-            <div className="h-9 w-9 rounded-lg bg-primary-700 flex items-center justify-center text-sm font-bold text-white ring-2 ring-surface-700">
-              {author.username.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </Link>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Link href={`/profile/${author.username}`} className="text-sm font-semibold text-surface-100 hover:text-primary-400">
-              {author.display_name || author.username}
-            </Link>
-            {isOp && <Badge variant="accent" className="text-[10px]">OP</Badge>}
-          </div>
-          {rep > 0 && (
-            <p className="text-[10px] text-amber-400 flex items-center gap-0.5">
-              <Star className="h-2.5 w-2.5 fill-amber-400" />
-              {rep.toFixed(0)}/100
-              <span className="text-surface-500 ml-1">· {author.total_trades} trades</span>
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const threadEdited =
+    thread.updated_at &&
+    new Date(thread.updated_at as string).getTime() - new Date(thread.created_at).getTime() > 5000;
 
   return (
     <PageLayout>
@@ -116,13 +139,12 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
         </div>
         <h1 className="text-2xl font-bold text-surface-50 mb-3">{thread.title}</h1>
         <div className="flex items-center gap-4 text-sm text-surface-400 flex-wrap">
-          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{timeAgo(thread.created_at)}</span>
+          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{timeAgo(thread.created_at, nowMs)}</span>
           <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{thread.views_count} vistas</span>
           <span className="flex items-center gap-1"><MessageSquare className="h-3.5 w-3.5" />{replies.length} respuestas</span>
         </div>
       </div>
 
-      {/* Trading listing card */}
       {listing && (
         <Card className="mb-6 border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-4">
@@ -153,7 +175,7 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
                 </div>
                 {listing.price && (
                   <p className="text-lg font-bold text-primary-400 flex items-center gap-1">
-                    <ShoppingBag className="h-4 w-4" />${Number(listing.price).toLocaleString("es-AR")}
+                    <ShoppingBag className="h-4 w-4" />\${Number(listing.price).toLocaleString("es-AR")}
                   </p>
                 )}
                 <p className="text-xs text-surface-500 mt-1">Condición: {listing.condition}</p>
@@ -173,51 +195,69 @@ export default async function ForumThreadPage({ params }: { params: Promise<{ id
         </Card>
       )}
 
-      {/* Posts */}
       <div className="space-y-4 mb-8">
-        {/* OP */}
+        {/* OP post */}
         <Card className="border-primary-500/20">
           <CardContent className="p-4 sm:p-5">
-            <AuthorInfo author={threadAuthor as AuthorRow} isOp />
-            <p className="text-sm text-surface-300 leading-relaxed whitespace-pre-wrap ml-0">{thread.content}</p>
+            <AuthorInfo author={threadAuthor} isOp />
+            <p className="text-sm text-surface-300 leading-relaxed whitespace-pre-wrap">{thread.content}</p>
+            {threadEdited && (
+              <p className="text-[10px] text-surface-500 mt-2 italic">editado</p>
+            )}
+            <ThreadActions
+              threadId={thread.id}
+              initialTitle={thread.title}
+              initialContent={thread.content}
+              isAuthor={user?.id === threadAuthor.id}
+            />
           </CardContent>
         </Card>
 
+        {/* Replies */}
         {replies.map((post) => {
-          const postAuthor = Array.isArray(post.author) ? post.author[0] : post.author;
+          const postAuthor = (Array.isArray(post.author) ? post.author[0] : post.author) as AuthorRow;
           return (
             <Card key={post.id}>
               <CardContent className="p-4 sm:p-5">
-                <AuthorInfo author={postAuthor as AuthorRow} />
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-surface-500">{timeAgo(post.created_at)}</span>
-                  {post.is_edited && <span className="text-[10px] text-surface-600">(editado)</span>}
-                </div>
+                <AuthorInfo author={postAuthor} />
+                <span className="text-xs text-surface-500 block mb-2">{timeAgo(post.created_at, nowMs)}</span>
                 <p className="text-sm text-surface-300 leading-relaxed whitespace-pre-wrap">{post.content}</p>
-                <div className="flex items-center gap-3 mt-3">
+                {post.is_edited && (
+                  <p className="text-[10px] text-surface-500 mt-2 italic">editado</p>
+                )}
+                <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs text-surface-500 flex items-center gap-1">
                     <MessageSquare className="h-3.5 w-3.5" />{post.likes_count}
                   </span>
                 </div>
+                <PostActions
+                  postId={post.id}
+                  threadId={id}
+                  initialContent={post.content}
+                  isAuthor={user?.id === postAuthor.id}
+                />
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* Reply box */}
       {!thread.is_locked ? (
         user ? (
           <ThreadReplyForm threadId={id} />
         ) : (
-          <Card><CardContent className="p-4 text-center text-sm text-surface-400">
-            <Link href="/login" className="text-primary-400 hover:underline">Iniciá sesión</Link> para responder.
-          </CardContent></Card>
+          <Card>
+            <CardContent className="p-4 text-center text-sm text-surface-400">
+              <Link href="/login" className="text-primary-400 hover:underline">Iniciá sesión</Link> para responder.
+            </CardContent>
+          </Card>
         )
       ) : (
-        <Card><CardContent className="p-4 text-center text-sm text-surface-500">
-          Este hilo está cerrado.
-        </CardContent></Card>
+        <Card>
+          <CardContent className="p-4 text-center text-sm text-surface-500">
+            Este hilo está cerrado.
+          </CardContent>
+        </Card>
       )}
     </PageLayout>
   );
