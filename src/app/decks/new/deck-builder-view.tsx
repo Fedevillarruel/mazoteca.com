@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,9 +24,12 @@ import {
   Heart,
   Swords,
   BookOpen,
+  MessageSquare,
 } from "lucide-react";
 import { allCards } from "@/data/cards";
 import { getFavorites } from "@/lib/actions/profile";
+import { createDeckFromBuilder } from "@/lib/actions/decks";
+import { publishDeckToForum } from "@/lib/actions/trading";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -77,6 +81,9 @@ interface Props {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function DeckBuilderView({ imageMap }: Props) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const [deckName,       setDeckName]       = useState("");
   const [deckType,       setDeckType]       = useState<DeckType>("combatants");
   const [isPublic,       setIsPublic]       = useState(true);
@@ -85,10 +92,11 @@ export default function DeckBuilderView({ imageMap }: Props) {
   const [crownedId,      setCrownedId]      = useState<string | null>(null);
   const [activeCoronado, setActiveCoronado] = useState<CoronadoId>("all");
   const [favCodes,       setFavCodes]       = useState<Set<string>>(new Set());
-  // "combatants" | "strategy" pool tab (only relevant for combatant deck type)
   const [poolTab,        setPoolTab]        = useState<"combatants" | "strategy">("combatants");
-  // Track last-added card for stack animation
   const [lastAdded,      setLastAdded]      = useState<string | null>(null);
+  const [savedDeckId,    setSavedDeckId]    = useState<string | null>(null);
+  const [saveError,      setSaveError]      = useState<string | null>(null);
+  const [publishing,     setPublishing]     = useState(false);
 
   // Load favorites once on mount
   useEffect(() => {
@@ -251,10 +259,54 @@ export default function DeckBuilderView({ imageMap }: Props) {
           <h1 className="text-2xl font-bold text-surface-50">Nuevo Mazo</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" disabled={!isValid || !deckName.trim()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={!isValid || !deckName.trim() || isPending}
+            onClick={() => {
+              setSaveError(null);
+              startTransition(async () => {
+                const res = await createDeckFromBuilder({
+                  name: deckName,
+                  deckType,
+                  isPublic,
+                  crownedCode: crownedId,
+                  cards: deckCards,
+                });
+                if (res.error) { setSaveError(res.error); return; }
+                setSavedDeckId(res.id ?? null);
+              });
+            }}
+          >
             <Save className="h-4 w-4" />
-            Guardar
+            {isPending ? "Guardando..." : savedDeckId ? "Guardado ✓" : "Guardar"}
           </Button>
+          {savedDeckId && (
+            <Button
+              size="sm"
+              disabled={publishing}
+              onClick={() => {
+                setPublishing(true);
+                startTransition(async () => {
+                  await publishDeckToForum({
+                    deckId: savedDeckId,
+                    deckName,
+                    deckType,
+                  });
+                  setPublishing(false);
+                  router.push("/forum?tab=general");
+                });
+              }}
+            >
+              <MessageSquare className="h-4 w-4" />
+              {publishing ? "Publicando..." : "Publicar en comunidad"}
+            </Button>
+          )}
+          {saveError && (
+            <span className="text-xs text-red-400 flex items-center gap-1 self-center">
+              <AlertCircle className="h-3.5 w-3.5" /> {saveError}
+            </span>
+          )}
         </div>
       </div>
 

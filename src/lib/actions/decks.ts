@@ -170,3 +170,60 @@ export async function toggleDeckLike(deckId: string) {
   revalidatePath(`/decks/${deckId}`);
   return { liked: !existing };
 }
+
+// ─── Save deck from builder (uses card codes, not DB UUIDs) ──────────────────
+
+export async function createDeckFromBuilder(params: {
+  name: string;
+  deckType: "combatants" | "strategy";
+  isPublic: boolean;
+  crownedCode: string | null;
+  cards: { cardId: string; quantity: number }[];
+  note?: string;
+}): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { needsAuth: true };
+
+  const name = params.name.trim();
+  if (!name) return { error: "El nombre del mazo es requerido." };
+
+  const slug =
+    name
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") +
+    "-" +
+    Date.now();
+
+  // Store card codes as JSON in `description` field for builder-created decks
+  const cardsMeta = JSON.stringify({
+    cards: params.cards,
+    crowned: params.crownedCode,
+    note: params.note ?? null,
+  });
+
+  const { data, error } = await supabase
+    .from("decks")
+    .insert({
+      profile_id: user.id,
+      name,
+      slug,
+      description: cardsMeta,
+      deck_type:   params.deckType,
+      is_public:   params.isPublic,
+      is_valid:    true,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("[createDeckFromBuilder]", error);
+    return { error: "Error al guardar el mazo." };
+  }
+
+  revalidatePath("/decks");
+  return { id: data.id };
+}

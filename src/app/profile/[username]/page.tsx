@@ -110,6 +110,12 @@ export default async function ProfilePage({
                 </Badge>
               )}
               {profile.role === "admin" && <Badge variant="warning">Admin</Badge>}
+              {Number(profile.reputation ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
+                  <Star className="h-3 w-3 fill-amber-400" />
+                  {Math.round(Number(profile.reputation) * 20)}/100
+                </span>
+              )}
             </div>
             {profile.bio && (
               <p className="text-sm text-surface-400 mb-3 max-w-lg">{profile.bio}</p>
@@ -176,7 +182,7 @@ export default async function ProfilePage({
           <CardContent className="p-4 text-center">
             <Star className="h-5 w-5 mx-auto mb-2 text-yellow-400" />
             <p className="text-xl font-bold text-surface-50">
-              {Number(profile.reputation ?? 0).toFixed(1)}★
+              {Math.round(Number(profile.reputation ?? 0) * 20)}/100
             </p>
             <p className="text-xs text-surface-400">Reputación</p>
           </CardContent>

@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { unstable_noStore as noStore } from "next/cache";
 import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Providers } from "./providers";
+import { TradeRatingPrompt } from "@/components/ui/trade-rating-prompt";
 import { getCurrentUser } from "@/lib/actions/auth";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -104,6 +105,7 @@ export default async function RootLayout({
           <ConditionalShell initialUser={headerUser}>
             {children}
           </ConditionalShell>
+          {headerUser && <TradeRatingPrompt />}
         </Providers>
       </body>
     </html>
