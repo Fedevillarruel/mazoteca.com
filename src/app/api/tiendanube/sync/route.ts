@@ -46,15 +46,8 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/tiendanube/sync
- * Returns sync status — public health check
+ * Health check — no env info disclosed
  */
 export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    message: "POST to trigger a sync",
-    env: {
-      storeConfigured: !!process.env.TIENDANUBE_STORE_ID,
-      tokenConfigured: !!process.env.TIENDANUBE_ACCESS_TOKEN,
-    },
-  });
+  return NextResponse.json({ status: "ok", message: "POST to trigger a sync" });
 }

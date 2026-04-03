@@ -1,17 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Tiendanube OAuth callback
  * TN redirects here after the store owner installs/re-authorizes the app:
  *   GET /api/tiendanube/auth/callback?code=XXX
  *
- * This handler exchanges the code for an access_token and prints it
- * (in dev) or stores it somewhere accessible (in prod).
- *
- * Because tokens are long-lived and stored in env vars / Vercel dashboard,
- * we just display the token so the developer can copy it.
+ * This handler exchanges the code for an access_token.
+ * REQUIRES the calling user to be authenticated as admin.
  */
 export async function GET(req: NextRequest) {
+  // ── Auth guard: admin-only ──────────────────────────────────────────────────
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (profile?.role !== "admin") {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+  // ───────────────────────────────────────────────────────────────────────────
+
   const { searchParams } = req.nextUrl;
   const code = searchParams.get("code");
 

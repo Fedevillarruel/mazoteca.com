@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { guardAction, sanitizeText, isValidCardCode, isValidUUID } from "@/lib/security";
 
 // ─── Upload card photo ────────────────────────────────────────────────────────
 
@@ -9,22 +10,32 @@ export async function uploadCardPhoto(
   formData: FormData,
   side: "front" | "back"
 ): Promise<{ url?: string; error?: string }> {
+  // Guard: auth + ban check + rate limit (max 20 uploads/min)
+  const guard = await guardAction({ rateLimit: { limit: 20, windowMs: 60_000, key: "upload" } });
+  if (!guard.ok) return { error: guard.error };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const file = formData.get("file") as File | null;
   if (!file) return { error: "No se seleccionó archivo." };
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
-    return { error: "Solo JPG, PNG o WebP." };
-  if (file.size > 5 * 1024 * 1024) return { error: "Máximo 5MB." };
 
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${user.id}/${Date.now()}_${side}.${ext}`;
+  // Validate MIME type strictly — don't trust file.type alone, also check magic bytes via size
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) return { error: "Solo JPG, PNG o WebP." };
+
+  // Validate extension matches MIME
+  const extMap: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+  const ext = extMap[file.type] ?? "jpg";
+
+  if (file.size > 5 * 1024 * 1024) return { error: "Máximo 5MB." };
+  if (file.size === 0) return { error: "El archivo está vacío." };
+
+  // Use a safe, unpredictable path — no original filename (prevents path traversal)
+  const path = `${guard.userId}/${Date.now()}_${side}.${ext}`;
 
   const { error: uploadErr } = await supabase.storage
     .from("card-photos")
-    .upload(path, file, { upsert: false });
+    .upload(path, file, { upsert: false, contentType: file.type });
   if (uploadErr) return { error: "Error al subir la foto." };
 
   const { data: { publicUrl } } = supabase.storage
@@ -45,24 +56,44 @@ export async function createTradingListing(params: {
   photoFrontUrl: string;
   photoBackUrl: string;
 }): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
+  // Guard: auth + ban check + rate limit (max 10 listings/hour)
+  const guard = await guardAction({ rateLimit: { limit: 10, windowMs: 60 * 60_000, key: "listing" } });
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
 
+  const supabase = await createClient();
+
+  // Input validation
+  if (!isValidCardCode(params.cardCode))
+    return { error: "Código de carta inválido." };
+  if (!["sale", "trade", "both"].includes(params.listingType))
+    return { error: "Tipo de publicación inválido." };
   if (!params.photoFrontUrl || !params.photoBackUrl)
     return { error: "Las fotos de frente y dorso son obligatorias." };
+  // Validate photo URLs belong to our Supabase storage (prevent external URL injection)
+  const supabaseStorageBase = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  if (!params.photoFrontUrl.startsWith(supabaseStorageBase) ||
+      !params.photoBackUrl.startsWith(supabaseStorageBase))
+    return { error: "URLs de foto inválidas." };
   if (params.listingType !== "trade" && !params.price)
     return { error: "El precio es requerido para publicaciones de venta." };
+  if (params.price !== undefined && (params.price < 0 || params.price > 10_000_000))
+    return { error: "Precio fuera de rango." };
+
+  const allowedConditions = ["mint", "near_mint", "excellent", "good", "fair", "poor"];
+  const condition = params.condition && allowedConditions.includes(params.condition)
+    ? params.condition : "near_mint";
+
+  const note = params.note ? sanitizeText(params.note).slice(0, 500) : null;
 
   const { data, error } = await supabase
     .from("card_listings")
     .insert({
-      seller_id:       user.id,
+      seller_id:       guard.userId,
       card_code:       params.cardCode,
       listing_type:    params.listingType,
       price:           params.price ?? null,
-      condition:       params.condition ?? "near_mint",
-      note:            params.note ?? null,
+      condition,
+      note,
       status:          "active",
       photo_front_url: params.photoFrontUrl,
       photo_back_url:  params.photoBackUrl,
@@ -86,15 +117,19 @@ export async function createTradingListing(params: {
     const { data: profile } = await supabase
       .from("profiles")
       .select("username")
-      .eq("id", user.id)
+      .eq("id", guard.userId)
       .single();
+
+    const threadTitle = sanitizeText(
+      `[${params.listingType === "sale" ? "Venta" : params.listingType === "trade" ? "Intercambio" : "Venta/Intercambio"}] ${params.cardCode}${note ? ` — ${note}` : ""}`
+    ).slice(0, 200);
 
     await supabase.from("forum_threads").insert({
       category_id:  cat.id,
-      author_id:    user.id,
-      title:        `[${params.listingType === "sale" ? "Venta" : params.listingType === "trade" ? "Intercambio" : "Venta/Intercambio"}] ${params.cardCode}${params.note ? ` — ${params.note}` : ""}`,
+      author_id:    guard.userId,
+      title:        threadTitle,
       slug:         `listing-${data.id}`,
-      content:      params.note ?? `Publicación de carta ${params.cardCode} por @${profile?.username ?? "usuario"}.`,
+      content:      note ?? `Publicación de carta ${params.cardCode} por @${profile?.username ?? "usuario"}.`,
       thread_type:  "trading",
       listing_id:   data.id,
     });
@@ -114,19 +149,29 @@ export async function makeOffer(params: {
   offerPrice?: number;
   note?: string;
 }): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
+  const guard = await guardAction({ rateLimit: { limit: 10, windowMs: 60_000, key: "offer" } });
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
+
+  // Input validation
+  if (!isValidUUID(params.listingId)) return { error: "Publicación inválida." };
+  if (!["buy", "trade"].includes(params.offerType)) return { error: "Tipo de oferta inválido." };
+  if (params.offerCardCode && !isValidCardCode(params.offerCardCode))
+    return { error: "Código de carta inválido." };
+  if (params.offerPrice !== undefined && (params.offerPrice < 0 || params.offerPrice > 10_000_000))
+    return { error: "Precio fuera de rango." };
+  const note = params.note ? sanitizeText(params.note).slice(0, 300) : null;
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
 
   const { data, error } = await supabase
     .from("listing_offers")
     .insert({
       listing_id:      params.listingId,
-      buyer_id:        user.id,
+      buyer_id:        guard.userId,
       offer_type:      params.offerType,
       offer_card_code: params.offerCardCode ?? null,
       offer_price:     params.offerPrice ?? null,
-      note:            params.note ?? null,
+      note,
       status:          "pending",
     })
     .select("id")
@@ -164,9 +209,11 @@ export async function makeOffer(params: {
 export async function acceptOffer(
   offerId: string
 ): Promise<{ chatId?: string; error?: string; needsAuth?: boolean }> {
+  const guard = await guardAction();
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
+  if (!isValidUUID(offerId)) return { error: "Oferta inválida." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
 
   // Get offer + listing
   const { data: offer } = await supabase
@@ -178,7 +225,7 @@ export async function acceptOffer(
   if (!offer) return { error: "Oferta no encontrada." };
   const listing = Array.isArray(offer.listing) ? offer.listing[0] : offer.listing;
   if (!listing) return { error: "Publicación no encontrada." };
-  if (listing.seller_id !== user.id) return { error: "No autorizado." };
+  if (listing.seller_id !== guard.userId) return { error: "No autorizado." };
 
   // Mark offer accepted
   await supabase
@@ -231,9 +278,14 @@ export async function sendChatMessage(
   chatId: string,
   content: string
 ): Promise<{ error?: string }> {
+  const guard = await guardAction({ rateLimit: { limit: 30, windowMs: 60_000, key: `chat:${chatId}` } });
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(chatId)) return { error: "Chat inválido." };
+
+  const safeContent = sanitizeText(content).slice(0, 1000);
+  if (!safeContent.trim()) return { error: "El mensaje no puede estar vacío." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: chat } = await supabase
     .from("private_chats")
@@ -242,7 +294,7 @@ export async function sendChatMessage(
     .single();
 
   if (!chat) return { error: "Chat no encontrado." };
-  if (chat.participant_a !== user.id && chat.participant_b !== user.id)
+  if (chat.participant_a !== guard.userId && chat.participant_b !== guard.userId)
     return { error: "No autorizado." };
   if (chat.closed_at) return { error: "Este chat ya está cerrado." };
   if (new Date(chat.expires_at) < new Date()) {
@@ -253,8 +305,8 @@ export async function sendChatMessage(
 
   const { error } = await supabase.from("chat_messages").insert({
     chat_id:   chatId,
-    sender_id: user.id,
-    content:   content.trim(),
+    sender_id: guard.userId,
+    content:   safeContent,
   });
 
   if (error) return { error: "Error al enviar el mensaje." };
@@ -268,9 +320,13 @@ export async function submitTradeRating(params: {
   score: 1 | 2 | 3 | 4 | 5;
   comment?: string;
 }): Promise<{ error?: string }> {
+  const guard = await guardAction({ rateLimit: { limit: 5, windowMs: 60_000, key: `rate:${params.chatId}` } });
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(params.chatId)) return { error: "Chat inválido." };
+  if (![1, 2, 3, 4, 5].includes(params.score)) return { error: "Puntuación inválida." };
+  const comment = params.comment ? sanitizeText(params.comment).slice(0, 500) : null;
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: chat } = await supabase
     .from("private_chats")
@@ -281,14 +337,14 @@ export async function submitTradeRating(params: {
   if (!chat) return { error: "Chat no encontrado." };
 
   const ratedId =
-    chat.participant_a === user.id ? chat.participant_b : chat.participant_a;
+    chat.participant_a === guard.userId ? chat.participant_b : chat.participant_a;
 
   const { error } = await supabase.from("trade_ratings").insert({
     chat_id:   params.chatId,
-    rater_id:  user.id,
+    rater_id:  guard.userId,
     rated_id:  ratedId,
     score:     params.score,
-    comment:   params.comment ?? null,
+    comment,
   });
 
   if (error) {
@@ -300,7 +356,7 @@ export async function submitTradeRating(params: {
   await supabase
     .from("profiles")
     .update({ pending_rating_chat_id: null })
-    .eq("id", user.id);
+    .eq("id", guard.userId);
 
   revalidatePath("/profile");
   return {};
@@ -326,9 +382,16 @@ export async function publishDeckToForum(params: {
   deckType: string;
   note?: string;
 }): Promise<{ threadId?: string; error?: string; needsAuth?: boolean }> {
+  const guard = await guardAction({ rateLimit: { limit: 5, windowMs: 60 * 60_000, key: "deck-forum" } });
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
+
+  if (!isValidUUID(params.deckId)) return { error: "Mazo inválido." };
+  const deckName = sanitizeText(params.deckName).slice(0, 100);
+  const deckType = sanitizeText(params.deckType).slice(0, 50);
+  const note = params.note ? sanitizeText(params.note).slice(0, 500) : null;
+  if (!deckName) return { error: "Nombre de mazo inválido." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
 
   const { data: cat } = await supabase
     .from("forum_categories")
@@ -341,17 +404,17 @@ export async function publishDeckToForum(params: {
   const { data: profile } = await supabase
     .from("profiles")
     .select("username")
-    .eq("id", user.id)
+    .eq("id", guard.userId)
     .single();
 
   const { data, error } = await supabase
     .from("forum_threads")
     .insert({
       category_id: cat.id,
-      author_id:   user.id,
-      title:       `Mazo: ${params.deckName}`,
+      author_id:   guard.userId,
+      title:       `Mazo: ${deckName}`,
       slug:        `deck-${params.deckId}`,
-      content:     params.note ?? `@${profile?.username ?? "usuario"} compartió su mazo "${params.deckName}" (${params.deckType}).`,
+      content:     note ?? `@${profile?.username ?? "usuario"} compartió su mazo "${deckName}" (${deckType}).`,
       thread_type: "deck",
       deck_id:     params.deckId,
     })
@@ -374,12 +437,15 @@ export async function createForumThread(params: {
   title: string;
   content: string;
 }): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
+  const guard = await guardAction({ rateLimit: { limit: 5, windowMs: 60_000, key: "thread" } });
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
 
-  if (!params.title.trim() || !params.content.trim())
-    return { error: "Título y contenido son requeridos." };
+  const title = sanitizeText(params.title).slice(0, 200);
+  const content = sanitizeText(params.content).slice(0, 10_000);
+  if (!title || !content) return { error: "Título y contenido son requeridos." };
+  if (!["general", "trading", "memes"].includes(params.tab)) return { error: "Categoría inválida." };
+
+  const supabase = await createClient();
 
   const { data: cat } = await supabase
     .from("forum_categories")
@@ -389,7 +455,7 @@ export async function createForumThread(params: {
 
   if (!cat) return { error: "Categoría no encontrada." };
 
-  const slug = params.title
+  const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
@@ -399,10 +465,10 @@ export async function createForumThread(params: {
     .from("forum_threads")
     .insert({
       category_id: cat.id,
-      author_id:   user.id,
-      title:       params.title.trim(),
+      author_id:   guard.userId,
+      title,
       slug,
-      content:     params.content.trim(),
+      content,
       thread_type: "general",
     })
     .select("id")
@@ -423,18 +489,21 @@ export async function replyToThread(params: {
   threadId: string;
   content: string;
 }): Promise<{ id?: string; error?: string; needsAuth?: boolean }> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { needsAuth: true };
+  const guard = await guardAction({ rateLimit: { limit: 10, windowMs: 60_000, key: "reply" } });
+  if (!guard.ok) return guard.status === 401 ? { needsAuth: true } : { error: guard.error };
 
-  if (!params.content.trim()) return { error: "El contenido es requerido." };
+  if (!isValidUUID(params.threadId)) return { error: "Hilo inválido." };
+  const content = sanitizeText(params.content).slice(0, 5_000);
+  if (!content.trim()) return { error: "El contenido es requerido." };
+
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("forum_posts")
     .insert({
       thread_id: params.threadId,
-      author_id: user.id,
-      content:   params.content.trim(),
+      author_id: guard.userId,
+      content,
     })
     .select("id")
     .single();
@@ -460,9 +529,15 @@ export async function editForumThread(params: {
   title: string;
   content: string;
 }): Promise<{ error?: string }> {
+  const guard = await guardAction();
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(params.threadId)) return { error: "Hilo inválido." };
+
+  const title = sanitizeText(params.title).slice(0, 200);
+  const content = sanitizeText(params.content).slice(0, 10_000);
+  if (!title || !content) return { error: "Título y contenido son requeridos." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: thread } = await supabase
     .from("forum_threads")
@@ -470,11 +545,11 @@ export async function editForumThread(params: {
     .eq("id", params.threadId)
     .single();
 
-  if (!thread || thread.author_id !== user.id) return { error: "No autorizado." };
+  if (!thread || thread.author_id !== guard.userId) return { error: "No autorizado." };
 
   const { error } = await supabase
     .from("forum_threads")
-    .update({ title: params.title.trim(), content: params.content.trim(), updated_at: new Date().toISOString() })
+    .update({ title, content, updated_at: new Date().toISOString() })
     .eq("id", params.threadId);
 
   if (error) return { error: "Error al editar." };
@@ -485,9 +560,11 @@ export async function editForumThread(params: {
 // ─── Delete a forum thread ────────────────────────────────────────────────────
 
 export async function deleteForumThread(threadId: string): Promise<{ error?: string }> {
+  const guard = await guardAction();
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(threadId)) return { error: "Hilo inválido." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: thread } = await supabase
     .from("forum_threads")
@@ -495,7 +572,7 @@ export async function deleteForumThread(threadId: string): Promise<{ error?: str
     .eq("id", threadId)
     .single();
 
-  if (!thread || thread.author_id !== user.id) return { error: "No autorizado." };
+  if (!thread || thread.author_id !== guard.userId) return { error: "No autorizado." };
 
   const { error } = await supabase.from("forum_threads").delete().eq("id", threadId);
   if (error) return { error: "Error al eliminar." };
@@ -511,9 +588,14 @@ export async function editForumPost(params: {
   content: string;
   threadId: string;
 }): Promise<{ error?: string }> {
+  const guard = await guardAction();
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(params.postId) || !isValidUUID(params.threadId)) return { error: "IDs inválidos." };
+
+  const content = sanitizeText(params.content).slice(0, 5_000);
+  if (!content.trim()) return { error: "El contenido es requerido." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: post } = await supabase
     .from("forum_posts")
@@ -521,11 +603,11 @@ export async function editForumPost(params: {
     .eq("id", params.postId)
     .single();
 
-  if (!post || post.author_id !== user.id) return { error: "No autorizado." };
+  if (!post || post.author_id !== guard.userId) return { error: "No autorizado." };
 
   const { error } = await supabase
     .from("forum_posts")
-    .update({ content: params.content.trim(), is_edited: true, updated_at: new Date().toISOString() })
+    .update({ content, is_edited: true, updated_at: new Date().toISOString() })
     .eq("id", params.postId);
 
   if (error) return { error: "Error al editar." };
@@ -539,9 +621,11 @@ export async function deleteForumPost(params: {
   postId: string;
   threadId: string;
 }): Promise<{ error?: string }> {
+  const guard = await guardAction();
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(params.postId) || !isValidUUID(params.threadId)) return { error: "IDs inválidos." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: post } = await supabase
     .from("forum_posts")
@@ -549,7 +633,7 @@ export async function deleteForumPost(params: {
     .eq("id", params.postId)
     .single();
 
-  if (!post || post.author_id !== user.id) return { error: "No autorizado." };
+  if (!post || post.author_id !== guard.userId) return { error: "No autorizado." };
 
   const { error } = await supabase.from("forum_posts").delete().eq("id", params.postId);
   if (error) return { error: "Error al eliminar." };
@@ -565,20 +649,22 @@ export async function deleteForumPost(params: {
 // ─── Like a forum post ────────────────────────────────────────────────────────
 
 export async function likeForumPost(postId: string): Promise<{ liked?: boolean; error?: string }> {
+  const guard = await guardAction({ rateLimit: { limit: 30, windowMs: 60_000, key: "like" } });
+  if (!guard.ok) return { error: guard.error };
+  if (!isValidUUID(postId)) return { error: "Post inválido." };
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autenticado." };
 
   const { data: existing } = await supabase
     .from("forum_post_likes")
     .select("post_id")
-    .eq("profile_id", user.id)
+    .eq("profile_id", guard.userId)
     .eq("post_id", postId)
     .maybeSingle();
 
   if (existing) {
     await supabase.from("forum_post_likes").delete()
-      .eq("profile_id", user.id).eq("post_id", postId);
+      .eq("profile_id", guard.userId).eq("post_id", postId);
     await supabase
       .from("forum_posts")
       .update({ likes_count: supabase.rpc("decrement", { x: 1 }) as unknown as number })
@@ -586,7 +672,7 @@ export async function likeForumPost(postId: string): Promise<{ liked?: boolean; 
     return { liked: false };
   }
 
-  await supabase.from("forum_post_likes").insert({ profile_id: user.id, post_id: postId });
+  await supabase.from("forum_post_likes").insert({ profile_id: guard.userId, post_id: postId });
   await supabase
     .from("forum_posts")
     .update({ likes_count: supabase.rpc("increment", { x: 1 }) as unknown as number })

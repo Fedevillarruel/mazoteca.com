@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
     const dataId = payload.data?.id;
     const { type, action } = payload;
 
-    // Verify webhook signature only if secret is configured
+    // Verify webhook signature — required if MP_WEBHOOK_SECRET is set (strongly recommended)
     const secret = process.env.MP_WEBHOOK_SECRET;
-    if (secret && dataId) {
-      if (!verifyWebhookSignature(signature, requestId, dataId, secret)) {
+    if (secret) {
+      if (!dataId || !verifyWebhookSignature(signature, requestId, dataId, secret)) {
         console.error("[MP Webhook] Invalid signature");
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }
@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       }
 
       // Only process approved payments for premium_lifetime
-      const isPremiumPayment = payment.metadata?.type === "premium_lifetime"
-        || payment.external_reference?.includes("-"); // fallback: external_reference = user_id (UUID)
+      // Strict check: metadata.type must explicitly be "premium_lifetime"
+      const isPremiumPayment = payment.metadata?.type === "premium_lifetime";
 
       if (payment.status === "approved" && isPremiumPayment) {
         const userId = payment.metadata?.user_id ?? payment.external_reference;
