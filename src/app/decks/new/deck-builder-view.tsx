@@ -584,6 +584,68 @@ export default function DeckBuilderView({ imageMap }: Props) {
             </Card>
           )}
 
+
+          {/* Card Stack Visual */}
+          {deckCards.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-xs text-surface-400 mb-3 font-medium">Vista del mazo</p>
+                {/* Stacked card images */}
+                <div className="relative h-28 flex items-end justify-center mb-2">
+                  {(() => {
+                    // Flatten entries into individual cards (respecting quantity) up to 12 visible
+                    const flat: string[] = [];
+                    for (const entry of deckCards) {
+                      for (let i = 0; i < entry.quantity && flat.length < 12; i++) {
+                        flat.push(entry.cardId);
+                      }
+                    }
+                    const visible = flat.slice(0, 12);
+                    return visible.map((cid, idx) => {
+                      const img = imageMap[cid];
+                      const isTop = idx === visible.length - 1;
+                      const isNew = isTop && lastAdded === cid;
+                      const offset = idx * 3; // px offset per card
+                      return (
+                        <div
+                          key={`${cid}-${idx}`}
+                          className={`absolute rounded-md overflow-hidden shadow-md border border-surface-700 transition-all duration-300 ${
+                            isNew ? "animate-card-stack" : ""
+                          }`}
+                          style={{
+                            width: 52,
+                            height: 74,
+                            bottom: offset,
+                            left: `calc(50% - 26px)`,
+                            zIndex: idx + 1,
+                            transform: `rotate(${(idx % 3 === 0 ? -1 : idx % 3 === 1 ? 0 : 1) * 1.5}deg)`,
+                          }}
+                        >
+                          {img ? (
+                            <Image
+                              src={img}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-surface-800 flex items-center justify-center">
+                              <Layers className="h-5 w-5 text-surface-600" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+                <p className="text-center text-[10px] text-surface-500 mt-1">
+                  {totalCards} carta{totalCards !== 1 ? "s" : ""} · {deckCards.length} tipo{deckCards.length !== 1 ? "s" : ""}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Deck List */}
           <Card>
             <CardHeader>
@@ -609,6 +671,7 @@ export default function DeckBuilderView({ imageMap }: Props) {
                         {group.entries.map((entry) => {
                           const card = getCardById(entry.cardId);
                           if (!card) return null;
+                          const imgUrl = imageMap[entry.cardId];
                           const isFav = favCodes.has(entry.cardId);
                           const isAnimating = lastAdded === entry.cardId;
                           return (
@@ -618,7 +681,14 @@ export default function DeckBuilderView({ imageMap }: Props) {
                                 isAnimating ? "animate-card-stack" : ""
                               }`}
                             >
-                              <span className="text-xs text-surface-400 w-5 text-center font-mono">{entry.quantity}×</span>
+                              {imgUrl ? (
+                                <div className="relative h-8 w-5 rounded overflow-hidden shrink-0">
+                                  <Image src={imgUrl} alt="" fill className="object-cover" unoptimized />
+                                </div>
+                              ) : (
+                                <span className="text-xs text-surface-400 w-5 text-center font-mono shrink-0">{entry.quantity}×</span>
+                              )}
+                              {imgUrl && <span className="text-[10px] text-surface-400 font-mono shrink-0">{entry.quantity}×</span>}
                               {isFav && <Heart className="h-3 w-3 fill-rose-400 text-rose-400 shrink-0" />}
                               <span className="flex-1 text-xs text-surface-200 truncate">{card.name}</span>
                               <button
@@ -640,18 +710,24 @@ export default function DeckBuilderView({ imageMap }: Props) {
                   {deckCards.map((entry) => {
                     const card = getCardById(entry.cardId);
                     if (!card) return null;
+                    const imgUrl = imageMap[entry.cardId];
                     const isFav = favCodes.has(entry.cardId);
                     const isAnimating = lastAdded === entry.cardId;
                     return (
                       <div
                         key={entry.cardId}
-                        className={`flex items-center gap-2 p-2 rounded-lg bg-surface-800/50 group ${
+                        className={`flex items-center gap-2 p-1.5 rounded-lg bg-surface-800/50 group ${
                           isAnimating ? "animate-card-stack" : ""
                         }`}
                       >
-                        <span className="text-xs text-surface-400 w-5 text-center">{entry.quantity}×</span>
+                        {imgUrl ? (
+                          <div className="relative h-8 w-5 rounded overflow-hidden shrink-0">
+                            <Image src={imgUrl} alt="" fill className="object-cover" unoptimized />
+                          </div>
+                        ) : null}
+                        <span className="text-[10px] text-surface-400 font-mono shrink-0">{entry.quantity}×</span>
                         {isFav && <Heart className="h-3 w-3 fill-rose-400 text-rose-400 shrink-0" />}
-                        <span className="flex-1 text-sm text-surface-200 truncate">{card.name}</span>
+                        <span className="flex-1 text-xs text-surface-200 truncate">{card.name}</span>
                         <Badge variant="default" className="text-[9px] shrink-0">{card.category}</Badge>
                         <button
                           onClick={() => removeCard(card.code)}

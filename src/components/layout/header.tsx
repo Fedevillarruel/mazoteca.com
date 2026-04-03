@@ -8,7 +8,7 @@ import {
   Search,
   Menu,
   X,
-  BookOpen,
+  // BookOpen, // unused while Catálogo is hidden
   Swords,
   MessageSquare,
   User,
@@ -30,7 +30,7 @@ import { useState, useRef, useEffect } from "react";
 // import { CartDrawer } from "@/components/ui/cart-drawer"; // temporalmente oculto
 
 const mainNav = [
-  { href: "/catalog", label: "Catálogo", icon: BookOpen },
+  // { href: "/catalog", label: "Catálogo", icon: BookOpen }, // temporalmente oculto
   { href: "/decks", label: "Mazos", icon: Swords },
   // { href: "/singles", label: "Singles", icon: Store },   // temporalmente oculto
   { href: "/album", label: "Álbum", icon: BookMarked },
