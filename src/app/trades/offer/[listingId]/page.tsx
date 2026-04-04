@@ -59,7 +59,7 @@ export default async function OfferPage({
   const repScore = Math.round(rep * 20); // 0-5 scale to 0-100
 
   return (
-    <PageLayout>
+    <PageLayout showAds={false}>
       <Link
         href="/forum?tab=trading"
         className="inline-flex items-center gap-1 text-sm text-surface-400 hover:text-surface-200 mb-6"

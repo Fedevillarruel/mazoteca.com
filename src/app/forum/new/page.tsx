@@ -390,7 +390,7 @@ export default function NewThreadPage() {
   }
 
   return (
-    <PageLayout>
+    <PageLayout showAds={false}>
       <Link
         href={`/forum?tab=${tab}`}
         className="inline-flex items-center gap-1 text-sm text-surface-400 hover:text-surface-200 mb-6"

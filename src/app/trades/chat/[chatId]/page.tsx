@@ -45,7 +45,7 @@ export default async function ChatPage({
 
   // Retype (unused vars removed)
   return (
-    <PageLayout>
+    <PageLayout showAds={false}>
       <ChatView
         chatId={chatId}
         currentUserId={user.id}

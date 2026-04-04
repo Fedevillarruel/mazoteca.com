@@ -78,6 +78,7 @@ export default async function NotificationsPage() {
     <PageLayout
       title="Notificaciones"
       description="Mantente al día con toda tu actividad"
+      showAds={false}
     >
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">

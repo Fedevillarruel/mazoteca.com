@@ -33,6 +33,7 @@ export default async function OrdersPage() {
     <PageLayout
       title="Mis Pedidos"
       description="Seguimiento de tus compras de singles"
+      showAds={false}
     >
       {orders.length === 0 ? (
         <EmptyOrders />

@@ -287,6 +287,7 @@ export function SettingsClient({
     <PageLayout
       title="Configuración"
       description="Personalizá tu experiencia en Mazoteca"
+      showAds={false}
     >
       <div className="grid lg:grid-cols-4 gap-6">
         {/* Sidebar */}
