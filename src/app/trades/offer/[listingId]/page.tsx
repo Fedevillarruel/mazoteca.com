@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { OfferForm } from "./offer-form";
 import { allCards } from "@/data/cards";
 
-export const metadata: Metadata = { title: "Hacer oferta" };
+export const metadata: Metadata = { title: "Hacer oferta", robots: { index: false, follow: false } };
 
 const conditionLabel: Record<string, string> = {
   mint: "Mint", near_mint: "Near Mint", excellent: "Excelente",

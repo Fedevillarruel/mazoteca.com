@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Singles",
 };
 
-// Página temporalmente oculta
+// /singles redirige al catálogo — página unificada
 export default async function SinglesPage() {
-  notFound();
+  redirect("/catalog");
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "¡Bienvenido a Premium! — Mazoteca",
+  robots: { index: false, follow: false },
 };
 
 export default function PremiumSuccessPage() {

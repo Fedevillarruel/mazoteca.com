@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { unstable_noStore as noStore } from "next/cache";
+import { headers } from "next/headers";
 import { ConditionalShell } from "@/components/layout/conditional-shell";
 import { Providers } from "./providers";
 import { TradeRatingPrompt } from "@/components/ui/trade-rating-prompt";
@@ -79,6 +80,13 @@ export default async function RootLayout({
       }
     : null;
 
+  // Detectar si la ruta actual es una página privada/utilidad sin contenido para AdSense
+  const reqHeaders = await headers();
+  const pathname = reqHeaders.get("x-pathname") ?? reqHeaders.get("x-forwarded-uri") ?? "";
+  const PRIVATE_PATHS = ["/trades", "/collection", "/notifications", "/settings", "/friends", "/orders", "/album", "/admin", "/auth", "/login", "/register"];
+  const isPrivatePath = PRIVATE_PATHS.some((p) => pathname.startsWith(p));
+  const showAds = !headerUser?.is_premium && !isPrivatePath;
+
   return (
     <html
       lang="es"
@@ -91,8 +99,8 @@ export default async function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('mz-theme')||'dark';var d=localStorage.getItem('mz-density')||'comfortable';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-density',d);}catch(e){}})();`,
           }}
         />
-        {/* Google AdSense — solo para usuarios no-premium */}
-        {!headerUser?.is_premium && (
+        {/* Google AdSense — solo para usuarios no-premium en páginas con contenido */}
+        {showAds && (
           <script
             async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2116982403838267"

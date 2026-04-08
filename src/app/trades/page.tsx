@@ -24,6 +24,7 @@ import { AcceptOfferButton } from "./accept-offer-button";
 export const metadata: Metadata = {
   title: "Intercambios",
   description: "Tus intercambios y ventas de cartas en Mazoteca.",
+  robots: { index: false, follow: false },
 };
 
 const statusConfig: Record<string, {

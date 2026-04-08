@@ -21,6 +21,7 @@ import { getCurrentUser } from "@/lib/actions/auth";
 export const metadata: Metadata = {
   title: "Notificaciones",
   description: "Tus notificaciones de Mazoteca.",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

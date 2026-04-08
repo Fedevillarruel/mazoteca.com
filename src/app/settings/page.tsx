@@ -6,6 +6,7 @@ import { SettingsClient } from "./settings-client";
 
 export const metadata: Metadata = {
   title: "Configuración — Mazoteca",
+  robots: { index: false, follow: false },
 };
 
 export default async function SettingsPage() {

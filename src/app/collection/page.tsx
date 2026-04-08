@@ -9,6 +9,7 @@ import { CollectionView } from "./collection-view";
 export const metadata: Metadata = {
   title: "Mi Colección",
   description: "Álbum digital de Kingdom TCG — todas las cartas que agregaste.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

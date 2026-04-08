@@ -8,6 +8,7 @@ import { getCatalogSingles } from "@/lib/services/tiendanube-sync";
 export const metadata: Metadata = {
   title: "Álbum Digital",
   description: "Tu álbum digital de Kingdom TCG. Registrá las cartas que tenés.",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 30;

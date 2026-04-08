@@ -8,6 +8,7 @@ import { ReportActions } from "./report-actions";
 
 export const metadata: Metadata = {
   title: "Admin — Reportes",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

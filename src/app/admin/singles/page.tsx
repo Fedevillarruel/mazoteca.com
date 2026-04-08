@@ -21,6 +21,7 @@ import { SyncButton } from "./sync-button";
 export const metadata: Metadata = {
   title: "Singles — Tiendanube | Admin",
   description: "Gestión de singles conectada a Tiendanube.",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

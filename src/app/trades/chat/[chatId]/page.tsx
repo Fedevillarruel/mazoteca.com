@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageLayout } from "@/components/layout/page-layout";
 import { ChatView } from "./chat-view";
 
-export const metadata: Metadata = { title: "Chat privado — Intercambio" };
+export const metadata: Metadata = { title: "Chat privado — Intercambio", robots: { index: false, follow: false } };
 
 export default async function ChatPage({
   params,

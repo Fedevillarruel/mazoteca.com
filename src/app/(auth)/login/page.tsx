@@ -5,6 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Iniciar Sesión",
   description: "Iniciá sesión en Mazoteca para gestionar tu colección, mazos y más.",
+  robots: { index: false, follow: false },
 };
 
 export default function LoginPage() {

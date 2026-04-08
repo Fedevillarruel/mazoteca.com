@@ -8,6 +8,7 @@ import { RoleSelector } from "./role-selector";
 
 export const metadata: Metadata = {
   title: "Admin — Usuarios",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

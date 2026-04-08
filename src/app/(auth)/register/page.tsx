@@ -5,6 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Registrarse",
   description: "Creá tu cuenta en Mazoteca. Colecciones, mazos, singles y comunidad TCG.",
+  robots: { index: false, follow: false },
 };
 
 export default function RegisterPage() {

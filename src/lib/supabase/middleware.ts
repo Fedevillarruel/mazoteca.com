@@ -186,5 +186,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Expose pathname to layout via header (used to conditionally load AdSense)
+  supabaseResponse.headers.set("x-pathname", pathname);
+
   return supabaseResponse;
 }

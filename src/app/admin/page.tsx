@@ -25,6 +25,7 @@ import { getAppSettings } from "@/lib/services/app-settings";
 export const metadata: Metadata = {
   title: "Panel de Administración",
   description: "Panel de administración de Mazoteca.",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

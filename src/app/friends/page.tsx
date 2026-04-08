@@ -19,6 +19,7 @@ import {
 export const metadata: Metadata = {
   title: "Amigos",
   description: "Gestioná tus amigos y solicitudes de amistad en Mazoteca.",
+  robots: { index: false, follow: false },
 };
 
 const placeholderFriends = [

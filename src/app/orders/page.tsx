@@ -19,6 +19,7 @@ import { getStatusLabel } from "@/lib/utils/order-labels";
 export const metadata: Metadata = {
   title: "Mis Pedidos",
   description: "Seguí el estado de tus compras de singles.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

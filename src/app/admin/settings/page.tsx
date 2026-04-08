@@ -14,6 +14,7 @@ import { ToggleRow } from "./toggle-row";
 
 export const metadata: Metadata = {
   title: "Configuración del sitio | Admin",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;

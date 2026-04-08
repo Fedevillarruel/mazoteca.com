@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Admin — Catálogo",
+  robots: { index: false, follow: false },
 };
 
 export const revalidate = 0;
