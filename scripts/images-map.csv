@@ -1,19 +1,29 @@
-# images-map.csv
+# images-map.csv — generado por generate-images-map.mjs
 # ─────────────────────────────────────────────────────────────────────────────
-# Formato: card_code,variant_label,drive_file_id
+# ESTRUCTURA DE DRIVE ESPERADA:
+#   Cartas/
+#     01-tropas/
+#       KT001/
+#         KT001.jpg        ← imagen principal (sin efecto)
+#         KT001 SG.jpg     ← Stamp Gold
+#         KT001 H.jpg      ← Holo
+#         KT001 STH.jpg    ← Stamp Holo
+#     02-coronados/ ...
+#     03-estrategia/ ...
+#     04-arroje/ ...
+#     05-realeza/ ...
+#     06-primigenias/ ...
 #
-# card_code:     Código de la carta (ej: KT001, KC001, KE005)
-# variant_label: Etiqueta del variante en TN (ej: "Foil", "Near Mint", "Foil / Near Mint")
-#                Dejá VACÍO si es la imagen principal del producto (sin variante específica)
-# drive_file_id: ID del archivo en Google Drive
-#                Del link: https://drive.google.com/file/d/ESTE_ID/view
-#                                                              ↑ esto
+# SUFIJOS RECONOCIDOS:
+#   SG  → Stamp Gold      H   → Holo
+#   ST  → Stamp           STH → Stamp Holo
+#   F   → Foil            SH  → Stamp Holo
 #
-# EJEMPLOS:
+# GENERÁ ESTE ARCHIVO AUTOMÁTICAMENTE:
+#   node scripts/generate-images-map.mjs --folder=ID_CARPETA_CARTAS
+#
+# O si la carpeta es pública en Drive:
+#   node scripts/generate-images-map.mjs --folder=ID_CARPETA_CARTAS --public
+#
 # ─────────────────────────────────────────────────────────────────────────────
 card_code,variant_label,drive_file_id
-# KT001,,1aBcDeFgHiJkLmNoPqRsTuVwXyZ123456       ← imagen principal (sin variante)
-# KT001,Foil,1xYzAbCdEfGhIjKlMnOpQrStUvWx789     ← imagen del variante Foil
-# KT001,Foil / Near Mint,1ZyXwVuTsRqPoNmLkJ0123  ← variante combinado
-# KC001,,1AbCdEfGhIjKlMnOpQrStUvWxYz456789       ← Viggo imagen principal
-# KC002,,1BcDeFgHiJkLmNoPqRsTuVwXyZa012345       ← Nemea imagen principal

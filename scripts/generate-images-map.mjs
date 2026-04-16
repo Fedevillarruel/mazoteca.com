@@ -1,33 +1,45 @@
 /**
  * generate-images-map.mjs
  * ────────────────────────────────────────────────────────────────────────────
- * Genera automáticamente el archivo images-map.csv leyendo una carpeta de
- * Google Drive. Los archivos deben tener el código de carta en el nombre.
+ * Genera automáticamente el archivo images-map.csv leyendo la estructura
+ * de carpetas de Google Drive de Mazoteca.
+ *
+ * ESTRUCTURA ESPERADA EN DRIVE:
+ *   Cartas/
+ *     01-tropas/
+ *       KT001/
+ *         KT001.jpg          → imagen principal (sin variante)
+ *         KT001 SG.jpg       → variante "SG"
+ *         KT001 H.jpg        → variante "H"
+ *         KT001 STH.jpg      → variante "STH"
+ *       KT002/
+ *         KT002.jpg
+ *     02-coronados/
+ *       KC001/
+ *         KC001.jpg
+ *         KC001 H.jpg
+ *     03-estrategia/ ...
+ *     04-arroje/ ...
+ *     05-realeza/ ...
+ *     06-primigenias/ ...
+ *
+ * SUFIJOS DE EFECTOS RECONOCIDOS (al final del nombre, separados por espacio):
+ *   SG  → Stamp Gold       H   → Holo
+ *   ST  → Stamp            STH → Stamp Holo
+ *   F   → Foil             SH  → Stamp Holo (alternativo)
+ *   (cualquier sufijo en mayúsculas de 1-4 letras se usa tal cual)
  *
  * REQUISITOS:
- *   1. Creá un Service Account en Google Cloud Console:
- *      https://console.cloud.google.com/iam-admin/serviceaccounts
- *   2. Habilitá la Google Drive API en el proyecto.
- *   3. Descargá el JSON de credenciales y guardalo como:
- *      scripts/google-service-account.json
- *   4. Compartí tu carpeta de Drive con el email del service account
- *      (aparece en el JSON como "client_email").
- *
- *   ALTERNATIVA SIN SERVICE ACCOUNT:
- *   Si tu carpeta es pública, usá --public-folder y solo necesitás el ID.
+ *   • Service Account JSON en scripts/google-service-account.json
+ *     (compartí la carpeta "Cartas" con el email del service account)
+ *   • O usá --public si la carpeta es completamente pública.
  *
  * USO:
- *   node scripts/generate-images-map.mjs --folder=FOLDER_ID_DE_DRIVE
- *   node scripts/generate-images-map.mjs --folder=FOLDER_ID_DE_DRIVE --public-folder
+ *   node scripts/generate-images-map.mjs --folder=ID_CARPETA_CARTAS
+ *   node scripts/generate-images-map.mjs --folder=ID_CARPETA_CARTAS --public
  *
- * El FOLDER_ID está en la URL de Drive:
+ * El ID de carpeta está en la URL:
  *   https://drive.google.com/drive/folders/ESTE_ES_EL_ID
- *
- * CONVENCIÓN DE NOMBRES de archivos en Drive:
- *   KT001.jpg               → imagen principal de KT001
- *   KT001_foil.jpg          → variante "Foil" de KT001
- *   KT001_foil_near-mint.jpg → variante "Foil / Near Mint" de KT001
- *   KC001_front.jpg         → imagen principal (ignora sufijos: front, back, 1, 2)
  * ────────────────────────────────────────────────────────────────────────────
  */
 
@@ -35,269 +47,271 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
-const __dir = dirname(fileURLToPath(import.meta.url));
-
-const CSV_OUT  = resolve(__dir, "images-map.csv");
-const SA_PATH  = resolve(__dir, "google-service-account.json");
+const __dir  = dirname(fileURLToPath(import.meta.url));
+const CSV_OUT = resolve(__dir, "images-map.csv");
+const SA_PATH = resolve(__dir, "google-service-account.json");
 
 // ── CLI args ─────────────────────────────────────────────────────────────────
 
-const args     = process.argv.slice(2);
-const FOLDER_ID   = args.find((a) => a.startsWith("--folder="))?.split("=")[1];
-const PUBLIC_MODE = args.includes("--public-folder");
+const args       = process.argv.slice(2);
+const FOLDER_ID  = args.find((a) => a.startsWith("--folder="))?.split("=")[1];
+const PUBLIC_MODE = args.includes("--public");
 
 if (!FOLDER_ID) {
-  console.error("❌  Necesitás pasar --folder=FOLDER_ID_DE_DRIVE");
-  console.error("    El ID está en: https://drive.google.com/drive/folders/ESTE_ID");
+  console.error("❌  Falta el argumento: --folder=ID_CARPETA_CARTAS");
+  console.error("    ID está en: https://drive.google.com/drive/folders/ESTE_ID");
   process.exit(1);
 }
 
+// ── Sufijos de efectos especiales ─────────────────────────────────────────────
+// Mapa sufijo (en archivo) → label en TN
+// Si el sufijo no está acá, se usa tal cual (en mayúsculas).
+const EFFECT_LABELS = {
+  SG:  "Stamp Gold",
+  H:   "Holo",
+  ST:  "Stamp",
+  STH: "Stamp Holo",
+  SH:  "Stamp Holo",
+  F:   "Foil",
+  FH:  "Foil Holo",
+};
+
 // ── Google Drive API ─────────────────────────────────────────────────────────
 
-/**
- * Obtener access token desde Service Account usando JWT.
- * Solo para carpetas privadas (no se necesita si es --public-folder).
- */
 async function getGoogleAccessToken(sa) {
-  // Importar crypto para firmar JWT
   const { createSign } = await import("crypto");
-
   const now = Math.floor(Date.now() / 1000);
-  const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+  const header  = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(JSON.stringify({
-    iss: sa.client_email,
+    iss:   sa.client_email,
     scope: "https://www.googleapis.com/auth/drive.readonly",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: now + 3600,
-    iat: now,
+    aud:   "https://oauth2.googleapis.com/token",
+    exp:   now + 3600,
+    iat:   now,
   })).toString("base64url");
-
   const sign = createSign("RSA-SHA256");
   sign.update(`${header}.${payload}`);
-  const signature = sign.sign(sa.private_key, "base64url");
-  const jwt = `${header}.${payload}.${signature}`;
+  const sig = sign.sign(sa.private_key, "base64url");
+  const jwt = `${header}.${payload}.${sig}`;
 
-  const res = await fetch("https://oauth2.googleapis.com/token", {
+  const res  = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
+      assertion:  jwt,
     }),
   });
-
   const data = await res.json();
-  if (!data.access_token) throw new Error(`No access_token: ${JSON.stringify(data)}`);
+  if (!data.access_token) throw new Error(`Sin access_token: ${JSON.stringify(data)}`);
   return data.access_token;
 }
 
-/**
- * Listar archivos de imagen en una carpeta de Drive (recursivo).
- */
-async function listDriveFiles(folderId, accessToken) {
-  const files = [];
-  let pageToken = null;
-
-  do {
-    const params = new URLSearchParams({
-      q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
-      fields: "nextPageToken,files(id,name,mimeType,parents)",
-      pageSize: "1000",
-      ...(pageToken ? { pageToken } : {}),
-    });
-
-    const url = `https://www.googleapis.com/drive/v3/files?${params}`;
-    const headers = accessToken
-      ? { Authorization: `Bearer ${accessToken}` }
-      : {};
-
-    const res = await fetch(url, { headers });
-
-    if (!res.ok) {
-      const body = await res.text();
-      // Si falla sin auth, intentar con API key pública (solo carpetas públicas)
-      if (res.status === 401 || res.status === 403) {
-        throw new Error(
-          `Sin acceso a Drive. ¿La carpeta es pública? Si no, necesitás google-service-account.json.\n${body}`
-        );
-      }
-      throw new Error(`Drive API error ${res.status}: ${body}`);
-    }
-
-    const data = await res.json();
-    files.push(...(data.files ?? []));
-    pageToken = data.nextPageToken ?? null;
-  } while (pageToken);
-
-  return files;
-}
-
-/**
- * También listar subcarpetas para recursividad (una carta = una subcarpeta)
- */
-async function listSubfolders(folderId, accessToken) {
+/** Listar SOLO subcarpetas de un folder */
+async function listFolders(parentId, token) {
   const params = new URLSearchParams({
-    q: `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-    fields: "files(id,name)",
-    pageSize: "1000",
+    q:         `'${parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    fields:    "files(id,name)",
+    pageSize:  "1000",
+    orderBy:   "name",
   });
-
-  const url = `https://www.googleapis.com/drive/v3/files?${params}`;
-  const headers = accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
-  const res = await fetch(url, { headers });
-  if (!res.ok) return [];
+  const res = await fetch(
+    `https://www.googleapis.com/drive/v3/files?${params}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Drive API ${res.status} listFolders(${parentId}): ${body.slice(0, 200)}`);
+  }
   const data = await res.json();
   return data.files ?? [];
 }
 
+/** Listar SOLO imágenes de un folder */
+async function listImages(parentId, token) {
+  const files = [];
+  let pageToken = null;
+  do {
+    const params = new URLSearchParams({
+      q:        `'${parentId}' in parents and mimeType contains 'image/' and trashed = false`,
+      fields:   "nextPageToken,files(id,name,mimeType)",
+      pageSize: "1000",
+      orderBy:  "name",
+      ...(pageToken ? { pageToken } : {}),
+    });
+    const res = await fetch(
+      `https://www.googleapis.com/drive/v3/files?${params}`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+    );
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Drive API ${res.status} listImages(${parentId}): ${body.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    files.push(...(data.files ?? []));
+    pageToken = data.nextPageToken ?? null;
+  } while (pageToken);
+  return files;
+}
+
+// ── Parsear nombre de archivo ─────────────────────────────────────────────────
 /**
- * Parsear nombre de archivo → { cardCode, variantLabel }
+ * Dado el nombre de un archivo (ej: "KT001 SG.jpg") y el código de carta
+ * que viene de la carpeta padre (ej: "KT001"), retorna { cardCode, variantLabel }.
  *
- * Convenciones soportadas:
- *   KT001.jpg                   → cardCode: KT001, variant: ""
- *   KT001_foil.jpg              → cardCode: KT001, variant: "Foil"
- *   KT001_foil_near-mint.jpg    → cardCode: KT001, variant: "Foil / Near Mint"
- *   KC001 - Viggo Foil.jpg      → cardCode: KC001, variant: "Foil"
- *   KT001_1.jpg / KT001_front.jpg → cardCode: KT001, variant: ""
+ * Regla: todo lo que viene DESPUÉS del código (separado por espacio) es el sufijo de efecto.
+ *   "KT001.jpg"       → variant: "" (imagen principal)
+ *   "KT001 SG.jpg"    → variant: "Stamp Gold"  (o el label mapeado)
+ *   "KT001 STH.jpg"   → variant: "Stamp Holo"
+ *   "KT001 XYZ.jpg"   → variant: "XYZ"  (sufijo desconocido → tal cual)
  */
-function parseFilename(filename) {
-  const CARD_CODE_RE = /\b(K[TCREPA][0-9]{3,9})\b/i;
-  const baseName = filename.replace(/\.[^.]+$/, ""); // sin extensión
+function parseImageFile(filename, folderCardCode) {
+  const CARD_CODE_RE = /^(K[TCREPA][0-9]{3,9})/i;
+  const base = filename.replace(/\.[^.]+$/, "").trim(); // sin extensión
 
-  const codeMatch = baseName.match(CARD_CODE_RE);
-  if (!codeMatch) return null;
+  // El código puede venir del nombre del archivo o de la carpeta padre
+  const codeMatch = base.match(CARD_CODE_RE);
+  const cardCode  = (codeMatch?.[1] ?? folderCardCode)?.toUpperCase();
+  if (!cardCode) return null;
 
-  const cardCode = codeMatch[1].toUpperCase();
-
-  // Extraer lo que sigue después del código
-  const afterCode = baseName.slice(codeMatch.index + codeMatch[0].length)
-    .replace(/^[\s_\-–—]+/, "")
-    .trim();
-
-  // Ignorar sufijos genéricos
-  const IGNORE = /^(front|back|1|2|3|a|b|principal|main)$/i;
-  if (!afterCode || IGNORE.test(afterCode)) {
-    return { cardCode, variantLabel: "" };
+  // Todo lo que sigue al código (con espacio) es el sufijo de efecto
+  let suffix = "";
+  if (codeMatch) {
+    suffix = base.slice(codeMatch[0].length).replace(/^[\s_\-]+/, "").trim();
+  } else {
+    // El nombre del archivo no tiene código → el sufijo es todo el nombre
+    suffix = base.trim();
   }
 
-  // Convertir "foil_near-mint" → "Foil / Near Mint"
-  const variantLabel = afterCode
-    .split(/[_\-–]/)
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .filter((p) => !IGNORE.test(p))
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(" / ");
+  // Si no hay sufijo → imagen principal
+  if (!suffix) return { cardCode, variantLabel: "" };
 
+  // Mapear sufijo conocido, o usar tal cual
+  const variantLabel = EFFECT_LABELS[suffix.toUpperCase()] ?? suffix.toUpperCase();
   return { cardCode, variantLabel };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log("\n🗺️   generate-images-map.mjs");
+  console.log("\n🗺️   generate-images-map.mjs — Mazoteca");
   console.log("═".repeat(60));
-  console.log(`📁  Carpeta Drive: ${FOLDER_ID}`);
-  console.log(`🔒  Modo: ${PUBLIC_MODE ? "pública (sin auth)" : "service account"}`);
+  console.log(`📁  Carpeta raíz: ${FOLDER_ID}`);
+  console.log(`🔒  Modo: ${PUBLIC_MODE ? "pública (--public)" : "service account"}`);
 
-  // Obtener access token
-  let accessToken = null;
+  // Auth
+  let token = null;
   if (!PUBLIC_MODE) {
     if (!existsSync(SA_PATH)) {
-      console.error(`❌  No encontré: ${SA_PATH}`);
-      console.error("    Descargá el JSON del Service Account de Google Cloud Console.");
-      console.error("    O usá --public-folder si tu carpeta es pública.");
+      console.error(`\n❌  No encontré: ${SA_PATH}`);
+      console.error("    Opciones:");
+      console.error("    a) Descargá el Service Account JSON de Google Cloud y guardalo ahí.");
+      console.error("    b) Hacé pública la carpeta de Drive y usá --public.");
       process.exit(1);
     }
     const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
     console.log(`🔑  Service Account: ${sa.client_email}`);
-    accessToken = await getGoogleAccessToken(sa);
-    console.log("✅  Token obtenido");
+    token = await getGoogleAccessToken(sa);
+    console.log("✅  Token OK\n");
   }
 
-  // Listar archivos en la carpeta raíz
-  console.log("\n📂  Listando archivos...");
-  let allFiles = await listDriveFiles(FOLDER_ID, accessToken);
-
-  // Si hay subcarpetas (organización por carta), buscar también dentro
-  const subfolders = await listSubfolders(FOLDER_ID, accessToken);
-  if (subfolders.length > 0) {
-    console.log(`📂  Encontré ${subfolders.length} subcarpetas — buscando dentro...`);
-    for (const folder of subfolders) {
-      const subFiles = await listDriveFiles(folder.id, accessToken);
-      // Los archivos en subcarpetas heredan el nombre de la carpeta si no tienen código
-      for (const f of subFiles) {
-        // Si el filename no tiene código de carta, intentar leerlo del nombre de la carpeta
-        if (!f.name.match(/\b(K[TCREPA][0-9]{3,9})\b/i) && folder.name.match(/\b(K[TCREPA][0-9]{3,9})\b/i)) {
-          f._folderName = folder.name;
-        }
-      }
-      allFiles.push(...subFiles);
-    }
-  }
-
-  console.log(`📄  ${allFiles.length} imágenes encontradas`);
-
-  // Parsear y generar rows CSV
-  const rows = [];
+  const rows        = [];
   const unrecognized = [];
+  let   totalImages  = 0;
 
-  for (const file of allFiles) {
-    const nameToUse = file._folderName
-      ? `${file._folderName}_${file.name}`
-      : file.name;
+  // Nivel 1: carpetas de categoría (01-tropas, 02-coronados, ...)
+  console.log("📂  Leyendo categorías...");
+  const categoryFolders = await listFolders(FOLDER_ID, token);
+  console.log(`   ${categoryFolders.length} categorías: ${categoryFolders.map((f) => f.name).join(", ")}\n`);
 
-    const parsed = parseFilename(nameToUse);
-    if (!parsed) {
-      unrecognized.push(file.name);
-      continue;
+  for (const catFolder of categoryFolders) {
+    console.log(`📂  ${catFolder.name}`);
+
+    // Nivel 2: carpetas de carta (KT001, KC001, ...)
+    const cardFolders = await listFolders(catFolder.id, token);
+    console.log(`   ${cardFolders.length} cartas`);
+
+    for (const cardFolder of cardFolders) {
+      // El nombre de la carpeta es el código de carta (ej: "KT001")
+      const folderCardCode = cardFolder.name.match(/^(K[TCREPA][0-9]{3,9})/i)?.[1]?.toUpperCase();
+      if (!folderCardCode) {
+        console.log(`   ⚠️  Carpeta sin código reconocido: "${cardFolder.name}" — salteando`);
+        unrecognized.push(`[carpeta] ${catFolder.name}/${cardFolder.name}`);
+        continue;
+      }
+
+      // Nivel 3: imágenes dentro de la carpeta de la carta
+      const images = await listImages(cardFolder.id, token);
+      totalImages += images.length;
+
+      if (images.length === 0) {
+        console.log(`   ⚠️  ${folderCardCode} — sin imágenes`);
+        continue;
+      }
+
+      // Ordenar: primero la imagen principal (sin sufijo), luego por nombre
+      images.sort((a, b) => a.name.localeCompare(b.name));
+
+      for (const img of images) {
+        const parsed = parseImageFile(img.name, folderCardCode);
+        if (!parsed) {
+          unrecognized.push(`${catFolder.name}/${cardFolder.name}/${img.name}`);
+          continue;
+        }
+        rows.push({
+          card_code:     parsed.cardCode,
+          variant_label: parsed.variantLabel,
+          drive_file_id: img.id,
+          _path:         `${catFolder.name}/${cardFolder.name}/${img.name}`,
+        });
+      }
     }
-
-    rows.push({
-      card_code: parsed.cardCode,
-      variant_label: parsed.variantLabel,
-      drive_file_id: file.id,
-      _filename: file.name, // solo para el log
-    });
   }
 
-  // Ordenar por código + variante
+  // Ordenar por código → variante
   rows.sort((a, b) =>
-    a.card_code.localeCompare(b.card_code) || a.variant_label.localeCompare(b.variant_label)
+    a.card_code.localeCompare(b.card_code) ||
+    a.variant_label.localeCompare(b.variant_label)
   );
 
-  // Generar CSV
+  // Escribir CSV
   const csvLines = [
     "card_code,variant_label,drive_file_id",
     ...rows.map((r) => `${r.card_code},${r.variant_label},${r.drive_file_id}`),
   ];
-
   writeFileSync(CSV_OUT, csvLines.join("\n") + "\n");
 
   // Resumen
   console.log("\n" + "═".repeat(60));
-  console.log(`✅  ${rows.length} entradas generadas → ${CSV_OUT}`);
+  console.log(`📊  Imágenes encontradas: ${totalImages}`);
+  console.log(`✅  Filas en CSV:         ${rows.length}`);
+  console.log(`❌  No reconocidos:       ${unrecognized.length}`);
+  console.log(`💾  CSV guardado en:      ${CSV_OUT}`);
+
+  // Desglose por carta
+  const byCode = {};
+  for (const r of rows) {
+    if (!byCode[r.card_code]) byCode[r.card_code] = [];
+    byCode[r.card_code].push(r.variant_label || "(principal)");
+  }
+  console.log(`\n📋  Preview — primeras 15 cartas:`);
+  for (const [code, variants] of Object.entries(byCode).slice(0, 15)) {
+    console.log(`   ${code.padEnd(10)} → ${variants.join(" | ")}`);
+  }
 
   if (unrecognized.length > 0) {
-    console.log(`\n⚠️  ${unrecognized.length} archivos sin código de carta reconocido:`);
-    for (const name of unrecognized.slice(0, 20)) {
-      console.log(`   - ${name}`);
-    }
-    if (unrecognized.length > 20) console.log(`   ... y ${unrecognized.length - 20} más`);
-    console.log("\n   Renombralos incluyendo el código: ej. KT001_foil.jpg");
+    console.log(`\n⚠️  Archivos/carpetas no reconocidos:`);
+    for (const u of unrecognized.slice(0, 15)) console.log(`   - ${u}`);
+    if (unrecognized.length > 15) console.log(`   ... y ${unrecognized.length - 15} más`);
   }
 
-  console.log("\n📋  Preview (primeras 10 filas):");
-  for (const r of rows.slice(0, 10)) {
-    console.log(`   ${r.card_code.padEnd(10)} | "${r.variant_label.padEnd(20)}" | ${r.drive_file_id} (${r._filename})`);
-  }
-
-  console.log(`\n🚀  Ahora podés correr:`);
+  console.log(`\n🚀  Próximos pasos:`);
   console.log(`   node scripts/upload-images-to-tn.mjs --dry-run`);
+  console.log(`   node scripts/upload-images-to-tn.mjs --skip-existing`);
   console.log(`   node scripts/upload-images-to-tn.mjs\n`);
 }
 
 main().catch((err) => {
-  console.error("💥  Error fatal:", err.message);
+  console.error("\n💥  Error fatal:", err.message);
   process.exit(1);
 });
