@@ -62,14 +62,16 @@ export const gameConfig = {
 
   // Free tier limits
   freeTier: {
-    maxDecks: 2,
+    maxDecks: 1,
+    maxAlbumCards: 64,
     maxMarketplaceListings: 5,
     maxTradesPerWeek: 1,
   },
 
   // Premium tier limits
   premiumTier: {
-    maxDecks: 50,
+    maxDecks: Infinity,
+    maxAlbumCards: Infinity,
     maxMarketplaceListings: 100,
     maxTradesPerWeek: 999,
   },
@@ -85,7 +87,8 @@ export const subscriptionConfig = {
       features: [
         "Explorar catálogo completo",
         "Colección digital y física",
-        `Hasta ${gameConfig.freeTier.maxDecks} mazos`,
+        `Hasta ${gameConfig.freeTier.maxDecks} mazo`,
+        `Hasta ${gameConfig.freeTier.maxAlbumCards} cartas en el álbum`,
         `Hasta ${gameConfig.freeTier.maxMarketplaceListings} publicaciones`,
         "Participar en torneos",
         "Foro y comunidad",
@@ -98,7 +101,8 @@ export const subscriptionConfig = {
       currency: "ARS",
       features: [
         "Todo lo gratuito",
-        `Hasta ${gameConfig.premiumTier.maxDecks} mazos`,
+        "Mazos ilimitados",
+        "Álbum ilimitado",
         `Hasta ${gameConfig.premiumTier.maxMarketplaceListings} publicaciones`,
         "Publicaciones destacadas",
         "Estadísticas avanzadas",

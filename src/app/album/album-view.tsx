@@ -465,6 +465,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
   const [pendingCode, setPendingCode] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [modal, setModal]           = useState<CardModalState | null>(null);
+  const [albumError, setAlbumError] = useState<string | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flipBookRef = useRef<any>(null);
@@ -560,6 +561,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
       const res = await setAlbumQuantity(code, qty);
       if (res.needsAuth) { window.location.href = "/login"; return; }
       if (res.error) {
+        setAlbumError(res.error);
         setOwnedMap((m) => {
           const next = { ...m };
           if (prev <= 0) delete next[code];
@@ -606,6 +608,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
       const res = await toggleAlbum(code);
       if (res.needsAuth) { window.location.href = "/login"; return; }
       if (res.error) {
+        setAlbumError(res.error);
         setOwnedMap((m) => {
           const next = { ...m };
           if (wasOwned) next[code] = 1;
@@ -622,6 +625,13 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
 
   return (
     <PageLayout title="Álbum Digital" description="Las cartas del catálogo que tenés en tu colección">
+      {/* Limit error banner */}
+      {albumError && (
+        <div className="mb-4 flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <span className="flex-1">{albumError}</span>
+          <button onClick={() => setAlbumError(null)} className="text-red-400 hover:text-red-200 font-bold leading-none">✕</button>
+        </div>
+      )}
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <Card><CardContent className="p-3 text-center">
@@ -912,16 +922,16 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
                         </div>
                       )}
                       {/* Quick toggle on hover */}
-                      <div
-                        className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity"
-                        onClick={(e) => { e.stopPropagation(); handleToggleFromGrid(entry.code); }}
-                      >
-                        <span className={cn(
-                          "flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold shadow-lg border transition-all",
-                          isOwned
-                            ? "bg-red-600/90 border-red-500 text-white hover:bg-red-500"
-                            : "bg-primary-600/90 border-primary-500 text-white hover:bg-primary-500"
-                        )}>
+                      <div className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
+                        <span
+                          onClick={(e) => { e.stopPropagation(); handleToggleFromGrid(entry.code); }}
+                          className={cn(
+                            "pointer-events-auto flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold shadow-lg border transition-all cursor-pointer",
+                            isOwned
+                              ? "bg-red-600/90 border-red-500 text-white hover:bg-red-500"
+                              : "bg-primary-600/90 border-primary-500 text-white hover:bg-primary-500"
+                          )}
+                        >
                           {isOwned ? <><Minus className="h-2.5 w-2.5" /> Quitar</> : <><Plus className="h-2.5 w-2.5" /> Agregar</>}
                         </span>
                       </div>

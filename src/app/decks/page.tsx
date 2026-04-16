@@ -203,7 +203,7 @@ export default async function DecksPage() {
               Alcanzaste el límite de <strong className="text-surface-200">2 mazos</strong> del plan gratuito.
             </p>
             <p className="text-surface-500 text-sm mb-6 max-w-sm mx-auto">
-              Pasate a Premium con un pago único de USD 12 y creá mazos ilimitados.
+              Pasate a Premium con un pago único de USD 15 y creá mazos ilimitados.
             </p>
             <Link href="/premium">
               <Button>

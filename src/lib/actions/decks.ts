@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deckSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { gameConfig } from "@/config/site";
 
 export async function createDeck(formData: FormData) {
   const supabase = await createClient();
@@ -187,6 +188,22 @@ export async function createDeckFromBuilder(params: {
 
   const name = params.name.trim();
   if (!name) return { error: "El nombre del mazo es requerido." };
+
+  // Check deck limit for free users
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_premium")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.is_premium) {
+    const { count } = await supabase
+      .from("decks")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", user.id);
+    if ((count ?? 0) >= gameConfig.freeTier.maxDecks) {
+      return { error: `Los usuarios gratuitos pueden crear hasta ${gameConfig.freeTier.maxDecks} mazo. ¡Pasate a Premium para tener mazos ilimitados!` };
+    }
+  }
 
   const slug =
     name

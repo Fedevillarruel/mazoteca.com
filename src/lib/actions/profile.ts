@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { profileSchema, physicalInventoryItemSchema, reportSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
+import { gameConfig } from "@/config/site";
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
@@ -383,6 +384,14 @@ export async function toggleAlbum(cardCode: string): Promise<{ added?: boolean; 
     revalidatePath("/album");
     return { removed: true };
   } else {
+    // Verificar límite de cartas para usuarios free
+    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).single();
+    if (!profile?.is_premium) {
+      const { count } = await supabase.from("user_album").select("id", { count: "exact", head: true }).eq("profile_id", user.id);
+      if ((count ?? 0) >= gameConfig.freeTier.maxAlbumCards) {
+        return { error: `Los usuarios gratuitos pueden tener hasta ${gameConfig.freeTier.maxAlbumCards} cartas en el álbum. ¡Pasate a Premium!` };
+      }
+    }
     // Agregar al álbum con quantity=1
     const { error } = await supabase
       .from("user_album")
@@ -415,6 +424,25 @@ export async function setAlbumQuantity(cardCode: string, quantity: number): Prom
     if (error) return { error: "Error al quitar la carta." };
     revalidatePath("/album");
     return { removed: true };
+  }
+
+  // Check if card already exists (upsert)
+  const { data: existing } = await supabase
+    .from("user_album")
+    .select("id")
+    .eq("profile_id", user.id)
+    .eq("card_code", cardCode)
+    .maybeSingle();
+
+  if (!existing) {
+    // New card — check free tier album limit
+    const { data: profile } = await supabase.from("profiles").select("is_premium").eq("id", user.id).single();
+    if (!profile?.is_premium) {
+      const { count } = await supabase.from("user_album").select("id", { count: "exact", head: true }).eq("profile_id", user.id);
+      if ((count ?? 0) >= gameConfig.freeTier.maxAlbumCards) {
+        return { error: `Los usuarios gratuitos pueden tener hasta ${gameConfig.freeTier.maxAlbumCards} cartas en el álbum. ¡Pasate a Premium!` };
+      }
+    }
   }
 
   // Upsert
