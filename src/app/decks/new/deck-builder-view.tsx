@@ -277,7 +277,7 @@ export default function DeckBuilderView({ imageMap, allImagesMap, albumMap }: Pr
           <Button
             variant="secondary"
             size="sm"
-            disabled={!isValid || !deckName.trim() || isPending}
+            disabled={!deckName.trim() || totalCards === 0 || isPending}
             onClick={() => {
               setSaveError(null);
               startTransition(async () => {
