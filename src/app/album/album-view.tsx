@@ -355,7 +355,7 @@ const AlbumPage = forwardRef<HTMLDivElement, PageProps>(function AlbumPage(
           return (
             <button
               key={entry.code}
-              onClick={() => onEntryClick(entry)}
+              onClick={(e) => { e.stopPropagation(); onEntryClick(entry); }}
               disabled={isLoading}
               className={cn(
                 "relative rounded-lg overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-left",
