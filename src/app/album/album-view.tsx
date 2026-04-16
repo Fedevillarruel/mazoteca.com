@@ -114,7 +114,7 @@ function CardModal({
   onSetQty: (qty: number) => void;
   onToggleWishlist: () => void;
 }) {
-  const { entry, allImages } = state;
+  const { entry } = state;
   const { card, code, imageUrl, variantLabel } = entry;
   const Icon = categoryIcon[card.category];
   const [listType, setListType] = useState<"sale" | "trade" | "both" | null>(null);
@@ -123,12 +123,7 @@ function CardModal({
   const [, startListing] = useTransition();
   const [listed, setListed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
-  const [colorized, setColorized] = useState(false);
   const isOwned = quantity > 0;
-
-  // Imagen efectiva a mostrar en el header
-  const displayImage = lightboxSrc ?? imageUrl;
 
   function handleList() {
     if (!listType) return;
@@ -146,116 +141,105 @@ function CardModal({
 
   return (
     <>
-    {lightboxOpen && displayImage && (
-      <ImageLightbox src={displayImage} alt={card.name} onClose={() => setLightboxOpen(false)} />
+    {lightboxOpen && imageUrl && (
+      <ImageLightbox src={imageUrl} alt={card.name} onClose={() => setLightboxOpen(false)} />
     )}
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-sm bg-surface-900 border border-surface-700 rounded-2xl overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="flex items-start gap-3 p-4 border-b border-surface-800">
-          <div
-            className={cn(
-              "relative h-20 w-14 rounded-lg overflow-hidden bg-surface-800 shrink-0",
-              imageUrl && "cursor-zoom-in"
-            )}
-            onClick={() => imageUrl && (setLightboxSrc(imageUrl), setLightboxOpen(true))}
-          >
-            {imageUrl ? (
-              <Image
-                src={imageUrl} alt={card.name} fill
-                className={cn("object-cover transition-all duration-300", !isOwned && !colorized && "grayscale")}
-                sizes="56px"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Icon className="h-6 w-6 text-surface-600" />
-              </div>
+      <div className="w-full max-w-sm bg-surface-900 border border-surface-700 rounded-2xl overflow-hidden shadow-2xl max-h-[92vh] overflow-y-auto">
+
+        {/* Close button */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="text-[10px] font-mono text-surface-500">{code}</p>
+            {variantLabel && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-semibold text-amber-300 shrink-0">
+                {variantLabel}
+              </span>
             )}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <p className="text-[10px] font-mono text-surface-500">{code}</p>
-              {variantLabel && (
-                <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-semibold text-amber-300">
-                  {variantLabel}
-                </span>
-              )}
-            </div>
-            <p className="text-sm font-bold text-surface-100 leading-tight">{card.name}</p>
-            <p className="text-xs text-surface-400 mt-0.5">
-              {card.category}{card.level != null ? ` · Nv. ${card.level}` : ""}
-            </p>
-            {/* Colorize button for unowned cards with image */}
-            {!isOwned && imageUrl && (
-              <button
-                onClick={() => setColorized((v) => !v)}
-                className={cn(
-                  "mt-1.5 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border transition-all",
-                  colorized
-                    ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
-                    : "bg-surface-800 border-surface-700 text-surface-500 hover:text-surface-300"
-                )}
-              >
-                <Sparkles className="h-2.5 w-2.5" />
-                {colorized ? "Ver en gris" : "Ver en color"}
-              </button>
-            )}
-          </div>
-          <button onClick={onClose} className="text-surface-500 hover:text-surface-200 transition-colors p-1">
+          <button onClick={onClose} className="text-surface-500 hover:text-surface-200 transition-colors p-1 shrink-0">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Galería de variantes — solo para cartas base con múltiples imágenes */}
-        {!variantLabel && allImages.length > 1 && (
-          <div className="px-4 py-3 border-b border-surface-800">
-            <p className="text-[10px] text-surface-500 mb-2 font-medium uppercase tracking-wide">
-              Variantes ({allImages.length})
-            </p>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {allImages.map((url: string, i: number) => (
-                <button
-                  key={i}
-                  onClick={() => { setLightboxSrc(url); setLightboxOpen(true); }}
-                  className={cn(
-                    "relative h-14 w-10 shrink-0 rounded overflow-hidden border-2 transition-all cursor-zoom-in hover:border-primary-400",
-                    url === (lightboxSrc ?? imageUrl) ? "border-primary-500" : "border-surface-700"
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Imagen ${i + 1}`} className={cn("w-full h-full object-cover", !isOwned && !colorized && "grayscale")} />
-                </button>
-              ))}
-            </div>
+        {/* Large card image */}
+        <div className="flex justify-center px-6 pb-4">
+          <div
+            className={cn(
+              "relative w-44 rounded-xl overflow-hidden bg-surface-800 shadow-xl",
+              imageUrl ? "cursor-zoom-in" : ""
+            )}
+            style={{ aspectRatio: "5/7" }}
+            onClick={() => imageUrl && setLightboxOpen(true)}
+          >
+            {imageUrl ? (
+              <Image
+                src={imageUrl} alt={card.name} fill
+                className={cn("object-cover transition-all duration-300", !isOwned && "grayscale")}
+                sizes="176px"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                <Icon className="h-10 w-10 text-surface-600 mb-2" />
+                <span className="text-[10px] text-surface-500 leading-tight">{card.name}</span>
+              </div>
+            )}
+            {imageUrl && (
+              <div className="absolute bottom-2 right-2 bg-surface-950/60 rounded p-1">
+                <Search className="h-3 w-3 text-surface-400" />
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Quantity */}
-        <div className="p-4 border-b border-surface-800">
-          <p className="text-[10px] text-surface-500 mb-3 font-medium uppercase tracking-wide">Mi colección</p>
-          <div className="flex items-center justify-between gap-3">
+        {/* Card info */}
+        <div className="px-4 pb-4 text-center">
+          <p className="text-base font-bold text-surface-100 leading-tight">{card.name}</p>
+          <p className="text-xs text-surface-400 mt-0.5">
+            {card.category}{card.level != null ? ` · Nv. ${card.level}` : ""}
+          </p>
+        </div>
+
+        {/* Quantity — always visible counter */}
+        <div className="px-4 pb-4 border-t border-surface-800 pt-4">
+          <p className="text-[10px] text-surface-500 mb-3 font-medium uppercase tracking-wide text-center">Mi colección</p>
+          <div className="flex items-center justify-center gap-4">
             <button
-              onClick={() => onSetQty(isOwned ? 0 : 1)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
-                isOwned
-                  ? "bg-primary-600 border-primary-500 text-white"
-                  : "bg-surface-800 border-surface-700 text-surface-400 hover:border-surface-500"
-              )}
+              onClick={() => onSetQty(Math.max(0, quantity - 1))}
+              disabled={quantity === 0}
+              className="h-9 w-9 rounded-full bg-surface-800 border border-surface-700 text-surface-300 hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
             >
-              <Check className="h-3 w-3" />
-              {isOwned ? "La tengo" : "No la tengo"}
+              <Minus className="h-4 w-4" />
             </button>
-
-            {/* Wishlist toggle (shown when not owned) */}
-            {!isOwned && (
+            <div className="text-center min-w-12">
+              <span className={cn("text-3xl font-bold", isOwned ? "text-primary-400" : "text-surface-600")}>
+                {quantity}
+              </span>
+              <p className="text-[9px] text-surface-500 mt-0.5">{isOwned ? (quantity === 1 ? "copia" : "copias") : "no tengo"}</p>
+            </div>
+            <button
+              onClick={() => onSetQty(quantity + 1)}
+              className="h-9 w-9 rounded-full bg-primary-600 hover:bg-primary-500 border border-primary-500 text-white flex items-center justify-center transition-colors shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          {isOwned && quantity > 1 && (
+            <p className="text-[10px] text-amber-400 mt-2 flex items-center justify-center gap-1">
+              <Copy className="h-3 w-3" />
+              {quantity - 1} cop{quantity - 1 === 1 ? "ia" : "ias"} repetida{quantity - 1 === 1 ? "" : "s"}
+            </p>
+          )}
+          {/* Wishlist */}
+          {!isOwned && (
+            <div className="mt-3 flex justify-center">
               <button
                 onClick={onToggleWishlist}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                  "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                   isWishlisted
                     ? "bg-violet-600 border-violet-500 text-white"
                     : "bg-surface-800 border-surface-700 text-surface-400 hover:border-violet-500 hover:text-violet-300"
@@ -264,42 +248,13 @@ function CardModal({
                 <Heart className={cn("h-3 w-3", isWishlisted && "fill-white")} />
                 {isWishlisted ? "En wishlist" : "Agregar a wishlist"}
               </button>
-            )}
-
-            {isOwned && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-surface-400 flex items-center gap-1">
-                  <Copy className="h-3 w-3" /> Copias:
-                </span>
-                <div className="flex items-center gap-1 bg-surface-800 border border-surface-700 rounded-lg">
-                  <button
-                    onClick={() => onSetQty(Math.max(1, quantity - 1))}
-                    className="p-1.5 text-surface-400 hover:text-surface-200 transition-colors"
-                  >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <span className="w-6 text-center text-sm font-bold text-surface-100">{quantity}</span>
-                  <button
-                    onClick={() => onSetQty(quantity + 1)}
-                    className="p-1.5 text-surface-400 hover:text-surface-200 transition-colors"
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          {isOwned && quantity > 1 && (
-            <p className="text-[10px] text-amber-400 mt-2 flex items-center gap-1">
-              <Copy className="h-3 w-3" />
-              Tenés {quantity - 1} cop{quantity - 1 === 1 ? "ia" : "ias"} repetida{quantity - 1 === 1 ? "" : "s"}
-            </p>
+            </div>
           )}
         </div>
 
         {/* Publish */}
         {isOwned && !listed && (
-          <div className="p-4">
+          <div className="p-4 border-t border-surface-800">
             <p className="text-[10px] text-surface-500 mb-3 font-medium uppercase tracking-wide">Publicar carta</p>
             {!listType ? (
               <div className="flex gap-2">
@@ -360,7 +315,7 @@ function CardModal({
         )}
 
         {listed && (
-          <div className="p-4 text-center">
+          <div className="p-4 text-center border-t border-surface-800">
             <Check className="h-8 w-8 text-green-400 mx-auto mb-2" />
             <p className="text-sm font-semibold text-surface-100">¡Publicación creada!</p>
             <p className="text-xs text-surface-400 mt-1">
@@ -551,11 +506,10 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
   const percentage  = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
   const wishlistCount = wishlistSet.size;
 
-  // Flip book uses only base card entries (one AlbumEntry per base card)
-  const baseEntries: AlbumEntry[] = allEntries.filter((e) => !e.variantLabel);
+  // Flip book uses ALL entries (base + variants)
   const flipPages: AlbumEntry[][] = [];
-  for (let i = 0; i < baseEntries.length; i += CARDS_PER_PAGE) {
-    flipPages.push(baseEntries.slice(i, i + CARDS_PER_PAGE));
+  for (let i = 0; i < allEntries.length; i += CARDS_PER_PAGE) {
+    flipPages.push(allEntries.slice(i, i + CARDS_PER_PAGE));
   }
   const totalFlipPages = flipPages.length;
 
