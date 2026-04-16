@@ -42,5 +42,9 @@ yarn-error.log*
 # scripts — archivos sensibles y logs generados
 scripts/google-service-account.json
 scripts/upload-images-log.json
+
+# service account JSONs en raíz
+mazoteca-*.json
+*.service-account.json
 next-env.d.ts
 .env*.local
