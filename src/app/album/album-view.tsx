@@ -959,7 +959,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
                       )}
                       {/* Quick toggle on hover */}
                       <div
-                        className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity"
                         onClick={(e) => { e.stopPropagation(); handleToggleFromGrid(entry.code); }}
                       >
                         <span className={cn(
@@ -1022,11 +1022,6 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
           </div>
         </>
       )}
-
-      <p className="text-xs text-surface-600 text-center mt-8">
-        El álbum muestra las cartas disponibles en el catálogo.
-        Se actualiza automáticamente cuando se agregan cartas a la tienda.
-      </p>
 
       {/* Card detail modal */}
       {modal && (
