@@ -38,5 +38,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# scripts — archivos sensibles y logs generados
+scripts/google-service-account.json
+scripts/upload-images-log.json
 next-env.d.ts
 .env*.local

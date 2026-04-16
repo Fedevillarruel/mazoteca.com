@@ -1,0 +1,19 @@
+# images-map.csv
+# ─────────────────────────────────────────────────────────────────────────────
+# Formato: card_code,variant_label,drive_file_id
+#
+# card_code:     Código de la carta (ej: KT001, KC001, KE005)
+# variant_label: Etiqueta del variante en TN (ej: "Foil", "Near Mint", "Foil / Near Mint")
+#                Dejá VACÍO si es la imagen principal del producto (sin variante específica)
+# drive_file_id: ID del archivo en Google Drive
+#                Del link: https://drive.google.com/file/d/ESTE_ID/view
+#                                                              ↑ esto
+#
+# EJEMPLOS:
+# ─────────────────────────────────────────────────────────────────────────────
+card_code,variant_label,drive_file_id
+# KT001,,1aBcDeFgHiJkLmNoPqRsTuVwXyZ123456       ← imagen principal (sin variante)
+# KT001,Foil,1xYzAbCdEfGhIjKlMnOpQrStUvWx789     ← imagen del variante Foil
+# KT001,Foil / Near Mint,1ZyXwVuTsRqPoNmLkJ0123  ← variante combinado
+# KC001,,1AbCdEfGhIjKlMnOpQrStUvWxYz456789       ← Viggo imagen principal
+# KC002,,1BcDeFgHiJkLmNoPqRsTuVwXyZa012345       ← Nemea imagen principal
