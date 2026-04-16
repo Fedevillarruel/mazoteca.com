@@ -66,6 +66,7 @@ const CORONADOS = [
   { id: "erya",  label: "Erya",   fullName: "Erya de Gringud",     code: "KC004" },
 ] as const;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type CoronadoId = (typeof CORONADOS)[number]["id"];
 
 interface DeckEntry {
@@ -74,13 +75,17 @@ interface DeckEntry {
 }
 
 interface Props {
-  /** code → image_url from TiendaNube */
+  /** code → primary image_url from TiendaNube */
   imageMap: Record<string, string | null>;
+  /** code → all image URLs (for multi-version cards) */
+  allImagesMap: Record<string, string[]>;
+  /** code → quantity owned (empty = not logged in, show all) */
+  albumMap: Record<string, number>;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export default function DeckBuilderView({ imageMap }: Props) {
+export default function DeckBuilderView({ imageMap, allImagesMap, albumMap }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -90,13 +95,16 @@ export default function DeckBuilderView({ imageMap }: Props) {
   const [search,         setSearch]         = useState("");
   const [deckCards,      setDeckCards]      = useState<DeckEntry[]>([]);
   const [crownedId,      setCrownedId]      = useState<string | null>(null);
-  const [activeCoronado, setActiveCoronado] = useState<CoronadoId>("all");
+  const [crownedFinish,  setCrownedFinish]  = useState<string | null>(null);
   const [favCodes,       setFavCodes]       = useState<Set<string>>(new Set());
   const [poolTab,        setPoolTab]        = useState<"combatants" | "strategy">("combatants");
   const [lastAdded,      setLastAdded]      = useState<string | null>(null);
   const [savedDeckId,    setSavedDeckId]    = useState<string | null>(null);
   const [saveError,      setSaveError]      = useState<string | null>(null);
   const [publishing,     setPublishing]     = useState(false);
+
+  // Whether we have a real album to filter by
+  const hasAlbum = Object.keys(albumMap).length > 0;
 
   // Load favorites once on mount
   useEffect(() => {
@@ -168,16 +176,6 @@ export default function DeckBuilderView({ imageMap }: Props) {
     if (crownedId === cardId) setCrownedId(null);
   };
 
-  // Select coronado filter + auto-populate crowned slot
-  const selectCoronado = (cr: (typeof CORONADOS)[number]) => {
-    setActiveCoronado(cr.id);
-    if (cr.id !== "all" && cr.code) {
-      setCrownedId(cr.code);
-    } else if (cr.id === "all") {
-      // Don't clear crowned when going back to "all"
-    }
-  };
-
   // Validation
   const levelBreakdown = [1, 2, 3, 4].map((lv) => ({
     lv,
@@ -192,28 +190,30 @@ export default function DeckBuilderView({ imageMap }: Props) {
 
   // ── Pool cards ──────────────────────────────────────────────────────────
 
-  const poolCards = allCards
+  // Each "pool item" represents one displayable version of a card.
+  // Cards with multiple images (Arte 1, Arte 2, ...) appear side-by-side.
+  interface PoolItem {
+    card: (typeof allCards)[number];
+    imageUrl: string | null;
+    versionIndex: number; // 0 = primary art, 1 = Arte 2, etc.
+    versionLabel: string; // "Arte 1", "Arte 2", etc.
+  }
+
+  const poolItems: PoolItem[] = allCards
     .filter((c) => {
       // Pool tab filter
       if (deckType === "combatants") {
         if (poolTab === "combatants") {
           if (c.card_type !== "tropa") return false;
         } else {
-          // strategy tab: non-tropa, non-coronado
           if (c.card_type === "tropa" || c.card_type === "coronado") return false;
         }
       } else {
-        // Strategy deck: exclude tropas and coronados
         if (c.card_type === "tropa" || c.card_type === "coronado") return false;
       }
 
-      // Coronado filter (only filter tropas by coronado)
-      if (activeCoronado !== "all") {
-        const coronado = CORONADOS.find((cr) => cr.id === activeCoronado);
-        if (coronado?.fullName && c.card_type === "tropa") {
-          // All tropas still pass through — no filtering by coronado affiliation
-        }
-      }
+      // Only show owned cards if album is loaded
+      if (hasAlbum && !albumMap[c.code]) return false;
 
       // Search filter
       if (search) {
@@ -232,7 +232,22 @@ export default function DeckBuilderView({ imageMap }: Props) {
       if (aFav !== bFav) return aFav ? -1 : 1;
       if (a.level !== b.level) return (a.level ?? 99) - (b.level ?? 99);
       return a.name.localeCompare(b.name);
+    })
+    .flatMap((card) => {
+      const images = allImagesMap[card.code] ?? [];
+      if (images.length <= 1) {
+        return [{ card, imageUrl: imageMap[card.code] ?? null, versionIndex: 0, versionLabel: "Arte 1" }];
+      }
+      // Multiple images → one item per image, placed adjacent
+      return images.map((imgUrl, idx) => ({
+        card,
+        imageUrl: imgUrl,
+        versionIndex: idx,
+        versionLabel: idx === 0 ? "Arte 1" : `Arte ${idx + 1}`,
+      }));
     });
+
+  // Legacy poolCards alias kept for deck-list / level breakdown (same unique cards)
 
   // ── Deck list grouped by level (for combatants) ──────────────────────────
 
@@ -436,28 +451,6 @@ export default function DeckBuilderView({ imageMap }: Props) {
                 />
               </div>
 
-              {/* Coronado filter */}
-              <div className="mt-3">
-                <p className="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Crown className="h-3 w-3" /> Coronado
-                </p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {CORONADOS.map((cr) => (
-                    <button
-                      key={cr.id}
-                      onClick={() => selectCoronado(cr)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                        activeCoronado === cr.id
-                          ? "border-accent-500 bg-accent-500/20 text-accent-300"
-                          : "border-surface-700 bg-surface-800/50 text-surface-400 hover:text-surface-200"
-                      }`}
-                    >
-                      {cr.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Level slot indicators (combatant deck only) */}
               {deckType === "combatants" && poolTab === "combatants" && (
                 <div className="flex gap-2 mt-3 flex-wrap">
@@ -480,16 +473,28 @@ export default function DeckBuilderView({ imageMap }: Props) {
               )}
             </CardHeader>
             <CardContent>
+              {hasAlbum && poolItems.length === 0 && (
+                <p className="text-center text-sm text-surface-400 py-8">
+                  No tenés cartas de este tipo en tu colección. Agregá cartas en{" "}
+                  <Link href="/album" className="text-primary-400 underline">tu álbum</Link>.
+                </p>
+              )}
+              {!hasAlbum && (
+                <p className="text-center text-sm text-amber-400 py-2 mb-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  Iniciá sesión y completá tu álbum para ver solo las cartas que tenés.
+                </p>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {poolCards.map((card) => {
+                {poolItems.map((item) => {
+                  const { card, imageUrl, versionIndex, versionLabel } = item;
                   const inDeck  = deckCards.find((e) => e.cardId === card.code);
                   const isFav   = favCodes.has(card.code);
                   const canAdd  = canAddCard(card.code);
-                  const imgUrl  = imageMap[card.code] ?? null;
                   const isJustAdded = lastAdded === card.code;
+                  const multiVersion = (allImagesMap[card.code]?.length ?? 0) > 1;
                   return (
                     <button
-                      key={card.code}
+                      key={`${card.code}-v${versionIndex}`}
                       onClick={() => addCard(card.code)}
                       disabled={!canAdd && !inDeck}
                       className={`relative p-2 rounded-lg border text-left transition-all ${
@@ -500,9 +505,9 @@ export default function DeckBuilderView({ imageMap }: Props) {
                     >
                       {/* Card image */}
                       <div className="aspect-2/3 w-full rounded bg-surface-700 mb-2 relative overflow-hidden flex items-center justify-center">
-                        {imgUrl ? (
+                        {imageUrl ? (
                           <Image
-                            src={imgUrl}
+                            src={imageUrl}
                             alt={card.name}
                             fill
                             className="object-cover"
@@ -511,6 +516,11 @@ export default function DeckBuilderView({ imageMap }: Props) {
                           />
                         ) : (
                           <span className="text-[10px] font-mono text-surface-400">{card.code}</span>
+                        )}
+                        {multiVersion && (
+                          <span className="absolute bottom-0.5 left-0.5 bg-surface-900/80 text-surface-300 text-[7px] px-1 rounded leading-tight">
+                            {versionLabel}
+                          </span>
                         )}
                       </div>
                       <p className="text-xs font-medium text-surface-100 truncate">{card.name}</p>
@@ -539,7 +549,7 @@ export default function DeckBuilderView({ imageMap }: Props) {
                   );
                 })}
               </div>
-              {poolCards.length === 0 && (
+              {poolItems.length === 0 && hasAlbum && (
                 <p className="text-center text-sm text-surface-400 py-8">
                   Sin resultados. Probá cambiando los filtros.
                 </p>
@@ -604,32 +614,94 @@ export default function DeckBuilderView({ imageMap }: Props) {
                   Coronado
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {crownedId ? (
-                  <div className="flex items-center justify-between p-2 rounded-lg bg-accent-500/10 border border-accent-500/30">
-                    <div className="flex items-center gap-2">
-                      {imageMap[crownedId] && (
-                        <div className="relative h-8 w-6 rounded overflow-hidden shrink-0">
-                          <Image
-                            src={imageMap[crownedId]!}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
+              <CardContent className="space-y-3">
+                {/* Coronado picker */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {CORONADOS.filter((cr) => cr.id !== "all").map((cr) => (
+                    <button
+                      key={cr.id}
+                      onClick={() => {
+                        setCrownedId(cr.code ?? null);
+                        setCrownedFinish(null);
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        crownedId === cr.code
+                          ? "border-accent-500 bg-accent-500/20 text-accent-300"
+                          : "border-surface-700 bg-surface-800/50 text-surface-400 hover:text-surface-200"
+                      }`}
+                    >
+                      {cr.label}
+                    </button>
+                  ))}
+                  {crownedId && (
+                    <button
+                      onClick={() => { setCrownedId(null); setCrownedFinish(null); }}
+                      className="px-2 py-1 rounded-full text-xs border border-surface-700 text-surface-500 hover:text-red-400 transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Selected coronado preview + finish */}
+                {crownedId && (() => {
+                  const coronadoCard = getCardById(crownedId);
+                  const finishes = coronadoCard?.finishes ?? [];
+                  const primaryImg = imageMap[crownedId];
+                  const allImgs = allImagesMap[crownedId] ?? [];
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-accent-500/10 border border-accent-500/30">
+                        {primaryImg && (
+                          <div className="relative h-10 w-7 rounded overflow-hidden shrink-0">
+                            <Image src={primaryImg} alt="" fill className="object-cover" unoptimized />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-accent-300 truncate">{coronadoCard?.name}</p>
+                          {crownedFinish && (
+                            <p className="text-[10px] text-surface-400">{crownedFinish}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Finish selector */}
+                      {finishes.length > 0 && (
+                        <div>
+                          <p className="text-[10px] text-surface-500 uppercase tracking-wider mb-1.5 font-semibold">Versión / Acabado</p>
+                          <div className="flex gap-1 flex-wrap">
+                            {finishes.map((finish, idx) => {
+                              const finishImg = allImgs[idx] ?? primaryImg;
+                              return (
+                                <button
+                                  key={finish}
+                                  onClick={() => setCrownedFinish(crownedFinish === finish ? null : finish)}
+                                  title={finish}
+                                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium border transition-all ${
+                                    crownedFinish === finish
+                                      ? "border-accent-400 bg-accent-500/20 text-accent-300"
+                                      : "border-surface-700 bg-surface-800/50 text-surface-400 hover:text-surface-200"
+                                  }`}
+                                >
+                                  {finishImg && (
+                                    <div className="relative h-4 w-3 rounded overflow-hidden shrink-0">
+                                      <Image src={finishImg} alt="" fill className="object-cover" unoptimized />
+                                    </div>
+                                  )}
+                                  {finish}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
-                      <span className="text-sm text-accent-300">
-                        {getCardById(crownedId)?.name}
-                      </span>
                     </div>
-                    <button onClick={() => setCrownedId(null)} className="text-surface-400 hover:text-surface-200">
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-surface-400 text-center py-3">
-                    Seleccioná un Coronado usando el filtro de arriba
+                  );
+                })()}
+
+                {!crownedId && (
+                  <p className="text-xs text-surface-400 text-center py-2">
+                    Seleccioná un Coronado
                   </p>
                 )}
               </CardContent>

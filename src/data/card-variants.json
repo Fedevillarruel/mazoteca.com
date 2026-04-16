@@ -1,0 +1,1402 @@
+[
+  {
+    "variantCode": "KA004-2",
+    "baseCode": "KA004",
+    "variantLabel": "Arte 2",
+    "driveFileId": "16iePVOI5S_fEywptNGxuGAfd3R088jjk",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KA009-2",
+    "baseCode": "KA009",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1Q_tn7HJZB2n_D8EYWOkIECnezXtB54zy",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KA015-2",
+    "baseCode": "KA015",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1yKTX6b1P8Hf3uKvqZTu02PuUH0zFNrTo",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KC001-2",
+    "baseCode": "KC001",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1X4QJZ5kVc6Pi3abFOYYCkCMXAU6Abq6_",
+    "imageIndex": 4
+  },
+  {
+    "variantCode": "KC001-3",
+    "baseCode": "KC001",
+    "variantLabel": "Arte 3",
+    "driveFileId": "1bkwW-wIfar4Ung9rnWhEbXezzqbJO-PC",
+    "imageIndex": 5
+  },
+  {
+    "variantCode": "KC001-AL",
+    "baseCode": "KC001",
+    "variantLabel": "Alternativo",
+    "driveFileId": "1bwOA2MLAObBLXKG4M0_IGa2EMNPndDTS",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KC001-ALFAH",
+    "baseCode": "KC001",
+    "variantLabel": "Alternativo Foil Art Holo",
+    "driveFileId": "11VD1hI0lsi-YdkAGT7HVpY68G5sLTACr",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KC001-ALST",
+    "baseCode": "KC001",
+    "variantLabel": "Alternativo Stamp",
+    "driveFileId": "1ehNN8vDoz5bM6sMQPIUFxsuJJWlFzdb-",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KC001-H",
+    "baseCode": "KC001",
+    "variantLabel": "Holo",
+    "driveFileId": "1ATR5qEbpqdwDcVl0OnZpsDeH8XBVgp07",
+    "imageIndex": 6
+  },
+  {
+    "variantCode": "KC001-PO",
+    "baseCode": "KC001",
+    "variantLabel": "Promo",
+    "driveFileId": "1NXybLRx_ZH8lSpi7tvjbGYpSowPfk2XV",
+    "imageIndex": 7
+  },
+  {
+    "variantCode": "KC001-POFA",
+    "baseCode": "KC001",
+    "variantLabel": "Promo Foil Art",
+    "driveFileId": "1LptWDPRYbgKrbBdZCpnPseu02wuj8ak0",
+    "imageIndex": 8
+  },
+  {
+    "variantCode": "KC001-POFAH",
+    "baseCode": "KC001",
+    "variantLabel": "Promo Foil Art Holo",
+    "driveFileId": "1df5TWuZjvI6gxD5L81jFtu99BXg7g3nb",
+    "imageIndex": 9
+  },
+  {
+    "variantCode": "KC001-SG",
+    "baseCode": "KC001",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "12W5LmJxsL4Dp6iQfpPfz43nwuQhmSmzJ",
+    "imageIndex": 10
+  },
+  {
+    "variantCode": "KC002-2",
+    "baseCode": "KC002",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1LRAX026I4l9oqfjTWSYoisWSYTofk5j8",
+    "imageIndex": 4
+  },
+  {
+    "variantCode": "KC002-3",
+    "baseCode": "KC002",
+    "variantLabel": "Arte 3",
+    "driveFileId": "1MpWqlxB9yQGe6s3C9tdEeaTa2ig7OgAn",
+    "imageIndex": 5
+  },
+  {
+    "variantCode": "KC002-AL",
+    "baseCode": "KC002",
+    "variantLabel": "Alternativo",
+    "driveFileId": "1GdYBGRn4Y9rOSsprTBPCugPI5ufap58A",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KC002-ALFAH",
+    "baseCode": "KC002",
+    "variantLabel": "Alternativo Foil Art Holo",
+    "driveFileId": "1L0_0FzEk-wNzVeirCFt6dcPHKzfWj_CM",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KC002-ALST",
+    "baseCode": "KC002",
+    "variantLabel": "Alternativo Stamp",
+    "driveFileId": "1rwDrS6fYt4Id_jrku56R9eF3nXQUQ3ev",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KC002-H",
+    "baseCode": "KC002",
+    "variantLabel": "Holo",
+    "driveFileId": "1MZD8gA7UARQb_0Q2ci5sgyPM9gdNM6pT",
+    "imageIndex": 6
+  },
+  {
+    "variantCode": "KC002-PO",
+    "baseCode": "KC002",
+    "variantLabel": "Promo",
+    "driveFileId": "1kn1tv3MUYOosmqOwpYAEkZNcn4jwLek0",
+    "imageIndex": 7
+  },
+  {
+    "variantCode": "KC002-POFA",
+    "baseCode": "KC002",
+    "variantLabel": "Promo Foil Art",
+    "driveFileId": "1pxHridOidhp1p52GWql0d3IHbnu3ITup",
+    "imageIndex": 8
+  },
+  {
+    "variantCode": "KC002-POFAH",
+    "baseCode": "KC002",
+    "variantLabel": "Promo Foil Art Holo",
+    "driveFileId": "1dESS902_9STvt_b8MPVjsF8Qug-GUX7j",
+    "imageIndex": 9
+  },
+  {
+    "variantCode": "KC002-SG",
+    "baseCode": "KC002",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1_EXC1imsAEnCukbOFxAKH5Lspw2YY0kW",
+    "imageIndex": 10
+  },
+  {
+    "variantCode": "KC003-3",
+    "baseCode": "KC003",
+    "variantLabel": "Arte 3",
+    "driveFileId": "1wepZ2up2nqXSqmydSQHv6hysvh_mCGMz",
+    "imageIndex": 4
+  },
+  {
+    "variantCode": "KC003-AL",
+    "baseCode": "KC003",
+    "variantLabel": "Alternativo",
+    "driveFileId": "1DohuJcgjzpsDWkf2wwZlluZmOqizsvSD",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KC003-ALFAH",
+    "baseCode": "KC003",
+    "variantLabel": "Alternativo Foil Art Holo",
+    "driveFileId": "1PJqRnhZTuEH8D8J72CO5i_4xl9vFENRD",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KC003-ALST",
+    "baseCode": "KC003",
+    "variantLabel": "Alternativo Stamp",
+    "driveFileId": "1LOyKBv6W3bNLt7V8Cy4iUgPJ_TkGY_-k",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KC003-H",
+    "baseCode": "KC003",
+    "variantLabel": "Holo",
+    "driveFileId": "1TIsT4ufVvAuKPaYeN1x1dYBQSAvSyfu0",
+    "imageIndex": 5
+  },
+  {
+    "variantCode": "KC003-PO",
+    "baseCode": "KC003",
+    "variantLabel": "Promo",
+    "driveFileId": "1wftz89mtmmvODpCLZT4KhERrEO2msnIG",
+    "imageIndex": 6
+  },
+  {
+    "variantCode": "KC003-POFA",
+    "baseCode": "KC003",
+    "variantLabel": "Promo Foil Art",
+    "driveFileId": "1vXmOmDGtQCOYsgPIlCKckTkoskTqMtpF",
+    "imageIndex": 7
+  },
+  {
+    "variantCode": "KC003-POFAH",
+    "baseCode": "KC003",
+    "variantLabel": "Promo Foil Art Holo",
+    "driveFileId": "10QVyPn4HYk462YDuc0w0fhiwSnKfdYLY",
+    "imageIndex": 8
+  },
+  {
+    "variantCode": "KC003-SG",
+    "baseCode": "KC003",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1H6ashlrPJuLyKF0EXs8qUPqTuy1Pp8Mv",
+    "imageIndex": 9
+  },
+  {
+    "variantCode": "KC004-AL",
+    "baseCode": "KC004",
+    "variantLabel": "Alternativo",
+    "driveFileId": "1g9fiUWQxkXgrDHmtfagea39rPScCswQE",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KC004-ALFAH",
+    "baseCode": "KC004",
+    "variantLabel": "Alternativo Foil Art Holo",
+    "driveFileId": "1DIK2zShNSxq1ZEMZITo_vyWlCKDBZ8aR",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KC004-ALST",
+    "baseCode": "KC004",
+    "variantLabel": "Alternativo Stamp",
+    "driveFileId": "1IpLviVB9tSP_nRYjzh_DLeDEr1hc7fUo",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KC004-H",
+    "baseCode": "KC004",
+    "variantLabel": "Holo",
+    "driveFileId": "1-ZtIxKqYIxGM4tmEaRcfyK9q2kN95ibJ",
+    "imageIndex": 4
+  },
+  {
+    "variantCode": "KC004-PO",
+    "baseCode": "KC004",
+    "variantLabel": "Promo",
+    "driveFileId": "1eOCBQ0-LRDTbina1pAR1fLfdLqplOpsB",
+    "imageIndex": 5
+  },
+  {
+    "variantCode": "KC004-POFA",
+    "baseCode": "KC004",
+    "variantLabel": "Promo Foil Art",
+    "driveFileId": "1IYF7fYdZmVeZImedpufhyM-YtazY4Qdu",
+    "imageIndex": 6
+  },
+  {
+    "variantCode": "KC004-POFAH",
+    "baseCode": "KC004",
+    "variantLabel": "Promo Foil Art Holo",
+    "driveFileId": "1-5zhm8NBqzu6xPUHsTWfa4JFNAeNpc7A",
+    "imageIndex": 7
+  },
+  {
+    "variantCode": "KC004-SG",
+    "baseCode": "KC004",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "11fB59R5jjzwL_wJ6Ye7Vek1oVNfRkBdP",
+    "imageIndex": 8
+  },
+  {
+    "variantCode": "KE001-2",
+    "baseCode": "KE001",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1I6tkEyx63-wEpiDSnOJmXX1SZqm7tCBo",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE002-2",
+    "baseCode": "KE002",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1jQwqUMtcs6zOJ4Auuw1PkVW2eCa3DDUZ",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE008-2",
+    "baseCode": "KE008",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1EzS6QGQyKjfOUMvAO_9kt53r73gxvQcC",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE009-2",
+    "baseCode": "KE009",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1atn-uFoAt0qbx09_kpK4jO9ZazxP5xOE",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE011-2",
+    "baseCode": "KE011",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1rDQK10QT0lnXobB9UE8MoaFEUuyG-gJk",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE014-2",
+    "baseCode": "KE014",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1aR55YO0jyNxaO3kxF4qJOobA2BP5-cRV",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE020-2",
+    "baseCode": "KE020",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1pmE-rbVemvytvUN6wgrwKaNmpLJz6lpa",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE033-2",
+    "baseCode": "KE033",
+    "variantLabel": "Arte 2",
+    "driveFileId": "16wPOvhASE7372OTwraivVXCLlywjGk2Q",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE037-2",
+    "baseCode": "KE037",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1nsHNEA--Oh8CBM6aye4mGYcYKzbZXs01",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KE041-2",
+    "baseCode": "KE041",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1r2tOlj8_VYqOxUi6u1tVevQvniLMO9Q3",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP001-H",
+    "baseCode": "KP001",
+    "variantLabel": "Holo",
+    "driveFileId": "14JSSELU1dFZOx8O-iXu-vuy4kAdtzuyr",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP001-SG",
+    "baseCode": "KP001",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1aJmpuzkyibUDtPOMKq4oqQ0aEaknhRHR",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP002-H",
+    "baseCode": "KP002",
+    "variantLabel": "Holo",
+    "driveFileId": "1tluS-88pll0llVElDpPL4WF_bmUXfHfY",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP002-SG",
+    "baseCode": "KP002",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "16m3gGf8h9eMVJuJZrqYTwQNy5y_4YCXN",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP003-H",
+    "baseCode": "KP003",
+    "variantLabel": "Holo",
+    "driveFileId": "1VfHAf47hO-XwT5VOCvD0l0_jfqTwPFre",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP003-SG",
+    "baseCode": "KP003",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1sal7JArYY5kr6iSRD9VjB4kGz8lDwix4",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP004-H",
+    "baseCode": "KP004",
+    "variantLabel": "Holo",
+    "driveFileId": "1-ZYJddsyWTvJ6lkaZnlW0IzdBb2oY4W_",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP004-SG",
+    "baseCode": "KP004",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1GBPwtjf7PslTlfMsGMxQjquFi3iWeqFs",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP005-H",
+    "baseCode": "KP005",
+    "variantLabel": "Holo",
+    "driveFileId": "1UrWaSXDHjbDzD96kYeiWF8V2LIwOPaWV",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP005-SG",
+    "baseCode": "KP005",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1vaM-U-TFxH8IrdQYJczL_Oi5snvYxcUE",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP006-H",
+    "baseCode": "KP006",
+    "variantLabel": "Holo",
+    "driveFileId": "1H7BCJtHkyJxsH5IiXkOJgj37dvJeSyqI",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP006-SG",
+    "baseCode": "KP006",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1dzsU5ZsugoTg38oZRodhtaoQMl6Jbosg",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP007-H",
+    "baseCode": "KP007",
+    "variantLabel": "Holo",
+    "driveFileId": "1WYoXtiC6bLu8ASb9MFsi-EW0Tjd7ZUDY",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP007-SG",
+    "baseCode": "KP007",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1msom3ik9xdkVU49GLP7tzqt0mLTM6mel",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP008-H",
+    "baseCode": "KP008",
+    "variantLabel": "Holo",
+    "driveFileId": "1opyt0G3RqUTb_bdV4PcvuNyryDGxHFrT",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP008-SG",
+    "baseCode": "KP008",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "12z6o8vWnkLMK-jfYjwbBezPcvLvRl9oj",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP009-H",
+    "baseCode": "KP009",
+    "variantLabel": "Holo",
+    "driveFileId": "1A8-64GXTDt4bTUmCz-PTUIEtNsQHokpX",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP009-SG",
+    "baseCode": "KP009",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1Upl27Rvf1t3bLMBJJQ62hOgy4BN2IuUT",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KP010-H",
+    "baseCode": "KP010",
+    "variantLabel": "Holo",
+    "driveFileId": "1XLAKIfqAL_Z0zJezdrxJPxmPO2ezurhw",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KP010-SG",
+    "baseCode": "KP010",
+    "variantLabel": "Stamp Gold",
+    "driveFileId": "1m22B9T6KNJgUDsO1E4Y8IKVFkgaE26gs",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR001-2",
+    "baseCode": "KR001",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1Tsi2VyhBxdPDL3qqcPDxUwdHuGvQLZI-",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR001-ST",
+    "baseCode": "KR001",
+    "variantLabel": "Stamp",
+    "driveFileId": "17o0miLPeKgAyjuaH68iAJzEmrokZ65o8",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR001-STH",
+    "baseCode": "KR001",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1XWBIdXX2xmLlJfgpQlKDwFKbaLuZni3T",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR002-2",
+    "baseCode": "KR002",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1tGWT0iMQZtnmGsxgIiu-UkcsT4z5ZZ3x",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR002-ST",
+    "baseCode": "KR002",
+    "variantLabel": "Stamp",
+    "driveFileId": "16WxTszpUHX_HzJgnfLle79j4COypa9P_",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR002-STH",
+    "baseCode": "KR002",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1Ay20angivgYKSGrXiDTEI-fI0YHdtDfF",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR003-2",
+    "baseCode": "KR003",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1s7rtNmRhw67LY1pxm7vEnxmVw_3mH9CO",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR003-ST",
+    "baseCode": "KR003",
+    "variantLabel": "Stamp",
+    "driveFileId": "1eQY7f4LMqGe_TRGI12G1ayH6rbOilYzn",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR003-STH",
+    "baseCode": "KR003",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1Wp8sFlxnxgUUnAwETNcdBv-7_otMntY5",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR004-2",
+    "baseCode": "KR004",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1hKu1IiEmRDQa9xnZbz53hQQiCqDPVjQ-",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR004-ST",
+    "baseCode": "KR004",
+    "variantLabel": "Stamp",
+    "driveFileId": "1nJmr-WMeQlyejnwu6P2j6FbpIx99mWIu",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR004-STH",
+    "baseCode": "KR004",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1TGFSGuC4dXKX6k1iwYN-O1BGRFSRIriZ",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR005-2",
+    "baseCode": "KR005",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1iEcX7wl9_S97Z2hejUll-LUHO154hJEq",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR005-ST",
+    "baseCode": "KR005",
+    "variantLabel": "Stamp",
+    "driveFileId": "1zlhz92PxegjlMIzHGzsN2iG53NZvgzNO",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR005-STH",
+    "baseCode": "KR005",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "129E_ive9Ac0LqMLp3uO_A44kUffcUxNJ",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR006-2",
+    "baseCode": "KR006",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1_md6ms5nSBktiD4sxvIfEhSucFJsjZ2T",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR006-ST",
+    "baseCode": "KR006",
+    "variantLabel": "Stamp",
+    "driveFileId": "1x86IyKbmNWH7tb5RJ0QPaVXR39NGvnDF",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR006-STH",
+    "baseCode": "KR006",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1BIB-nCFZ2_uj-RMOq--mLbjPTEmNbOs_",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR007-2",
+    "baseCode": "KR007",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1kS0TWHZhSbLQZNPzElJJ_vtlrCG263mS",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR007-ST",
+    "baseCode": "KR007",
+    "variantLabel": "Stamp",
+    "driveFileId": "1myN4FRQEYEEaoBtHN0WV4r0Mhdq2yPfq",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR007-STH",
+    "baseCode": "KR007",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "14qjg-LyYzSo9gSo0YHxptxkPT7-K25o8",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR008-2",
+    "baseCode": "KR008",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1IrE3Am_uwAF9Nu647MdOceMbZxv12R8i",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR008-ST",
+    "baseCode": "KR008",
+    "variantLabel": "Stamp",
+    "driveFileId": "1GDvD6vy1omAIJpvBjvMyufHLMbor3jQ6",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR008-STH",
+    "baseCode": "KR008",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1SRGwPClyg9QK7O523aTRnxgLtBsmR1QF",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR009-2",
+    "baseCode": "KR009",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1AnUSN3LBjmE8EhlOjEsgtccZUpX6qWLX",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR009-ST",
+    "baseCode": "KR009",
+    "variantLabel": "Stamp",
+    "driveFileId": "1wpcW4WB8EZHIhNrLQedw2jIqs8EmpbM-",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR009-STH",
+    "baseCode": "KR009",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1C8ufPEB-KLfkkc1KHlUyU5roMCdygv7p",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR010-2",
+    "baseCode": "KR010",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1m8gH73hDJPvwPD2D5NKqpmFi9w286tGO",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR010-ST",
+    "baseCode": "KR010",
+    "variantLabel": "Stamp",
+    "driveFileId": "1OuE_KaaRaZc3nzHGsRm3hrTJRpC6PRh9",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR010-STH",
+    "baseCode": "KR010",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1U15Eo9Pn23PyiAjB2BYQiuIAoDvg0VPy",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR011-2",
+    "baseCode": "KR011",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1hSxL3RqzB9Pjb4SG3Ss2wEnwjlHbDHCe",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR011-ST",
+    "baseCode": "KR011",
+    "variantLabel": "Stamp",
+    "driveFileId": "1q5SStFYqBrAahJ5UvNy4B92LF4wYmo5l",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR011-STH",
+    "baseCode": "KR011",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1FLA6Etc4-xTPLUrn2BjYkBq_9YQJtmhm",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR012-2",
+    "baseCode": "KR012",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1HZd1NPMuMfHbNTUOmDKsfYNOtLy0EtWL",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR012-ST",
+    "baseCode": "KR012",
+    "variantLabel": "Stamp",
+    "driveFileId": "1vLmcKdgG41mzltmYmtlILURnpnIkvTXu",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR012-STH",
+    "baseCode": "KR012",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1xlkc-W0hWDzlFSdzGTcdsyL7NkgEoBb8",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR013-2",
+    "baseCode": "KR013",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1i7qwDfEQNOilL20eGOq-5pswyNrS95rS",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR013-ST",
+    "baseCode": "KR013",
+    "variantLabel": "Stamp",
+    "driveFileId": "1K21my-zH_l2L3f4kG0fdQEebhsvkND6M",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR013-STH",
+    "baseCode": "KR013",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1iFYWRlUpSeE_FCWVBzcXi0m4CdJ0ODXE",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR014-2",
+    "baseCode": "KR014",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1WSLFoDU_4CX8xgMHKUr5mg_IOkoCuEEi",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR014-ST",
+    "baseCode": "KR014",
+    "variantLabel": "Stamp",
+    "driveFileId": "1J428rvz3wSrJj9X2YNizmGdMOhxGhjpm",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR014-STH",
+    "baseCode": "KR014",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1utrp6a-dDcvLJ700qqeQrZ2q2zup51gT",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR015-2",
+    "baseCode": "KR015",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1w-2cPAgmBjIbto2mCtBHguqDm1dG2YVG",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR015-ST",
+    "baseCode": "KR015",
+    "variantLabel": "Stamp",
+    "driveFileId": "1xHozkTlz453Ptuh-X6i0_6vT-b15erL0",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR015-STH",
+    "baseCode": "KR015",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "19Yq1uQiFHe-6zLrns4B95z5nZKWC2EvI",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR016-2",
+    "baseCode": "KR016",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1xNpVbti7BNX_WNHmh46biHGN6ha_lz7F",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR016-ST",
+    "baseCode": "KR016",
+    "variantLabel": "Stamp",
+    "driveFileId": "16-Ij4lZ6tpF7JDLoATVkOEZq0IJR7k5x",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR016-STH",
+    "baseCode": "KR016",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1H56JHbTmj_JMIm_D_Ohk9ugkLVTMdOsl",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR017-2",
+    "baseCode": "KR017",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1MFGG9IAHnIRg5j0FuGfG5MGpsbBgAYfV",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR017-ST",
+    "baseCode": "KR017",
+    "variantLabel": "Stamp",
+    "driveFileId": "1rWml2LktiuGwu4gDjjphfwFb7FWgTxV7",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR017-STH",
+    "baseCode": "KR017",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1aVGxm0fOOzuXvp5to4xiKv2gdLOmIacS",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR018-2",
+    "baseCode": "KR018",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1Ch_EprPVs5wci-VHISEE7uIaI0DOkNSn",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR018-ST",
+    "baseCode": "KR018",
+    "variantLabel": "Stamp",
+    "driveFileId": "1C_7rC9R9auZqA4UmEgVNUZnazmkRo_Mk",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR018-STH",
+    "baseCode": "KR018",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "10GxBqYzOK966zySwyhbYSsTJUW-yaKNX",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR019-2",
+    "baseCode": "KR019",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1sJxjU9IGSR7t2_8_WiDvHt-bLcZU6PqI",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR019-ST",
+    "baseCode": "KR019",
+    "variantLabel": "Stamp",
+    "driveFileId": "1UHNwGZvZwUE-LfenJydBMiS0EUC7We4M",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR019-STH",
+    "baseCode": "KR019",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "10Ao1fgH2QD1LqPfQo5nU7Yoq3PiPb0RO",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR020-2",
+    "baseCode": "KR020",
+    "variantLabel": "Arte 2",
+    "driveFileId": "195HDcF16--7lPuiAKfuAeDrXfMjoyUtI",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR020-ST",
+    "baseCode": "KR020",
+    "variantLabel": "Stamp",
+    "driveFileId": "1SdHogjREa_homM0TYTGueBnvzKu-ok_I",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR020-STH",
+    "baseCode": "KR020",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "10a1nLcY-Q3_Skj_t4Xz6whAlbwEIj0GQ",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR021-2",
+    "baseCode": "KR021",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1zy-GpbmNFZ7QGxPrBF8EYG3SW3Ptiy5j",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR021-ST",
+    "baseCode": "KR021",
+    "variantLabel": "Stamp",
+    "driveFileId": "1YSbqjmMa3Maew80BZhQINiCg8BrtknJT",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR021-STH",
+    "baseCode": "KR021",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1kLpqnj0qc1SWoR1KlLdYWy7Djag0_M9t",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR022-2",
+    "baseCode": "KR022",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1yB2Nd0mQEE6NBgiwT-laOOWaGSDbpzME",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR022-ST",
+    "baseCode": "KR022",
+    "variantLabel": "Stamp",
+    "driveFileId": "1kBl1ilIzsH-62Z-vo544g9MnN_zImPft",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR022-STH",
+    "baseCode": "KR022",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "11gqBsUdheT5-b13DKowzPTmCn7dEFmaQ",
+    "imageIndex": 3
+  },
+  {
+    "variantCode": "KR023-ST",
+    "baseCode": "KR023",
+    "variantLabel": "Stamp",
+    "driveFileId": "1Ooa-WlnozXunQ4sYPolAgAHYArl3jMyU",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR023-STH",
+    "baseCode": "KR023",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1RXMeQcwVD1_ppDGZ3glx4-7qLQ4O5RTi",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR024-ST",
+    "baseCode": "KR024",
+    "variantLabel": "Stamp",
+    "driveFileId": "1WnHZhrE-i23UvqAYzo6PSX2HIUDjHsFG",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR024-STH",
+    "baseCode": "KR024",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "15t4Kkd4-Hni2tYxwoC9Bi9dHmaCpeeCT",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR025-ST",
+    "baseCode": "KR025",
+    "variantLabel": "Stamp",
+    "driveFileId": "15aVyq-ADz6zQqqjWe8KQyYBl61o-KQuI",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR025-STH",
+    "baseCode": "KR025",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1bixM91KvBcMCjO16agjPOEGHGIam7wg7",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR026-ST",
+    "baseCode": "KR026",
+    "variantLabel": "Stamp",
+    "driveFileId": "1zKgrKoproqMvZICMLHltb49rq2kMvzdN",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR026-STH",
+    "baseCode": "KR026",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1vkIn8nRn7CJmlK-zvzKFN3uejIsRJIDx",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR027-ST",
+    "baseCode": "KR027",
+    "variantLabel": "Stamp",
+    "driveFileId": "1Gr0uMy_88-_5FGW5fjSrazWKQqPrOUuj",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR027-STH",
+    "baseCode": "KR027",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1qCNEu7IhAHO7Ymyj5xiTP1pCUWvu0p0y",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR028-ST",
+    "baseCode": "KR028",
+    "variantLabel": "Stamp",
+    "driveFileId": "1U1ioo5HD3H7Z736UYv1y-DMsJEEBQn4O",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR028-STH",
+    "baseCode": "KR028",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1KgSdQLr-SCHgdBC9JaovpsucLjnLPBXo",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR029-ST",
+    "baseCode": "KR029",
+    "variantLabel": "Stamp",
+    "driveFileId": "1fUmuB8EfLbGqFx3iyeI3orYeUynW1Mlr",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR029-STH",
+    "baseCode": "KR029",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1HkDgJqqiFhb4Wt7m6xp-v2y2S2c2J3Zc",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR030-ST",
+    "baseCode": "KR030",
+    "variantLabel": "Stamp",
+    "driveFileId": "1-T2sofpeyz0mCYk4H6k4MsR6aoTPn-SR",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR030-STH",
+    "baseCode": "KR030",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1CsoC0a_G9S8UMf2BPu62XNPtS9T9BaP6",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR031-ST",
+    "baseCode": "KR031",
+    "variantLabel": "Stamp",
+    "driveFileId": "1b0O8BMXQkWslMnnswHJyeq6j3Q8JdfJh",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR031-STH",
+    "baseCode": "KR031",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1SiEUlDtdg-oZnqVxjKmr6XlqENvkqW0p",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR032-ST",
+    "baseCode": "KR032",
+    "variantLabel": "Stamp",
+    "driveFileId": "1aWiIt9JK4ZQcjhkJnZIuVeqbwquT0KKm",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR032-STH",
+    "baseCode": "KR032",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1ALjr2KdsjrLLp_syEb9w2aBrQIwqSs06",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR033-ST",
+    "baseCode": "KR033",
+    "variantLabel": "Stamp",
+    "driveFileId": "1Va9hyT6m_Eq5vXBmJD4aza5R_7LL14Eh",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR033-STH",
+    "baseCode": "KR033",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1b4Dm0kmxSP7QFvOe11bgifeuLZcRacbN",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR034-ST",
+    "baseCode": "KR034",
+    "variantLabel": "Stamp",
+    "driveFileId": "1Mgvaao7jUzXSye_jqBA49WHidaahyrXv",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR034-STH",
+    "baseCode": "KR034",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1uciPRGNhg4FrSWB5p52cABtwoaeI8DQQ",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR035-ST",
+    "baseCode": "KR035",
+    "variantLabel": "Stamp",
+    "driveFileId": "1t45H1mtH_NnSNvu6k2Pm_xGxE3eKGTS7",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR035-STH",
+    "baseCode": "KR035",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "19FTsrqmQjejDKX2T5t1cGSU6Ry3eKB6F",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR036-ST",
+    "baseCode": "KR036",
+    "variantLabel": "Stamp",
+    "driveFileId": "1OZu3-34cQXgK3l5Vgj-1cJn3gz8bV8j0",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR036-STH",
+    "baseCode": "KR036",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1MXjxgNFO8S3-OTYN09IzzYqGIRqcOGbC",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR037-ST",
+    "baseCode": "KR037",
+    "variantLabel": "Stamp",
+    "driveFileId": "1Vnn-2zlGw1r88hOrXBivWGyhsBtqhVDz",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR037-STH",
+    "baseCode": "KR037",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1Lk_j9i7YGVvZHkIohOazg6n_AMVq3h7h",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR038-ST",
+    "baseCode": "KR038",
+    "variantLabel": "Stamp",
+    "driveFileId": "11INDJP1NgIZ-OILTOMH0sDH9WszBl-QS",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR038-STH",
+    "baseCode": "KR038",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1y8MX2QweFtsRXsCm8XJsimcb_7RZgutZ",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR039-ST",
+    "baseCode": "KR039",
+    "variantLabel": "Stamp",
+    "driveFileId": "1_TxXycTygTpX9GBFd7Y6V64wdqFKAv71",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR039-STH",
+    "baseCode": "KR039",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1w1kGa0qWD9BG4HZOj1FiJKFcgLPcA72u",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR040-ST",
+    "baseCode": "KR040",
+    "variantLabel": "Stamp",
+    "driveFileId": "1RioBg8ztVBSI_7gEOiNXVKcmwDFkNkEK",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR040-STH",
+    "baseCode": "KR040",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1gan6BcKleoLe2_JhX7hJ5OyzRYiT9W7n",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR041-ST",
+    "baseCode": "KR041",
+    "variantLabel": "Stamp",
+    "driveFileId": "1qKsAx7bxFCIA-qCJaQkThVv4fhGyiaon",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR041-STH",
+    "baseCode": "KR041",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "16MQVC6ahTqKfsxKMD_sTnqGyKtDj48lB",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR042-ST",
+    "baseCode": "KR042",
+    "variantLabel": "Stamp",
+    "driveFileId": "1naVnFljPqf9q6Gvs2W-yw-nSodSfpF1_",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR042-STH",
+    "baseCode": "KR042",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "10rKQAELlU-rs3p6rbzcUpqE6mt0HRGP9",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR043-ST",
+    "baseCode": "KR043",
+    "variantLabel": "Stamp",
+    "driveFileId": "1-ci5CyqjOKUEP5jf23gtUrUWYAYpbZ9U",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR043-STH",
+    "baseCode": "KR043",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1kqjYrpDunt0q8KE3OXWQ7n4kGvNVmZ2H",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR044-ST",
+    "baseCode": "KR044",
+    "variantLabel": "Stamp",
+    "driveFileId": "1nMGWD7Xx5geF6G2Wew-df0xub36qyTVL",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR044-STH",
+    "baseCode": "KR044",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1SbvKvt5z68njwrftffwlPmGrK0Hs5k8B",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR045-ST",
+    "baseCode": "KR045",
+    "variantLabel": "Stamp",
+    "driveFileId": "1DNTK4rNae8YOF90zU6ZGGapN3zjNxomE",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR045-STH",
+    "baseCode": "KR045",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "118oS3EyVy35sZyoiVqebC2LMu8xVon91",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KR046-ST",
+    "baseCode": "KR046",
+    "variantLabel": "Stamp",
+    "driveFileId": "1vf6YVySwvSAuLqbyTmjnlwkzpuROGZHy",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KR046-STH",
+    "baseCode": "KR046",
+    "variantLabel": "Stamp Holo",
+    "driveFileId": "1525Ip5Pup6t8oH47Qz4-69HLQNOO2vE-",
+    "imageIndex": 2
+  },
+  {
+    "variantCode": "KT008-2",
+    "baseCode": "KT008",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1UyoxtXU4DCVB5D9MDSIbRcc6XiXu0FXH",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT013-2",
+    "baseCode": "KT013",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1bbNWmoBM1SyV-F39ytVjdMUCghRKf5Mg",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT022-2",
+    "baseCode": "KT022",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1sVOcIy0_cdJnG9xlsAV9OHno5ps3Xihd",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT026-2",
+    "baseCode": "KT026",
+    "variantLabel": "Arte 2",
+    "driveFileId": "16HC_UqGU6i-inpbdgPLK1bu1lxycyme8",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT027-2",
+    "baseCode": "KT027",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1Y1XZS_zOlVtVhZbGO58xFUtbTB98rYJM",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT033-2",
+    "baseCode": "KT033",
+    "variantLabel": "Arte 2",
+    "driveFileId": "19okJkERLTaqwNduX1ubIN5rUdPNbdVVd",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT039-2",
+    "baseCode": "KT039",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1QullM4oN4EKw1kaPqSG2Of9ChXQzSJPy",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT040-2",
+    "baseCode": "KT040",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1Ip5vD0fq1F8-mWTSXylrnaw66-li9sNi",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT043-2",
+    "baseCode": "KT043",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1iwYiRsrzNQjj4YSIp73Uns0ERPyMZZY7",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT045-2",
+    "baseCode": "KT045",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1wFZW9OZY8Pz7_mF8s_Bm6-jrt38DArkq",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT057-2",
+    "baseCode": "KT057",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1JMW5a-SYHIXbO-JITUuovymxlpXTjL67",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT058-2",
+    "baseCode": "KT058",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1ZOwowGhwiqb0bwbsb9vhvezx9-btDPA0",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT059-2",
+    "baseCode": "KT059",
+    "variantLabel": "Arte 2",
+    "driveFileId": "17ow0Xwt93qZQzwcR6f26eFGmzdHENddM",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT060-2",
+    "baseCode": "KT060",
+    "variantLabel": "Arte 2",
+    "driveFileId": "15KCREIxZB-qNdma3cGzp8qrTE0xmKhRb",
+    "imageIndex": 1
+  },
+  {
+    "variantCode": "KT061-2",
+    "baseCode": "KT061",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1zi_1kCmzQcjvdoPMfL3m1R0beRx0NFdE",
+    "imageIndex": 0
+  },
+  {
+    "variantCode": "KT062-2",
+    "baseCode": "KT062",
+    "variantLabel": "Arte 2",
+    "driveFileId": "1tFk1Ob9MdxSsLCfFSyRE9kI4tBUSS14c",
+    "imageIndex": 0
+  }
+]

@@ -41,10 +41,20 @@ export default async function AlbumPage() {
     if (row.is_wishlisted) wishlistSet.push(row.card_code);
   }
 
+  const singlesObj = Object.fromEntries(singlesMap);
+
+  // allImagesMap: base card code → array de URLs de imágenes del producto TN
+  // (se usa para obtener la imagen de cada variante por imageIndex)
+  const allImagesMap: Record<string, string[]> = {};
+  for (const [code, entry] of singlesMap.entries()) {
+    if (entry.all_images.length > 0) allImagesMap[code] = entry.all_images;
+  }
+
   return (
     <AlbumView
       albumMap={albumMap}
-      singlesMap={Object.fromEntries(singlesMap)}
+      singlesMap={singlesObj}
+      allImagesMap={allImagesMap}
       initialWishlist={wishlistSet}
       username={userSession.profile.username ?? ""}
     />

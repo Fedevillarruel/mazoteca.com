@@ -11,6 +11,7 @@ import Link from "next/link";
 import Image from "next/image";
 import HTMLFlipBook from "react-pageflip";
 import { allCards, type KTCGCard, type KTCGCategory } from "@/data/cards";
+import { variantsByBase, type KTCGVariant } from "@/data/card-variants";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,13 +30,32 @@ import type { CatalogSingleEntry } from "@/lib/types/tiendanube";
 export interface AlbumViewProps {
   albumMap: Record<string, number>;
   singlesMap: Record<string, CatalogSingleEntry>;
+  allImagesMap: Record<string, string[]>;
   initialWishlist?: string[];
   username?: string;
 }
 
-interface CardModalState {
+/**
+ * Entrada unificada del álbum: puede ser una carta base o una variante.
+ * Las variantes tienen su propio código único (ej: KC001-H).
+ */
+export interface AlbumEntry {
+  code: string;              // "KC001" o "KC001-H"
+  baseCode: string;          // siempre "KC001"
+  name: string;
+  category: KTCGCategory;
   card: KTCGCard;
-  single: CatalogSingleEntry | undefined;
+  imageUrl: string | null;
+  /** null para cartas base, string para variantes */
+  variantLabel: string | null;
+  /** Sólo presente para variantes */
+  variant?: KTCGVariant;
+}
+
+interface CardModalState {
+  entry: AlbumEntry;
+  /** all_images del producto TN (para galería en carta base) */
+  allImages: string[];
 }
 
 // ── Category icons ────────────────────────────────────────────
@@ -94,7 +114,8 @@ function CardModal({
   onSetQty: (qty: number) => void;
   onToggleWishlist: () => void;
 }) {
-  const { card, single } = state;
+  const { entry, allImages } = state;
+  const { card, code, imageUrl, variantLabel } = entry;
   const Icon = categoryIcon[card.category];
   const [listType, setListType] = useState<"sale" | "trade" | "both" | null>(null);
   const [price, setPrice] = useState("");
@@ -106,12 +127,15 @@ function CardModal({
   const [colorized, setColorized] = useState(false);
   const isOwned = quantity > 0;
 
+  // Imagen efectiva a mostrar en el header
+  const displayImage = lightboxSrc ?? imageUrl;
+
   function handleList() {
     if (!listType) return;
     if ((listType === "sale" || listType === "both") && !price) return;
     startListing(async () => {
       const res = await createCardListing({
-        cardCode: card.code,
+        cardCode: code,
         listingType: listType,
         price: price ? parseFloat(price) : undefined,
         note: listNote || undefined,
@@ -122,8 +146,8 @@ function CardModal({
 
   return (
     <>
-    {lightboxOpen && (
-      <ImageLightbox src={lightboxSrc ?? single?.image_url ?? ""} alt={card.name} onClose={() => setLightboxOpen(false)} />
+    {lightboxOpen && displayImage && (
+      <ImageLightbox src={displayImage} alt={card.name} onClose={() => setLightboxOpen(false)} />
     )}
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm"
@@ -135,13 +159,13 @@ function CardModal({
           <div
             className={cn(
               "relative h-20 w-14 rounded-lg overflow-hidden bg-surface-800 shrink-0",
-              single?.image_url && "cursor-zoom-in"
+              imageUrl && "cursor-zoom-in"
             )}
-            onClick={() => single?.image_url && (setLightboxSrc(single.image_url), setLightboxOpen(true))}
+            onClick={() => imageUrl && (setLightboxSrc(imageUrl), setLightboxOpen(true))}
           >
-            {single?.image_url ? (
+            {imageUrl ? (
               <Image
-                src={single.image_url} alt={card.name} fill
+                src={imageUrl} alt={card.name} fill
                 className={cn("object-cover transition-all duration-300", !isOwned && !colorized && "grayscale")}
                 sizes="56px"
               />
@@ -152,13 +176,20 @@ function CardModal({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-mono text-surface-500">{card.code}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[10px] font-mono text-surface-500">{code}</p>
+              {variantLabel && (
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[9px] font-semibold text-amber-300">
+                  {variantLabel}
+                </span>
+              )}
+            </div>
             <p className="text-sm font-bold text-surface-100 leading-tight">{card.name}</p>
             <p className="text-xs text-surface-400 mt-0.5">
               {card.category}{card.level != null ? ` · Nv. ${card.level}` : ""}
             </p>
             {/* Colorize button for unowned cards with image */}
-            {!isOwned && single?.image_url && (
+            {!isOwned && imageUrl && (
               <button
                 onClick={() => setColorized((v) => !v)}
                 className={cn(
@@ -178,22 +209,24 @@ function CardModal({
           </button>
         </div>
 
-        {/* Variant image gallery */}
-        {single && single.all_images.length > 1 && (
+        {/* Galería de variantes — solo para cartas base con múltiples imágenes */}
+        {!variantLabel && allImages.length > 1 && (
           <div className="px-4 py-3 border-b border-surface-800">
-            <p className="text-[10px] text-surface-500 mb-2 font-medium uppercase tracking-wide">Variantes ({single.all_images.length})</p>
+            <p className="text-[10px] text-surface-500 mb-2 font-medium uppercase tracking-wide">
+              Variantes ({allImages.length})
+            </p>
             <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-              {single.all_images.map((url, i) => (
+              {allImages.map((url: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => { setLightboxSrc(url); setLightboxOpen(true); }}
                   className={cn(
                     "relative h-14 w-10 shrink-0 rounded overflow-hidden border-2 transition-all cursor-zoom-in hover:border-primary-400",
-                    url === (lightboxSrc ?? single.image_url) ? "border-primary-500" : "border-surface-700"
+                    url === (lightboxSrc ?? imageUrl) ? "border-primary-500" : "border-surface-700"
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`Variante ${i + 1}`} className={cn("w-full h-full object-cover", !isOwned && !colorized && "grayscale")} />
+                  <img src={url} alt={`Imagen ${i + 1}`} className={cn("w-full h-full object-cover", !isOwned && !colorized && "grayscale")} />
                 </button>
               ))}
             </div>
@@ -344,32 +377,30 @@ function CardModal({
 
 // ── AlbumPage (forwardRef — required by react-pageflip) ───────
 interface PageProps {
-  cards: KTCGCard[];
-  singlesMap: Record<string, CatalogSingleEntry>;
+  entries: AlbumEntry[];
   ownedMap: Record<string, number>;
   pendingCode: string | null;
-  onCardClick: (card: KTCGCard) => void;
+  onEntryClick: (entry: AlbumEntry) => void;
   pageNumber: number;
   totalPages: number;
 }
 
 const AlbumPage = forwardRef<HTMLDivElement, PageProps>(function AlbumPage(
-  { cards, singlesMap, ownedMap, pendingCode, onCardClick, pageNumber, totalPages },
+  { entries, ownedMap, pendingCode, onEntryClick, pageNumber, totalPages },
   ref
 ) {
   return (
     <div ref={ref} className="bg-surface-950 border border-surface-800 flex flex-col h-full select-none">
       <div className="flex-1 p-2 grid grid-cols-3 gap-1.5 content-start">
-        {cards.map((card) => {
-          const single = singlesMap[card.code];
-          const qty = ownedMap[card.code] ?? 0;
+        {entries.map((entry) => {
+          const qty = ownedMap[entry.code] ?? 0;
           const isOwned = qty > 0;
-          const isLoading = pendingCode === card.code;
-          const Icon = categoryIcon[card.category];
+          const isLoading = pendingCode === entry.code;
+          const Icon = categoryIcon[entry.category];
           return (
             <button
-              key={card.code}
-              onClick={() => onCardClick(card)}
+              key={entry.code}
+              onClick={() => onEntryClick(entry)}
               disabled={isLoading}
               className={cn(
                 "relative rounded-lg overflow-hidden border-2 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 text-left",
@@ -380,20 +411,20 @@ const AlbumPage = forwardRef<HTMLDivElement, PageProps>(function AlbumPage(
               )}
             >
               <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
-                {single?.image_url ? (
+                {entry.imageUrl ? (
                   <Image
-                    src={single.image_url} alt={card.name} fill
+                    src={entry.imageUrl} alt={entry.name} fill
                     className={cn("object-cover", !isOwned && "grayscale")}
                     sizes="90px"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-1 text-center">
                     <Icon className={cn("h-5 w-5 mb-1", isOwned ? "text-surface-500" : "text-surface-700")} />
-                    <span className="text-[7px] text-surface-600 leading-tight line-clamp-2">{card.name}</span>
+                    <span className="text-[7px] text-surface-600 leading-tight line-clamp-2">{entry.name}</span>
                   </div>
                 )}
                 <div className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded bg-surface-950/80 text-[6px] font-mono text-surface-400">
-                  {card.code}
+                  {entry.code}
                 </div>
                 {isOwned && (
                   <div className="absolute top-0.5 right-0.5">
@@ -410,13 +441,13 @@ const AlbumPage = forwardRef<HTMLDivElement, PageProps>(function AlbumPage(
               </div>
               <div className="px-1 py-0.5">
                 <p className={cn("text-[6px] font-medium leading-tight line-clamp-1", isOwned ? "text-surface-300" : "text-surface-600")}>
-                  {card.name}
+                  {entry.name}
                 </p>
               </div>
             </button>
           );
         })}
-        {Array.from({ length: CARDS_PER_PAGE - cards.length }).map((_, i) => (
+        {Array.from({ length: CARDS_PER_PAGE - entries.length }).map((_, i) => (
           <div key={`empty-${i}`} className="aspect-5/7 rounded-lg bg-surface-900/20 border border-surface-800/20" />
         ))}
       </div>
@@ -464,7 +495,7 @@ const BackCover = forwardRef<HTMLDivElement>(function BackCover(_, ref) {
 });
 
 // ── Main component ────────────────────────────────────────────
-export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishlist = [], username = "" }: AlbumViewProps) {
+export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap, initialWishlist = [], username = "" }: AlbumViewProps) {
   const [ownedMap, setOwnedMap]     = useState<Record<string, number>>(initialAlbumMap);
   const [wishlistSet, setWishlistSet] = useState<Set<string>>(new Set(initialWishlist));
   const [search, setSearch]         = useState("");
@@ -483,39 +514,70 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flipBookRef = useRef<any>(null);
 
+  // Base catalog cards (only those with a TN listing)
   const catalogCards: KTCGCard[] = allCards
     .filter((c) => singlesMap[c.code])
     .sort(compareCards);
+
+  // All entries = base cards + variants (each as a standalone AlbumEntry)
+  const allEntries: AlbumEntry[] = catalogCards.flatMap((card) => {
+    const single = singlesMap[card.code];
+    const images = allImagesMap[card.code] ?? [];
+    const base: AlbumEntry = {
+      code: card.code,
+      baseCode: card.code,
+      name: card.name,
+      category: card.category,
+      card,
+      imageUrl: single?.image_url ?? null,
+      variantLabel: null,
+    };
+    const variants: AlbumEntry[] = (variantsByBase[card.code] ?? []).map((v) => ({
+      code: v.variantCode,
+      baseCode: card.code,
+      name: card.name,
+      category: card.category,
+      card,
+      imageUrl: images[v.imageIndex] ?? null,
+      variantLabel: v.variantLabel,
+      variant: v,
+    }));
+    return [base, ...variants];
+  });
+
+  // Counts (base cards only for progress stats)
   const ownedCount  = catalogCards.filter((c) => (ownedMap[c.code] ?? 0) > 0).length;
   const totalCards  = catalogCards.length;
   const percentage  = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
   const wishlistCount = wishlistSet.size;
 
-  const flipPages: KTCGCard[][] = [];
-  for (let i = 0; i < catalogCards.length; i += CARDS_PER_PAGE) {
-    flipPages.push(catalogCards.slice(i, i + CARDS_PER_PAGE));
+  // Flip book uses only base card entries (one AlbumEntry per base card)
+  const baseEntries: AlbumEntry[] = allEntries.filter((e) => !e.variantLabel);
+  const flipPages: AlbumEntry[][] = [];
+  for (let i = 0; i < baseEntries.length; i += CARDS_PER_PAGE) {
+    flipPages.push(baseEntries.slice(i, i + CARDS_PER_PAGE));
   }
   const totalFlipPages = flipPages.length;
 
-  // ── Filtered + sorted cards for grid ──────────────────────
-  const baseFiltered = catalogCards.filter((c) => {
+  // ── Filtered + sorted entries for grid ────────────────────
+  const baseFiltered = allEntries.filter((e) => {
     if (search) {
       const q = search.toLowerCase();
-      if (!c.name.toLowerCase().includes(q) && !c.code.toLowerCase().includes(q)) return false;
+      if (!e.name.toLowerCase().includes(q) && !e.code.toLowerCase().includes(q)) return false;
     }
-    if (filterCategory !== "all" && c.category !== filterCategory) return false;
-    if (filterLevel !== "all" && c.level !== filterLevel) return false;
-    const qty = ownedMap[c.code] ?? 0;
+    if (filterCategory !== "all" && e.category !== filterCategory) return false;
+    if (filterLevel !== "all" && e.card.level !== filterLevel) return false;
+    const qty = ownedMap[e.code] ?? 0;
     if (filterOwned === "owned") return qty > 0;
     if (filterOwned === "missing") return qty === 0;
-    if (filterOwned === "wishlist") return wishlistSet.has(c.code);
+    if (filterOwned === "wishlist") return wishlistSet.has(e.code);
     return true;
   });
 
   const sorted = [...baseFiltered].sort((a, b) => {
     if (sortBy === "name_asc") return a.name.localeCompare(b.name);
-    if (sortBy === "level_asc") return (a.level ?? 99) - (b.level ?? 99);
-    return compareCards(a, b);
+    if (sortBy === "level_asc") return (a.card.level ?? 99) - (b.card.level ?? 99);
+    return compareCards(a.card, b.card);
   });
 
   // Pagination for grid
@@ -528,9 +590,9 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
   // Reset grid page when filters change
   const resetGridPage = () => setGridPage(1);
 
-  const handleCardClick = useCallback((card: KTCGCard) => {
-    setModal({ card, single: singlesMap[card.code] });
-  }, [singlesMap]);
+  const handleEntryClick = useCallback((entry: AlbumEntry) => {
+    setModal({ entry, allImages: allImagesMap[entry.baseCode] ?? [] });
+  }, [allImagesMap]);
 
   function handleSetQty(code: string, qty: number) {
     const prev = ownedMap[code] ?? 0;
@@ -687,11 +749,11 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
               showPageCorners={true} disableFlipByClick={false}
             >
               <CoverPage ownedCount={ownedCount} totalCards={totalCards} />
-              {flipPages.map((pageCards, idx) => (
+              {flipPages.map((pageEntries, idx) => (
                 <AlbumPage
-                  key={idx} cards={pageCards} singlesMap={singlesMap}
+                  key={idx} entries={pageEntries}
                   ownedMap={ownedMap} pendingCode={pendingCode}
-                  onCardClick={handleCardClick}
+                  onEntryClick={handleEntryClick}
                   pageNumber={idx + 1} totalPages={totalFlipPages}
                 />
               ))}
@@ -832,17 +894,16 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5">
-              {filtered.map((card) => {
-                const single   = singlesMap[card.code];
-                const qty      = ownedMap[card.code] ?? 0;
+              {filtered.map((entry) => {
+                const qty      = ownedMap[entry.code] ?? 0;
                 const isOwned  = qty > 0;
-                const isWL     = wishlistSet.has(card.code);
-                const isLoading = pendingCode === card.code;
-                const Icon     = categoryIcon[card.category];
+                const isWL     = wishlistSet.has(entry.code);
+                const isLoading = pendingCode === entry.code;
+                const Icon     = categoryIcon[entry.category];
                 return (
                   <button
-                    key={card.code}
-                    onClick={() => handleCardClick(card)}
+                    key={entry.code}
+                    onClick={() => handleEntryClick(entry)}
                     disabled={isLoading}
                     className={cn(
                       "group relative rounded-xl overflow-hidden border-2 transition-all duration-200 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
@@ -855,9 +916,9 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
                     )}
                   >
                     <div className="relative aspect-5/7 bg-surface-800 overflow-hidden">
-                      {single?.image_url ? (
+                      {entry.imageUrl ? (
                         <Image
-                          src={single.image_url} alt={card.name} fill
+                          src={entry.imageUrl} alt={entry.name} fill
                           className={cn(
                             "object-cover transition-all duration-300",
                             !isOwned && "grayscale group-hover:grayscale-0"
@@ -867,11 +928,11 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
                           <Icon className={cn("h-6 w-6 mb-1", isOwned ? "text-surface-500" : "text-surface-700")} />
-                          <span className="text-[9px] text-surface-600 leading-tight line-clamp-2">{card.name}</span>
+                          <span className="text-[9px] text-surface-600 leading-tight line-clamp-2">{entry.name}</span>
                         </div>
                       )}
                       <div className="absolute top-1.5 left-1.5 px-1 py-0.5 rounded bg-surface-950/80 border border-surface-700/60 text-[8px] font-mono text-surface-300">
-                        {card.code}
+                        {entry.code}
                       </div>
                       {isOwned && (
                         <div className="absolute top-1.5 right-1.5">
@@ -887,6 +948,11 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
                           </span>
                         </div>
                       )}
+                      {entry.variantLabel && (
+                        <div className="absolute bottom-1.5 left-1.5 px-1 py-0.5 rounded bg-amber-500/90 text-white text-[7px] font-bold leading-tight">
+                          {entry.variantLabel}
+                        </div>
+                      )}
                       {qty > 1 && (
                         <div className="absolute bottom-1.5 right-1.5 bg-amber-500 text-white rounded px-1.5 text-[9px] font-bold">
                           ×{qty}
@@ -894,7 +960,7 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
                       )}
                     </div>
                     <div className="p-1.5">
-                      <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2">{card.name}</p>
+                      <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2">{entry.name}</p>
                     </div>
                   </button>
                 );
@@ -953,11 +1019,11 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
       {modal && (
         <CardModal
           state={modal}
-          quantity={ownedMap[modal.card.code] ?? 0}
-          isWishlisted={wishlistSet.has(modal.card.code)}
+          quantity={ownedMap[modal.entry.code] ?? 0}
+          isWishlisted={wishlistSet.has(modal.entry.code)}
           onClose={() => setModal(null)}
-          onSetQty={(qty) => handleSetQty(modal.card.code, qty)}
-          onToggleWishlist={() => handleToggleWishlist(modal.card.code)}
+          onSetQty={(qty) => handleSetQty(modal.entry.code, qty)}
+          onToggleWishlist={() => handleToggleWishlist(modal.entry.code)}
         />
       )}
     </PageLayout>
