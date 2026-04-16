@@ -663,7 +663,6 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
     });
   }
   void handleToggleFromGrid;
-
   function goToPrev() { flipBookRef.current?.pageFlip()?.flipPrev(); }
   function goToNext() { flipBookRef.current?.pageFlip()?.flipNext(); }
 
@@ -958,6 +957,20 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, allImagesMap,
                           ×{qty}
                         </div>
                       )}
+                      {/* Quick toggle on hover */}
+                      <div
+                        className="absolute inset-0 flex items-end justify-center pb-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); handleToggleFromGrid(entry.code); }}
+                      >
+                        <span className={cn(
+                          "flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold shadow-lg border transition-all",
+                          isOwned
+                            ? "bg-red-600/90 border-red-500 text-white hover:bg-red-500"
+                            : "bg-primary-600/90 border-primary-500 text-white hover:bg-primary-500"
+                        )}>
+                          {isOwned ? <><Minus className="h-2.5 w-2.5" /> Quitar</> : <><Plus className="h-2.5 w-2.5" /> Agregar</>}
+                        </span>
+                      </div>
                     </div>
                     <div className="p-1.5">
                       <p className="text-[9px] font-semibold text-surface-300 leading-tight line-clamp-2">{entry.name}</p>
