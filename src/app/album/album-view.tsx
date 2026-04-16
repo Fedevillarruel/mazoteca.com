@@ -102,6 +102,7 @@ function CardModal({
   const [, startListing] = useTransition();
   const [listed, setListed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [colorized, setColorized] = useState(false);
   const isOwned = quantity > 0;
 
@@ -121,8 +122,8 @@ function CardModal({
 
   return (
     <>
-    {lightboxOpen && single?.image_url && (
-      <ImageLightbox src={single.image_url} alt={card.name} onClose={() => setLightboxOpen(false)} />
+    {lightboxOpen && (
+      <ImageLightbox src={lightboxSrc ?? single?.image_url ?? ""} alt={card.name} onClose={() => setLightboxOpen(false)} />
     )}
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm"
@@ -136,7 +137,7 @@ function CardModal({
               "relative h-20 w-14 rounded-lg overflow-hidden bg-surface-800 shrink-0",
               single?.image_url && "cursor-zoom-in"
             )}
-            onClick={() => single?.image_url && setLightboxOpen(true)}
+            onClick={() => single?.image_url && (setLightboxSrc(single.image_url), setLightboxOpen(true))}
           >
             {single?.image_url ? (
               <Image
@@ -176,6 +177,28 @@ function CardModal({
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Variant image gallery */}
+        {single && single.all_images.length > 1 && (
+          <div className="px-4 py-3 border-b border-surface-800">
+            <p className="text-[10px] text-surface-500 mb-2 font-medium uppercase tracking-wide">Variantes ({single.all_images.length})</p>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+              {single.all_images.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setLightboxSrc(url); setLightboxOpen(true); }}
+                  className={cn(
+                    "relative h-14 w-10 shrink-0 rounded overflow-hidden border-2 transition-all cursor-zoom-in hover:border-primary-400",
+                    url === (lightboxSrc ?? single.image_url) ? "border-primary-500" : "border-surface-700"
+                  )}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`Variante ${i + 1}`} className={cn("w-full h-full object-cover", !isOwned && !colorized && "grayscale")} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Quantity */}
         <div className="p-4 border-b border-surface-800">
@@ -751,19 +774,6 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
               <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
             </div>
 
-            {/* Page size */}
-            <div className="relative">
-              <select
-                value={pageSize}
-                onChange={(e) => { setPageSize(e.target.value === "all" ? "all" : Number(e.target.value) as PageSizeOption); resetGridPage(); }}
-                className="appearance-none pl-3 pr-8 py-2 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
-              >
-                {PAGE_SIZE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt === "all" ? "Mostrar todas" : `Mostrar ${opt}`}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
-            </div>
           </div>
 
           {/* Collection filter tabs */}
@@ -914,6 +924,23 @@ export function AlbumView({ albumMap: initialAlbumMap, singlesMap, initialWishli
               </button>
             </div>
           )}
+
+          {/* Page size — al final del catálogo */}
+          <div className="flex items-center justify-center gap-2 mt-5 pt-4 border-t border-surface-800/50">
+            <span className="text-xs text-surface-500">Cartas por página:</span>
+            <div className="relative">
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(e.target.value === "all" ? "all" : Number(e.target.value) as PageSizeOption); resetGridPage(); }}
+                className="appearance-none pl-3 pr-8 py-1.5 rounded-lg bg-surface-800 border border-surface-700 text-xs text-surface-300 focus:outline-none focus:border-primary-500 cursor-pointer"
+              >
+                {PAGE_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt === "all" ? "Todas" : opt}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-surface-500 pointer-events-none" />
+            </div>
+          </div>
         </>
       )}
 

@@ -309,7 +309,30 @@ async function main() {
     const subFolders = await listFolders(catFolder.id, token);
 
     if (subFolders.length === 0) {
-      console.log(`   (sin subcarpetas — salteando)\n`);
+      // Carpeta sin subcarpetas → imágenes directamente en la carpeta de categoría
+      const images = await listImages(catFolder.id, token);
+      totalImages += images.length;
+      if (images.length === 0) {
+        console.log(`   (sin subcarpetas ni imágenes — salteando)\n`);
+        continue;
+      }
+      console.log(`   ${images.length} imagen${images.length !== 1 ? "es" : ""} directas`);
+      for (const img of images) {
+        if (img.name.startsWith(".")) continue;
+        const parsed = parseImageFile(img.name);
+        if (!parsed) {
+          unrecognized.push(`${catFolder.name}/${img.name}`);
+          continue;
+        }
+        rows.push({
+          card_code:     parsed.cardCode,
+          variant_label: parsed.variantLabel,
+          drive_file_id: img.id,
+          _filename:     img.name,
+          _path:         `${catFolder.name}/${img.name}`,
+        });
+      }
+      console.log();
       continue;
     }
 
