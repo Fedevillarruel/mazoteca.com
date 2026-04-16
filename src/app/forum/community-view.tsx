@@ -11,10 +11,9 @@ import {
   Pin,
   Eye,
   RefreshCw,
-  Smile,
 } from "lucide-react";
 
-type Tab = "general" | "trading" | "memes";
+type Tab = "general" | "trading";
 
 interface ThreadItem {
   id: string;
@@ -40,7 +39,7 @@ function EmptyTab({ label, tab }: { label: string; tab: Tab }) {
         Todavía no hay posts en {label}
       </p>
       <p className="text-sm mb-6">
-        ¡Sé el primero en publicar algo{tab === "trading" ? " sobre intercambios" : tab === "memes" ? " divertido" : ""}!
+        ¡Sé el primero en publicar algo{tab === "trading" ? " sobre intercambios" : ""}!
       </p>
       <Link href={`/forum/new?tab=${tab}`}>
         <Button size="sm">
@@ -55,7 +54,6 @@ function EmptyTab({ label, tab }: { label: string; tab: Tab }) {
 const TAB_CONFIG: { key: Tab; label: string; emptyLabel: string }[] = [
   { key: "general", label: "General", emptyLabel: "General" },
   { key: "trading", label: "Trading", emptyLabel: "Trading" },
-  { key: "memes",   label: "Memes",   emptyLabel: "Memes"   },
 ];
 
 export function CommunityView({ threadsByTab, activeTab }: CommunityViewProps) {
@@ -68,7 +66,6 @@ export function CommunityView({ threadsByTab, activeTab }: CommunityViewProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           {activeTab === "trading" && <RefreshCw className="h-5 w-5 text-surface-400" />}
-          {activeTab === "memes"   && <Smile className="h-5 w-5 text-surface-400" />}
           {activeTab === "general" && <MessageSquare className="h-5 w-5 text-surface-400" />}
           <h2 className="text-lg font-semibold text-surface-100">{tabMeta.label}</h2>
           {posts.length > 0 && (
@@ -97,8 +94,6 @@ export function CommunityView({ threadsByTab, activeTab }: CommunityViewProps) {
                   <div className="hidden sm:flex h-10 w-10 rounded-lg bg-surface-800 items-center justify-center shrink-0">
                     {post.pinned ? (
                       <Pin className="h-4 w-4 text-accent-400" />
-                    ) : activeTab === "memes" ? (
-                      <Smile className="h-4 w-4 text-yellow-400" />
                     ) : activeTab === "trading" ? (
                       <RefreshCw className="h-4 w-4 text-blue-400" />
                     ) : (

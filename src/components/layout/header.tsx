@@ -20,7 +20,6 @@ import {
   Settings,
   ChevronDown,
   RefreshCw,
-  Smile,
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,6 @@ const mainNav = [
 const communityTabs = [
   { href: "/forum?tab=general", label: "General", icon: MessageSquare, tab: "general" },
   { href: "/forum?tab=trading", label: "Trading", icon: RefreshCw, tab: "trading" },
-  { href: "/forum?tab=memes", label: "Memes", icon: Smile, tab: "memes" },
 ];
 
 interface HeaderProps {

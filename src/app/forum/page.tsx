@@ -13,7 +13,7 @@ export default async function ForumPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab: tabParam } = await searchParams;
-  const activeTab = (["general", "trading", "memes"].includes(tabParam ?? "") ? tabParam : "general") as "general" | "trading" | "memes";
+  const activeTab = (["general", "trading"].includes(tabParam ?? "") ? tabParam : "general") as "general" | "trading";
   const supabase = await createClient();
 
   const { data: categories } = await supabase
@@ -26,7 +26,7 @@ export default async function ForumPage({
     catMap[cat.slug] = cat.id;
   }
 
-  const tabSlugs = ["general", "trading", "memes"];
+  const tabSlugs = ["general", "trading"];
   const threadsByTab: Record<string, {
     id: string;
     title: string;
@@ -36,7 +36,7 @@ export default async function ForumPage({
     time: string;
     pinned: boolean;
     slug: string;
-  }[]> = { general: [], trading: [], memes: [] };
+  }[]> = { general: [], trading: [] };
 
   await Promise.all(
     tabSlugs.map(async (slug) => {
