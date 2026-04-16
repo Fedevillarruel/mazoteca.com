@@ -1,0 +1,425 @@
+{
+  "created": [
+    {
+      "code": "KE001",
+      "name": "¡REFUERZOS!",
+      "tn_id": 338550186,
+      "status": "ok"
+    },
+    {
+      "code": "KE002",
+      "name": "ORDEN DE AVANCE",
+      "tn_id": 338550193,
+      "status": "ok"
+    },
+    {
+      "code": "KE003",
+      "name": "ENTRENAMIENTO BÉLICO",
+      "tn_id": 338550200,
+      "status": "ok"
+    },
+    {
+      "code": "KE004",
+      "name": "LLAMADO DEL HÉROE",
+      "tn_id": 338550211,
+      "status": "ok"
+    },
+    {
+      "code": "KE005",
+      "name": "ATACANTE INESPERADO",
+      "tn_id": 338550216,
+      "status": "ok"
+    },
+    {
+      "code": "KE006",
+      "name": "¡SORPRESA!",
+      "tn_id": 338550222,
+      "status": "ok"
+    },
+    {
+      "code": "KE007",
+      "name": "EXPLOSIÓN SORPRESIVA",
+      "tn_id": 338550229,
+      "status": "ok"
+    },
+    {
+      "code": "KE009",
+      "name": "SED DE SANGRE",
+      "tn_id": 338550236,
+      "status": "ok"
+    },
+    {
+      "code": "KE011",
+      "name": "DOBLE ATAQUE",
+      "tn_id": 338550242,
+      "status": "ok"
+    },
+    {
+      "code": "KE012",
+      "name": "FUERZA SOBREHUMANA",
+      "tn_id": 338550249,
+      "status": "ok"
+    },
+    {
+      "code": "KE013",
+      "name": "SEGUNDA OPORTUNIDAD",
+      "tn_id": 338550260,
+      "status": "ok"
+    },
+    {
+      "code": "KE015",
+      "name": "AUDACIA RIESGOSA",
+      "tn_id": 338550271,
+      "status": "ok"
+    },
+    {
+      "code": "KE016",
+      "name": "DEFENSA CONJUNTA",
+      "tn_id": 338550280,
+      "status": "ok"
+    },
+    {
+      "code": "KE017",
+      "name": "AUDACIA DIABÓLICA",
+      "tn_id": 338550294,
+      "status": "ok"
+    },
+    {
+      "code": "KE018",
+      "name": "GRAN CONVOCACIÓN",
+      "tn_id": 338550306,
+      "status": "ok"
+    },
+    {
+      "code": "KE019",
+      "name": "PASO TÁCTICO",
+      "tn_id": 338550317,
+      "status": "ok"
+    },
+    {
+      "code": "KE020",
+      "name": "INTERCAMBIO DE POSICIÓN",
+      "tn_id": 338550333,
+      "status": "ok"
+    },
+    {
+      "code": "KE021",
+      "name": "CAMBIO DE ESTRATEGIA",
+      "tn_id": 338550349,
+      "status": "ok"
+    },
+    {
+      "code": "KE022",
+      "name": "CONVOCACIÓN SACRIFICADA",
+      "tn_id": 338550360,
+      "status": "ok"
+    },
+    {
+      "code": "KE023",
+      "name": "ALZAR ESCUDO",
+      "tn_id": 338550374,
+      "status": "ok"
+    },
+    {
+      "code": "KE024",
+      "name": "AUDACIA SAGRADA",
+      "tn_id": 338550385,
+      "status": "ok"
+    },
+    {
+      "code": "KE025",
+      "name": "AUDACIA TÁCTICA",
+      "tn_id": 338550392,
+      "status": "ok"
+    },
+    {
+      "code": "KE026",
+      "name": "OSADÍA DEL VALIENTE",
+      "tn_id": 338550397,
+      "status": "ok"
+    },
+    {
+      "code": "KE027",
+      "name": "ATAQUE FURIOSO",
+      "tn_id": 338550404,
+      "status": "ok"
+    },
+    {
+      "code": "KE028",
+      "name": "ESPADA AFILADA",
+      "tn_id": 338550409,
+      "status": "ok"
+    },
+    {
+      "code": "KE029",
+      "name": "ESCUDO REFORZADO",
+      "tn_id": 338550415,
+      "status": "ok"
+    },
+    {
+      "code": "KE030",
+      "name": "ACTITUD COMBATIVA",
+      "tn_id": 338550419,
+      "status": "ok"
+    },
+    {
+      "code": "KE031",
+      "name": "PASOS SIGILOSOS",
+      "tn_id": 338550428,
+      "status": "ok"
+    },
+    {
+      "code": "KE032",
+      "name": "DISTRACCIÓN DE NOVATOS",
+      "tn_id": 338550435,
+      "status": "ok"
+    },
+    {
+      "code": "KE035",
+      "name": "ESCUDO AÉREO",
+      "tn_id": 338550441,
+      "status": "ok"
+    },
+    {
+      "code": "KE036",
+      "name": "REBOTE AÉREO",
+      "tn_id": 338550445,
+      "status": "ok"
+    },
+    {
+      "code": "KE038",
+      "name": "DEFENSA COMBATIVA",
+      "tn_id": 338550453,
+      "status": "ok"
+    },
+    {
+      "code": "KE039",
+      "name": "GOLPE DE ESCUDO",
+      "tn_id": 338550462,
+      "status": "ok"
+    },
+    {
+      "code": "KE040",
+      "name": "LLUVIA DE FLECHAS",
+      "tn_id": 338550470,
+      "status": "ok"
+    },
+    {
+      "code": "KE041",
+      "name": "MUERTE CODICIOSA",
+      "tn_id": 338550478,
+      "status": "ok"
+    },
+    {
+      "code": "KE042",
+      "name": "APREMIO DE BATALLA",
+      "tn_id": 338550487,
+      "status": "ok"
+    },
+    {
+      "code": "KE043",
+      "name": "MAESTRÍA DE COMBATE",
+      "tn_id": 338550496,
+      "status": "ok"
+    },
+    {
+      "code": "KE044",
+      "name": "PUERTAS BLOQUEADAS",
+      "tn_id": 338550501,
+      "status": "ok"
+    },
+    {
+      "code": "KE046",
+      "name": "ATAQUE IMPLACABLE",
+      "tn_id": 338550506,
+      "status": "ok"
+    },
+    {
+      "code": "KE047",
+      "name": "MOVIMIENTO ÁGIL",
+      "tn_id": 338550514,
+      "status": "ok"
+    },
+    {
+      "code": "KE048",
+      "name": "ATAQUE COMBINADO",
+      "tn_id": 338550521,
+      "status": "ok"
+    },
+    {
+      "code": "KE049",
+      "name": "CAMUFLAJE SELVÁTICO",
+      "tn_id": 338550526,
+      "status": "ok"
+    },
+    {
+      "code": "KE050",
+      "name": "MANO A MANO",
+      "tn_id": 338550535,
+      "status": "ok"
+    },
+    {
+      "code": "KE051",
+      "name": "LLAMADO DE LA MANADA",
+      "tn_id": 338550543,
+      "status": "ok"
+    },
+    {
+      "code": "KE052",
+      "name": "DEFENSA IMPLACABLE",
+      "tn_id": 338550546,
+      "status": "ok"
+    },
+    {
+      "code": "KP001",
+      "name": "AUDACIA SUPREMA",
+      "tn_id": 338550553,
+      "status": "ok"
+    },
+    {
+      "code": "KP002",
+      "name": "DESTREZA EXTREMA",
+      "tn_id": 338550558,
+      "status": "ok"
+    },
+    {
+      "code": "KP003",
+      "name": "HUIDA MAESTRA",
+      "tn_id": 338550561,
+      "status": "ok"
+    },
+    {
+      "code": "KP004",
+      "name": "OCUPAR POSICIÓN",
+      "tn_id": 338550569,
+      "status": "ok"
+    },
+    {
+      "code": "KP005",
+      "name": "DOBLE ATAQUE REAL",
+      "tn_id": 338550573,
+      "status": "ok"
+    },
+    {
+      "code": "KP006",
+      "name": "ATAQUE MAESTRO",
+      "tn_id": 338550576,
+      "status": "ok"
+    },
+    {
+      "code": "KP007",
+      "name": "DEFENSA MAESTRA",
+      "tn_id": 338550580,
+      "status": "ok"
+    },
+    {
+      "code": "KP008",
+      "name": "SED DE BATALLA",
+      "tn_id": 338550584,
+      "status": "ok"
+    },
+    {
+      "code": "KP009",
+      "name": "ESCUDO ALIADO",
+      "tn_id": 338550595,
+      "status": "ok"
+    },
+    {
+      "code": "KP010",
+      "name": "ESPADA ALIADA",
+      "tn_id": 338550605,
+      "status": "ok"
+    },
+    {
+      "code": "KA002",
+      "name": "DAGA ARROJADIZA",
+      "tn_id": 338550611,
+      "status": "ok"
+    },
+    {
+      "code": "KA003",
+      "name": "BOMBA DE METRALLA",
+      "tn_id": 338550615,
+      "status": "ok"
+    },
+    {
+      "code": "KA004",
+      "name": "BOMBA INCENDIARIA",
+      "tn_id": 338550624,
+      "status": "ok"
+    },
+    {
+      "code": "KA005",
+      "name": "HACHA ARROJADIZA",
+      "tn_id": 338550634,
+      "status": "ok"
+    },
+    {
+      "code": "KA008",
+      "name": "FLECHA PERFORANTE",
+      "tn_id": 338550641,
+      "status": "ok"
+    },
+    {
+      "code": "KA009",
+      "name": "FLECHA CONTUNDENTE",
+      "tn_id": 338550649,
+      "status": "ok"
+    },
+    {
+      "code": "KA010",
+      "name": "FLECHA DE LARGO ALCANCE",
+      "tn_id": 338550660,
+      "status": "ok"
+    },
+    {
+      "code": "KA011",
+      "name": "FLECHA DESTRUCTORA",
+      "tn_id": 338550675,
+      "status": "ok"
+    },
+    {
+      "code": "KA012",
+      "name": "CADENA ATRAPANTE",
+      "tn_id": 338550690,
+      "status": "ok"
+    },
+    {
+      "code": "KA013",
+      "name": "LANZA LIGERA",
+      "tn_id": 338550700,
+      "status": "ok"
+    },
+    {
+      "code": "KA014",
+      "name": "DAGA PRECISA",
+      "tn_id": 338550712,
+      "status": "ok"
+    },
+    {
+      "code": "KA015",
+      "name": "MARTILLÓMERANG",
+      "tn_id": 338550729,
+      "status": "ok"
+    },
+    {
+      "code": "KA016",
+      "name": "BRAZAS LLAMEANTES",
+      "tn_id": 338550735,
+      "status": "ok"
+    },
+    {
+      "code": "KA017",
+      "name": "FLECHA SELVÁTICA",
+      "tn_id": 338550739,
+      "status": "ok"
+    },
+    {
+      "code": "KA018",
+      "name": "HACHA DE CAZA",
+      "tn_id": 338550743,
+      "status": "ok"
+    }
+  ],
+  "errors": []
+}

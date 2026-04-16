@@ -41,6 +41,7 @@
 import { readFileSync, existsSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { createSign } from "crypto";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 
@@ -49,6 +50,7 @@ const __dir = dirname(fileURLToPath(import.meta.url));
 const ENV_PATH = resolve(__dir, "../.env.local");
 const CSV_PATH = resolve(__dir, "images-map.csv");
 const LOG_PATH = resolve(__dir, "upload-images-log.json");
+const SA_PATH  = resolve(__dir, "google-service-account.json");
 
 // Parsear .env.local
 const envVars = {};
@@ -73,6 +75,7 @@ const TN_HEADERS     = {
 
 const args = process.argv.slice(2);
 const DRY_RUN       = args.includes("--dry-run");
+const DIAGNOSE      = args.includes("--diagnose");
 const SKIP_EXISTING = args.includes("--skip-existing");
 const ONLY_CARD     = args.find((a) => a.startsWith("--card="))?.split("=")[1]?.toUpperCase();
 const DELAY_MS      = parseInt(args.find((a) => a.startsWith("--delay="))?.split("=")[1] ?? "1500", 10);
@@ -87,31 +90,47 @@ function log(emoji, msg) {
   console.log(`${emoji}  ${msg}`);
 }
 
-/** Obtener URL de descarga directa desde Google Drive file ID */
-function driveDownloadUrl(fileId) {
-  // Google Drive direct download URL (funciona para archivos <100MB sin confirmación)
-  return `https://drive.google.com/uc?export=download&id=${fileId}&confirm=t`;
+/** Obtener token de Google Service Account */
+async function getGoogleAccessToken(sa) {
+  const now = Math.floor(Date.now() / 1000);
+  const header  = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({
+    iss:   sa.client_email,
+    scope: "https://www.googleapis.com/auth/drive.readonly",
+    aud:   "https://oauth2.googleapis.com/token",
+    exp:   now + 3600,
+    iat:   now,
+  })).toString("base64url");
+  const sign = createSign("RSA-SHA256");
+  sign.update(`${header}.${payload}`);
+  const sig = sign.sign(sa.private_key, "base64url");
+  const jwt = `${header}.${payload}.${sig}`;
+
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion:  jwt,
+    }),
+  });
+  const data = await res.json();
+  if (!data.access_token) throw new Error(`Sin access_token: ${JSON.stringify(data)}`);
+  return data.access_token;
 }
 
-/** Descargar imagen desde Drive como ArrayBuffer */
-async function downloadFromDrive(fileId) {
-  const url = driveDownloadUrl(fileId);
+/** Descargar imagen desde Drive usando service account */
+async function downloadFromDrive(fileId, driveToken) {
+  const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
   const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; MazotecaBot/1.0)",
-    },
-    redirect: "follow",
+    headers: { Authorization: `Bearer ${driveToken}` },
   });
 
   if (!res.ok) {
-    throw new Error(`Drive download failed: ${res.status} for fileId=${fileId}`);
+    throw new Error(`Drive download failed: ${res.status} para fileId=${fileId}`);
   }
 
   const contentType = res.headers.get("content-type") ?? "image/jpeg";
-  if (!contentType.startsWith("image/") && !contentType.includes("octet-stream")) {
-    throw new Error(`Drive devolvió content-type inesperado: ${contentType} — ¿El archivo es público?`);
-  }
-
   const buffer = await res.arrayBuffer();
   return { buffer, contentType: contentType.startsWith("image/") ? contentType : "image/jpeg" };
 }
@@ -172,34 +191,18 @@ function extractCardCode(product) {
 }
 
 /**
- * Subir imagen a un producto de TN usando multipart/form-data.
+ * Subir imagen a un producto de TN usando base64 en JSON.
  * Retorna el objeto imagen creado.
  */
 async function uploadImageToProduct(productId, imageBuffer, contentType, position = 0) {
-  // TN acepta subir imagen via URL externa O via multipart.
-  // Usamos URL de Drive directa (más simple que multipart):
-  // POST /products/{id}/images  con { src: "https://..." }
-  // PERO Drive requiere auth → usamos multipart con el buffer.
-
-  const ext = contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
+  const ext = contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "webp";
   const filename = `carta_${Date.now()}.${ext}`;
-
-  const form = new FormData();
-  form.append("position", String(position));
-  form.append(
-    "attachment",
-    new Blob([imageBuffer], { type: contentType }),
-    filename
-  );
+  const attachment = Buffer.from(imageBuffer).toString("base64");
 
   const res = await fetch(`${TN_BASE}/products/${productId}/images`, {
     method: "POST",
-    headers: {
-      Authentication: TN_HEADERS.Authentication,
-      "User-Agent": TN_HEADERS["User-Agent"],
-      // NO incluir Content-Type — fetch lo pone solo con boundary para multipart
-    },
-    body: form,
+    headers: TN_HEADERS,
+    body: JSON.stringify({ filename, attachment, position }),
   });
 
   if (!res.ok) {
@@ -255,7 +258,18 @@ async function main() {
   }
 
   if (DRY_RUN) log("🧪", "DRY RUN activado — no se subirá nada");
+  if (DIAGNOSE) log("🔍", "DIAGNOSE activado — mostrando todos los productos TN y sus códigos");
   if (ONLY_CARD) log("🎯", `Procesando solo: ${ONLY_CARD}`);
+
+  // 0. Autenticación Google Drive
+  if (!existsSync(SA_PATH)) {
+    console.error(`❌  No encontré: ${SA_PATH}`);
+    process.exit(1);
+  }
+  const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
+  log("🔑", `Service Account: ${sa.client_email}`);
+  const driveToken = await getGoogleAccessToken(sa);
+  log("✅", "Token de Drive OK");
 
   // 1. Leer CSV
   const csvRows = parseCsv(CSV_PATH);
@@ -287,6 +301,31 @@ async function main() {
   for (const p of products) {
     const code = extractCardCode(p);
     if (code) productByCode.set(code, p);
+  }
+
+  // Modo diagnóstico: mostrar todos los productos y sus códigos
+  if (DIAGNOSE) {
+    console.log("\n📋  Productos en TN con código detectado:");
+    for (const p of products) {
+      const code = extractCardCode(p);
+      const name = p.name?.es ?? "(sin nombre)";
+      const imgs = (p.images ?? []).length;
+      if (code) {
+        console.log(`  ✅ ${code.padEnd(8)} → "${name}" (id:${p.id}, imágenes:${imgs})`);
+      }
+    }
+    console.log("\n📋  Productos en TN SIN código detectado (necesitan tag/nombre con código K...):");
+    for (const p of products) {
+      const code = extractCardCode(p);
+      if (!code) {
+        const name = p.name?.es ?? "(sin nombre)";
+        const tags = p.tags ?? "(sin tags)";
+        const imgs = (p.images ?? []).length;
+        console.log(`  ⚠️  id:${p.id} "${name}" tags:"${tags}" imágenes:${imgs}`);
+      }
+    }
+    console.log(`\n📊  Total: ${products.length} productos | ${productByCode.size} con código\n`);
+    return;
   }
 
   // 4. Agrupar CSV por carta
@@ -321,7 +360,7 @@ async function main() {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const { drive_file_id, variant_label } = row;
-      const position = i;
+      const position = i + 1; // TN requiere position >= 1
 
       try {
         if (DRY_RUN) {
@@ -332,7 +371,7 @@ async function main() {
 
         // Descargar de Drive
         log("  ⬇️ ", `Descargando de Drive: ${drive_file_id}...`);
-        const { buffer, contentType } = await downloadFromDrive(drive_file_id);
+        const { buffer, contentType } = await downloadFromDrive(drive_file_id, driveToken);
         log("  📥", `Descargado: ${(buffer.byteLength / 1024).toFixed(1)} KB (${contentType})`);
 
         // Subir a TN
@@ -342,14 +381,24 @@ async function main() {
 
         // Asociar a variante si se especificó
         if (variant_label) {
+          // Busca la variante por:
+          // 1. Que el valor contenga el label exacto  ("Stamp", "Holo", ...)
+          // 2. Que el label sea "Arte N" y el valor sea el número "N"
+          const artNum = variant_label.match(/^Arte (\d+)$/i)?.[1];
           const variant = (product.variants ?? []).find((v) =>
-            v.values?.some((val) => val.es?.toLowerCase().includes(variant_label.toLowerCase()))
+            v.values?.some((val) => {
+              const tnVal = val.es?.trim() ?? "";
+              if (tnVal.toLowerCase() === variant_label.toLowerCase()) return true;
+              if (artNum && tnVal === artNum) return true;
+              if (tnVal.toLowerCase().includes(variant_label.toLowerCase())) return true;
+              return false;
+            })
           );
           if (variant) {
             await associateImageToVariant(product.id, variant.id, uploadedImage.id);
-            log("  🔗", `Asociada al variante "${variant_label}" (id: ${variant.id})`);
+            log("  🔗", `Asociada al variante "${variant.values?.[0]?.es}" (id: ${variant.id})`);
           } else {
-            log("  ⚠️ ", `No encontré variante con label "${variant_label}" en producto ${product.id}`);
+            log("  ℹ️ ", `Sin variante TN para "${variant_label}" — imagen subida a la galería`);
           }
         }
 

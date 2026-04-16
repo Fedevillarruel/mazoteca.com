@@ -53,6 +53,31 @@ type PageSizeOption = typeof PAGE_SIZE_OPTIONS[number];
 const CATEGORIES: KTCGCategory[] = ["Coronados", "Realeza", "Arroje", "Estrategia Primigenia", "Estrategia", "Tropas"];
 const LEVELS = [1, 2, 3, 4];
 
+// ── Image Lightbox ────────────────────────────────────────────
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"
+      >
+        <X className="h-6 w-6" />
+      </button>
+      <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ── Card Detail Modal ─────────────────────────────────────────
 function CardModal({
   state,
@@ -76,6 +101,8 @@ function CardModal({
   const [listNote, setListNote] = useState("");
   const [, startListing] = useTransition();
   const [listed, setListed] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [colorized, setColorized] = useState(false);
   const isOwned = quantity > 0;
 
   function handleList() {
@@ -93,6 +120,10 @@ function CardModal({
   }
 
   return (
+    <>
+    {lightboxOpen && single?.image_url && (
+      <ImageLightbox src={single.image_url} alt={card.name} onClose={() => setLightboxOpen(false)} />
+    )}
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-surface-950/80 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -100,9 +131,19 @@ function CardModal({
       <div className="w-full max-w-sm bg-surface-900 border border-surface-700 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-start gap-3 p-4 border-b border-surface-800">
-          <div className="relative h-20 w-14 rounded-lg overflow-hidden bg-surface-800 shrink-0">
+          <div
+            className={cn(
+              "relative h-20 w-14 rounded-lg overflow-hidden bg-surface-800 shrink-0",
+              single?.image_url && "cursor-zoom-in"
+            )}
+            onClick={() => single?.image_url && setLightboxOpen(true)}
+          >
             {single?.image_url ? (
-              <Image src={single.image_url} alt={card.name} fill className="object-cover" sizes="56px" />
+              <Image
+                src={single.image_url} alt={card.name} fill
+                className={cn("object-cover transition-all duration-300", !isOwned && !colorized && "grayscale")}
+                sizes="56px"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Icon className="h-6 w-6 text-surface-600" />
@@ -115,6 +156,21 @@ function CardModal({
             <p className="text-xs text-surface-400 mt-0.5">
               {card.category}{card.level != null ? ` · Nv. ${card.level}` : ""}
             </p>
+            {/* Colorize button for unowned cards with image */}
+            {!isOwned && single?.image_url && (
+              <button
+                onClick={() => setColorized((v) => !v)}
+                className={cn(
+                  "mt-1.5 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium border transition-all",
+                  colorized
+                    ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
+                    : "bg-surface-800 border-surface-700 text-surface-500 hover:text-surface-300"
+                )}
+              >
+                <Sparkles className="h-2.5 w-2.5" />
+                {colorized ? "Ver en gris" : "Ver en color"}
+              </button>
+            )}
           </div>
           <button onClick={onClose} className="text-surface-500 hover:text-surface-200 transition-colors p-1">
             <X className="h-4 w-4" />
@@ -259,6 +315,7 @@ function CardModal({
         )}
       </div>
     </div>
+    </>
   );
 }
 
